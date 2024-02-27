@@ -1,1 +1,2 @@
 add_subdirectory(serial_tests)
+add_subdirectory(mpi_tests)
