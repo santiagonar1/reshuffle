@@ -19,5 +19,9 @@ macro(package_add_test TEST_NAME)
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
 endmacro()
 
+file(GLOB SOURCES
+        *.cpp
+)
+
 package_add_test(reshuffle_tests
-        dummy_test.cpp)
+        ${SOURCES})
