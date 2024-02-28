@@ -4,23 +4,9 @@
 #include <vector>
 #include <mpi.h>
 
+#include "utils.hpp"
+
 namespace reshuffle {
-
-    namespace details {
-        template<typename DATATYPE>
-        MPI_Datatype to_mpi_datatype() {
-            if (std::is_same_v<DATATYPE, int>) {
-                return MPI_INT;
-            } else if (std::is_same_v<DATATYPE, float>) {
-                return MPI_FLOAT;
-            } else if (std::is_same_v<DATATYPE, double>) {
-                return MPI_DOUBLE;
-            }
-
-            throw std::invalid_argument("No MPI Datatype");
-        }
-    }
-
     template<typename T>
     auto shuffle(const std::vector<T> &values, const MPI_Comm &comm) {
         int num_ranks{};
