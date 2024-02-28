@@ -16,6 +16,13 @@ namespace reshuffle {
 
             return values_per_rank;
         }
+
+        auto calc_displacements(const std::vector<int> &num_values_per_rank) {
+            std::vector<int> displacements(num_values_per_rank.size(), 0);
+            std::partial_sum(num_values_per_rank.begin(), num_values_per_rank.end() - 1, displacements.begin() + 1);
+
+            return displacements;
+        }
     }
 
     template<typename T>
@@ -30,10 +37,7 @@ namespace reshuffle {
         MPI_Bcast(&total_num_values, 1, MPI_INT, 0, comm);
 
         auto counts_send = internal::get_num_values_per_rank(total_num_values, num_ranks);
-
-        std::vector<int> displacements(num_ranks, 0);
-        std::partial_sum(counts_send.begin(), counts_send.end() - 1, displacements.begin() + 1);
-
+        auto displacements = internal::calc_displacements(counts_send);
         const int num_values = counts_send[rank];
 
         std::vector<T> my_values(num_values);
