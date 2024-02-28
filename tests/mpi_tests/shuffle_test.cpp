@@ -39,6 +39,6 @@ TEST_F(Shuffle, WorksForDifferentDatatypes) {
         global_values.resize(_num_ranks * _min_elements_per_rank);
     }
 
-    auto my_values_d = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
-    EXPECT_THAT(_min_elements_per_rank, Eq(my_values_d.size()));
+    auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
+    EXPECT_THAT(_min_elements_per_rank, Eq(my_values.size()));
 }
