@@ -12,8 +12,9 @@ namespace reshuffle {
         int num_ranks{};
         MPI_Comm_size(comm, &num_ranks);
 
-        int values_per_rank = static_cast<int>(values.size()) / num_ranks;
-        MPI_Bcast(&values_per_rank, 1, MPI_INT, 0, comm);
+        int total_num_values{static_cast<int>(values.size())};
+        MPI_Bcast(&total_num_values, 1, MPI_INT, 0, comm);
+        const int values_per_rank = total_num_values / num_ranks;
 
         std::vector<T> my_values(values_per_rank);
         MPI_Scatter(values.data(), values_per_rank, details::to_mpi_datatype<T>(), my_values.data(), my_values.size(),
