@@ -9,7 +9,7 @@
 
 namespace reshuffle {
     namespace internal {
-        auto get_num_values_per_rank(int total_num_values, int num_ranks) {
+        auto calc_num_values_per_rank(int total_num_values, int num_ranks) {
             const int min_num_values_per_rank = total_num_values / num_ranks;
             std::vector<int> values_per_rank(num_ranks, min_num_values_per_rank);
             values_per_rank.back() += total_num_values % num_ranks;
@@ -36,7 +36,7 @@ namespace reshuffle {
         int total_num_values{static_cast<int>(values.size())};
         MPI_Bcast(&total_num_values, 1, MPI_INT, 0, comm);
 
-        auto counts_send = internal::get_num_values_per_rank(total_num_values, num_ranks);
+        auto counts_send = internal::calc_num_values_per_rank(total_num_values, num_ranks);
         auto displacements = internal::calc_displacements(counts_send);
         const int num_values = counts_send[rank];
 
