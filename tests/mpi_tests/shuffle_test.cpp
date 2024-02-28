@@ -21,6 +21,10 @@ protected:
     [[nodiscard]] bool is_root() const {
         return _rank == 0;
     }
+
+    [[nodiscard]] bool is_last() const {
+        return _rank == _num_ranks - 1;
+    }
 };
 
 TEST_F(Shuffle, SplitsDataEquallyAmongRanks) {
@@ -50,7 +54,7 @@ TEST_F(Shuffle, GivesByDefaultRemainingElementsToLastRank) {
     }
 
     auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
-    if (_rank != _num_ranks - 1) {
+    if (not is_last()) {
         EXPECT_THAT(my_values.size(), Eq(_min_elements_per_rank));
     } else {
         EXPECT_THAT(my_values.size(), Eq(_min_elements_per_rank + 1));
