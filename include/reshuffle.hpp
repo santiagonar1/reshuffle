@@ -3,10 +3,21 @@
 
 #include <vector>
 #include <mpi.h>
+#include <numeric>
 
 #include "utils.hpp"
 
 namespace reshuffle {
+    namespace internal {
+        auto get_num_values_per_rank(int total_num_values, int num_ranks) {
+            const int min_num_values_per_rank = total_num_values / num_ranks;
+            std::vector<int> values_per_rank(num_ranks, min_num_values_per_rank);
+            values_per_rank.back() += total_num_values % num_ranks;
+
+            return values_per_rank;
+        }
+    }
+
     template<typename T>
     auto shuffle(const std::vector<T> &values, const MPI_Comm &comm) {
         int num_ranks{};
@@ -18,14 +29,10 @@ namespace reshuffle {
         int total_num_values{static_cast<int>(values.size())};
         MPI_Bcast(&total_num_values, 1, MPI_INT, 0, comm);
 
-        const int min_num_values_per_rank = total_num_values / num_ranks;
-        std::vector<int> counts_send(num_ranks, min_num_values_per_rank);
-        counts_send.back() += total_num_values % num_ranks;
+        auto counts_send = internal::get_num_values_per_rank(total_num_values, num_ranks);
 
-        std::vector<int> displacements(num_ranks);
-        for (int i = 0; i < num_ranks; ++i) {
-            displacements[i] = i * min_num_values_per_rank;
-        }
+        std::vector<int> displacements(num_ranks, 0);
+        std::partial_sum(counts_send.begin(), counts_send.end() - 1, displacements.begin() + 1);
 
         const int num_values = counts_send[rank];
 
