@@ -36,13 +36,13 @@ namespace reshuffle {
         int total_num_values{static_cast<int>(values.size())};
         MPI_Bcast(&total_num_values, 1, MPI_INT, 0, comm);
 
-        auto counts_send = internal::calc_num_values_per_rank(total_num_values, num_ranks);
-        auto displacements = internal::calc_displacements(counts_send);
-        const int num_values = counts_send[rank];
+        auto num_values_per_rank = internal::calc_num_values_per_rank(total_num_values, num_ranks);
+        auto displacements = internal::calc_displacements(num_values_per_rank);
+        const int num_values = num_values_per_rank[rank];
 
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
         std::vector<T> my_values(num_values);
-        MPI_Scatterv(values.data(), counts_send.data(), displacements.data(), mpi_datatype, my_values.data(),
+        MPI_Scatterv(values.data(), num_values_per_rank.data(), displacements.data(), mpi_datatype, my_values.data(),
                      num_values, mpi_datatype, 0, comm);
 
         return my_values;
