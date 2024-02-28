@@ -3,7 +3,7 @@
 
 #include <mpi.h>
 
-namespace reshuffle::details {
+namespace reshuffle::internal {
     template<typename DATATYPE>
     MPI_Datatype to_mpi_datatype() {
         if (std::is_same_v<DATATYPE, int>) {

@@ -30,8 +30,8 @@ namespace reshuffle {
         const int num_values = counts_send[rank];
 
         std::vector<T> my_values(num_values);
-        MPI_Scatterv(values.data(), counts_send.data(), displacements.data(), details::to_mpi_datatype<T>(),
-                     my_values.data(), num_values, details::to_mpi_datatype<T>(), 0, comm);
+        MPI_Scatterv(values.data(), counts_send.data(), displacements.data(), internal::to_mpi_datatype<T>(),
+                     my_values.data(), num_values, internal::to_mpi_datatype<T>(), 0, comm);
 
         return my_values;
     }
