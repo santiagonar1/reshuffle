@@ -42,3 +42,17 @@ TEST_F(Shuffle, WorksForDifferentDatatypes) {
     auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
     EXPECT_THAT(_min_elements_per_rank, Eq(my_values.size()));
 }
+
+TEST_F(Shuffle, GivesByDefaultRemainingElementsToLastRank) {
+    std::vector<int> global_values{};
+    if (is_root()) {
+        global_values.resize(_num_ranks * _min_elements_per_rank + 1);
+    }
+
+    auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
+    if (_rank != _num_ranks - 1) {
+        EXPECT_THAT(my_values.size(), Eq(_min_elements_per_rank));
+    } else {
+        EXPECT_THAT(my_values.size(), Eq(_min_elements_per_rank + 1));
+    }
+}
