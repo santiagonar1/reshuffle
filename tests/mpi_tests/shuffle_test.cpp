@@ -33,7 +33,7 @@ TEST_F(Shuffle, SplitsDataEquallyAmongRanks) {
         global_values.resize(_num_ranks * _min_elements_per_rank);
     }
 
-    auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
+    const auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
     EXPECT_THAT(my_values.size(), Eq(_min_elements_per_rank));
 }
 
@@ -43,7 +43,7 @@ TEST_F(Shuffle, WorksForDifferentDatatypes) {
         global_values.resize(_num_ranks * _min_elements_per_rank);
     }
 
-    auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
+    const auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
     EXPECT_THAT(_min_elements_per_rank, Eq(my_values.size()));
 }
 
@@ -53,7 +53,7 @@ TEST_F(Shuffle, GivesByDefaultRemainingElementsToLastRank) {
         global_values.resize(_num_ranks * _min_elements_per_rank + 1);
     }
 
-    auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
+    const auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
     if (not is_last()) {
         EXPECT_THAT(my_values.size(), Eq(_min_elements_per_rank));
     } else {
@@ -64,6 +64,6 @@ TEST_F(Shuffle, GivesByDefaultRemainingElementsToLastRank) {
 TEST_F(Shuffle, WorksIfEachRankHasData) {
     std::vector<int> values_before(_min_elements_per_rank, _rank);
 
-    auto my_values = reshuffle::shuffle(values_before, MPI_COMM_WORLD);
+    const auto my_values = reshuffle::shuffle(values_before, MPI_COMM_WORLD);
     EXPECT_THAT(my_values, Eq(values_before));
 }
