@@ -29,37 +29,37 @@ protected:
 
 TEST_F(Shuffle, SplitsDataEquallyAmongRanks) {
     constexpr int value = 42;
-    const auto global_values = is_root() ? std::vector(_num_ranks * _min_elements_per_rank, value) : std::vector<int>{};
+    const auto values = is_root() ? std::vector(_num_ranks * _min_elements_per_rank, value) : std::vector<int>{};
 
-    const auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
-    EXPECT_THAT(my_values, Eq(std::vector(_min_elements_per_rank, value)));
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, value)));
 }
 
 TEST_F(Shuffle, WorksForDifferentDatatypes) {
     constexpr double value = 42.1;
-    const auto global_values = is_root() ? std::vector(_num_ranks * _min_elements_per_rank, value)
-                                         : std::vector<double>{};
+    const auto values = is_root() ? std::vector(_num_ranks * _min_elements_per_rank, value)
+                                  : std::vector<double>{};
 
-    const auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
-    EXPECT_THAT(my_values, Eq(std::vector(_min_elements_per_rank, value)));
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, value)));
 }
 
 TEST_F(Shuffle, GivesByDefaultRemainingElementsToLastRank) {
     constexpr int value = 42;
-    const auto global_values = is_root() ? std::vector(_num_ranks * _min_elements_per_rank + 1, value)
-                                         : std::vector<int>{};
+    const auto values = is_root() ? std::vector(_num_ranks * _min_elements_per_rank + 1, value)
+                                  : std::vector<int>{};
 
-    const auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
     if (is_last()) {
-        EXPECT_THAT(my_values, Eq(std::vector(_min_elements_per_rank + 1, value)));
+        EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank + 1, value)));
     } else {
-        EXPECT_THAT(my_values, Eq(std::vector(_min_elements_per_rank , value)));
+        EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, value)));
     }
 }
 
 TEST_F(Shuffle, WorksIfEachRankHasData) {
-    std::vector<int> values_before(_min_elements_per_rank, _rank);
+    const auto values = std::vector(_min_elements_per_rank, _rank);
 
-    const auto my_values = reshuffle::shuffle(values_before, MPI_COMM_WORLD);
-    EXPECT_THAT(my_values, Eq(values_before));
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(values));
 }
