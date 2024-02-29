@@ -50,10 +50,10 @@ TEST_F(Shuffle, GivesByDefaultRemainingElementsToLastRank) {
                                          : std::vector<int>{};
 
     const auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
-    if (not is_last()) {
-        EXPECT_THAT(my_values, Eq(std::vector(_min_elements_per_rank, value)));
-    } else {
+    if (is_last()) {
         EXPECT_THAT(my_values, Eq(std::vector(_min_elements_per_rank + 1, value)));
+    } else {
+        EXPECT_THAT(my_values, Eq(std::vector(_min_elements_per_rank , value)));
     }
 }
 
