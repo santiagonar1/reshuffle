@@ -28,36 +28,32 @@ protected:
 };
 
 TEST_F(Shuffle, SplitsDataEquallyAmongRanks) {
-    std::vector<int> global_values{};
-    if (is_root()) {
-        global_values.resize(_num_ranks * _min_elements_per_rank);
-    }
+    constexpr int value = 42;
+    const auto global_values = is_root() ? std::vector(_num_ranks * _min_elements_per_rank, value) : std::vector<int>{};
 
     const auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
-    EXPECT_THAT(my_values.size(), Eq(_min_elements_per_rank));
+    EXPECT_THAT(my_values, Eq(std::vector(_min_elements_per_rank, value)));
 }
 
 TEST_F(Shuffle, WorksForDifferentDatatypes) {
-    std::vector<double> global_values{};
-    if (is_root()) {
-        global_values.resize(_num_ranks * _min_elements_per_rank);
-    }
+    constexpr double value = 42.1;
+    const auto global_values = is_root() ? std::vector(_num_ranks * _min_elements_per_rank, value)
+                                         : std::vector<double>{};
 
     const auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
-    EXPECT_THAT(_min_elements_per_rank, Eq(my_values.size()));
+    EXPECT_THAT(my_values, Eq(std::vector(_min_elements_per_rank, value)));
 }
 
 TEST_F(Shuffle, GivesByDefaultRemainingElementsToLastRank) {
-    std::vector<int> global_values{};
-    if (is_root()) {
-        global_values.resize(_num_ranks * _min_elements_per_rank + 1);
-    }
+    constexpr int value = 42;
+    const auto global_values = is_root() ? std::vector(_num_ranks * _min_elements_per_rank + 1, value)
+                                         : std::vector<int>{};
 
     const auto my_values = reshuffle::shuffle(global_values, MPI_COMM_WORLD);
     if (not is_last()) {
-        EXPECT_THAT(my_values.size(), Eq(_min_elements_per_rank));
+        EXPECT_THAT(my_values, Eq(std::vector(_min_elements_per_rank, value)));
     } else {
-        EXPECT_THAT(my_values.size(), Eq(_min_elements_per_rank + 1));
+        EXPECT_THAT(my_values, Eq(std::vector(_min_elements_per_rank + 1, value)));
     }
 }
 
