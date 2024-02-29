@@ -69,12 +69,32 @@ namespace reshuffle {
 
             return my_values;
         }
+
+        auto in_mpi_comm(const MPI_Comm &comm) {
+            int rank{};
+            MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
+            const auto err = MPI_Comm_rank(comm, &rank);
+            MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_ARE_FATAL);
+
+            return err != MPI_ERR_COMM;
+        }
     }
 
     template<typename T>
     auto shuffle(const std::vector<T> &values, const MPI_Comm &comm) {
         const auto all_values = internal::get_all_values(values, comm);
         const auto my_values = internal::scatter_values(all_values, comm);
+
+        return my_values;
+    }
+
+    template<typename T>
+    auto shuffle(const std::vector<T> &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
+        const auto all_values = internal::in_mpi_comm(origin_comm) ? internal::get_all_values(values, origin_comm)
+                                                                   : std::vector<T>{};
+        const auto my_values = internal::in_mpi_comm(destiny_comm) ? internal::scatter_values(all_values,
+                                                                                              destiny_comm)
+                                                                   : std::vector<T>{};
 
         return my_values;
     }

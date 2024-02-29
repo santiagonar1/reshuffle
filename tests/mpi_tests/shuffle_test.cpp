@@ -63,3 +63,22 @@ TEST_F(Shuffle, WorksIfEachRankHasData) {
     const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
     EXPECT_THAT(new_values, Eq(values));
 }
+
+
+TEST_F(Shuffle, WorksIfSourceAndDestinyCommunicatorsAreDifferent) {
+    constexpr int value = 42;
+    const auto values = std::vector(_min_elements_per_rank * _num_ranks, value);
+
+    MPI_Group world_group;
+    MPI_Comm_group(MPI_COMM_WORLD, &world_group);
+
+    auto ranks = std::vector<int>{0};
+    MPI_Group group_rank_0;
+    MPI_Group_incl(world_group, 1, ranks.data(), &group_rank_0);
+
+    MPI_Comm comm_rank_0;
+    MPI_Comm_create(MPI_COMM_WORLD, group_rank_0, &comm_rank_0);
+
+    const auto new_values = reshuffle::shuffle(values, comm_rank_0, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, value)));
+}
