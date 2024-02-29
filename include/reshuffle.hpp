@@ -29,21 +29,31 @@ namespace reshuffle {
     auto shuffle(const std::vector<T> &values, const MPI_Comm &comm) {
         int num_ranks{};
         int rank{};
+        MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
+
 
         MPI_Comm_size(comm, &num_ranks);
         MPI_Comm_rank(comm, &rank);
 
-        int total_num_values{static_cast<int>(values.size())};
+        int num_values{static_cast<int>(values.size())};
+        std::vector<int> num_values_per_rank(num_ranks);
+        MPI_Gather(&num_values, 1, MPI_INT, num_values_per_rank.data(), 1, MPI_INT, 0, comm);
+        int total_num_values = std::accumulate(num_values_per_rank.cbegin(), num_values_per_rank.cend(), 0);
         MPI_Bcast(&total_num_values, 1, MPI_INT, 0, comm);
 
-        auto num_values_per_rank = internal::calc_num_values_per_rank(total_num_values, num_ranks);
+        auto all_values = rank == 0 ? std::vector<T>(total_num_values) : std::vector<T>{};
         auto displacements = internal::calc_displacements(num_values_per_rank);
-        const int num_values = num_values_per_rank[rank];
+        MPI_Gatherv(values.data(), num_values, mpi_datatype, all_values.data(), num_values_per_rank.data(),
+                    displacements.data(), mpi_datatype, 0, comm);
 
-        MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
-        std::vector<T> my_values(num_values);
-        MPI_Scatterv(values.data(), num_values_per_rank.data(), displacements.data(), mpi_datatype, my_values.data(),
-                     num_values, mpi_datatype, 0, comm);
+        auto new_num_values_per_rank = internal::calc_num_values_per_rank(total_num_values, num_ranks);
+        displacements = internal::calc_displacements(new_num_values_per_rank);
+        const int new_num_values = new_num_values_per_rank[rank];
+
+        std::vector<T> my_values(new_num_values);
+        MPI_Scatterv(all_values.data(), new_num_values_per_rank.data(), displacements.data(), mpi_datatype,
+                     my_values.data(),
+                     new_num_values, mpi_datatype, 0, comm);
 
         return my_values;
     }

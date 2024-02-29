@@ -60,3 +60,10 @@ TEST_F(Shuffle, GivesByDefaultRemainingElementsToLastRank) {
         EXPECT_THAT(my_values.size(), Eq(_min_elements_per_rank + 1));
     }
 }
+
+TEST_F(Shuffle, WorksIfEachRankHasData) {
+    std::vector<int> values_before(_min_elements_per_rank, _rank);
+
+    auto my_values = reshuffle::shuffle(values_before, MPI_COMM_WORLD);
+    EXPECT_THAT(my_values, Eq(values_before));
+}
