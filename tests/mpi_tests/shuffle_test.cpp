@@ -88,3 +88,10 @@ TEST_F(Shuffle, WorksIfSourceAndDestinyCommunicatorsAreDifferent) {
     const auto new_values = reshuffle::shuffle(values, _comm_rank_0, MPI_COMM_WORLD);
     EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, value)));
 }
+
+TEST_F(Shuffle, ThrowsIfCommunicatorsDoNotContainRootProcessor) {
+    constexpr int value = 42;
+    const auto values = std::vector(_min_elements_per_rank * _num_ranks, value);
+
+    EXPECT_THROW(reshuffle::shuffle(values, _comm_rank_1, MPI_COMM_WORLD), std::invalid_argument);
+}

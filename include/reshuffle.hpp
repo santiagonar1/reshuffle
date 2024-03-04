@@ -24,6 +24,7 @@ namespace reshuffle {
             return displacements;
         }
 
+        // TODO: Should we call this gather_values instead?
         template<typename T>
         auto get_all_values(const std::vector<T> &values, const MPI_Comm &comm) {
             int num_ranks{};
@@ -81,6 +82,18 @@ namespace reshuffle {
 
             return err != MPI_ERR_COMM;
         }
+
+        auto is_root() {
+            int rank{};
+            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+            return rank == 0;
+        }
+
+        auto is_root_in_mpi_comm(const MPI_Comm &comm) {
+            auto root_in_comm = is_root() && in_mpi_comm(comm);
+            MPI_Bcast(&root_in_comm, 1, MPI_CXX_BOOL, 0, MPI_COMM_WORLD);
+            return root_in_comm;
+        }
     }
 
     template<typename T>
@@ -93,6 +106,9 @@ namespace reshuffle {
 
     template<typename T>
     auto shuffle(const std::vector<T> &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
+        if (not internal::is_root_in_mpi_comm(origin_comm) or not internal::is_root_in_mpi_comm(destiny_comm)) {
+            throw std::invalid_argument("The root process must be included in both origin_comm and destiny_comm");
+        }
         const auto all_values = internal::in_mpi_comm(origin_comm) ? internal::get_all_values(values, origin_comm)
                                                                    : std::vector<T>{};
         const auto my_values = internal::in_mpi_comm(destiny_comm) ? internal::scatter_values(all_values,
