@@ -24,9 +24,8 @@ namespace reshuffle {
             return displacements;
         }
 
-        // TODO: Should we call this gather_values instead?
         template<typename T>
-        auto get_all_values(const std::vector<T> &values, const MPI_Comm &comm) {
+        auto gather_values(const std::vector<T> &values, const MPI_Comm &comm) {
             int num_ranks{};
             int rank{};
             MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
@@ -98,7 +97,7 @@ namespace reshuffle {
 
     template<typename T>
     auto shuffle(const std::vector<T> &values, const MPI_Comm &comm) {
-        const auto all_values = internal::get_all_values(values, comm);
+        const auto all_values = internal::gather_values(values, comm);
         const auto my_values = internal::scatter_values(all_values, comm);
 
         return my_values;
@@ -109,7 +108,7 @@ namespace reshuffle {
         if (not internal::is_root_in_mpi_comm(origin_comm) or not internal::is_root_in_mpi_comm(destiny_comm)) {
             throw std::invalid_argument("The root process must be included in both origin_comm and destiny_comm");
         }
-        const auto all_values = internal::in_mpi_comm(origin_comm) ? internal::get_all_values(values, origin_comm)
+        const auto all_values = internal::in_mpi_comm(origin_comm) ? internal::gather_values(values, origin_comm)
                                                                    : std::vector<T>{};
         const auto my_values = internal::in_mpi_comm(destiny_comm) ? internal::scatter_values(all_values,
                                                                                               destiny_comm)
