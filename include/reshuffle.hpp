@@ -72,9 +72,12 @@ namespace reshuffle {
 
         auto in_mpi_comm(const MPI_Comm &comm) {
             int rank{};
+            MPI_Errhandler err_handler{};
+            MPI_Comm_get_errhandler(MPI_COMM_WORLD, &err_handler);
             MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
             const auto err = MPI_Comm_rank(comm, &rank);
-            MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_ARE_FATAL);
+            MPI_Comm_set_errhandler(MPI_COMM_WORLD, err_handler);
+            MPI_Errhandler_free(&err_handler);
 
             return err != MPI_ERR_COMM;
         }
