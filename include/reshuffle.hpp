@@ -11,10 +11,7 @@
 namespace reshuffle {
     template<Container C>
     auto shuffle(const C &values, const MPI_Comm &comm) {
-        const auto all_values = internal::gather_values(values, comm);
-        const auto my_values = internal::scatter_values(all_values, comm);
-
-        return my_values;
+        return internal::scatter_values(internal::gather_values(values, comm), comm);
     }
 
     template<Container C>
