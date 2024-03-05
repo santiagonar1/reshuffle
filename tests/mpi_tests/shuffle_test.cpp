@@ -3,6 +3,8 @@
 
 #include <mpi.h>
 #include <vector>
+
+#include <array>
 #include <reshuffle.hpp>
 
 using ::testing::Eq;
@@ -11,7 +13,7 @@ class Shuffle : public testing::Test {
 protected:
     int _num_ranks{};
     int _rank{};
-    const int _min_elements_per_rank{10};
+    static constexpr int _min_elements_per_rank{10};
     MPI_Comm _comm_rank_0{};
     MPI_Comm _comm_rank_1{};
 
@@ -94,4 +96,13 @@ TEST_F(Shuffle, ThrowsIfCommunicatorsDoNotContainRootProcessor) {
     const auto values = std::vector(_min_elements_per_rank * _num_ranks, value);
 
     EXPECT_THROW(reshuffle::shuffle(values, _comm_rank_1, MPI_COMM_WORLD), std::invalid_argument);
+}
+
+TEST_F(Shuffle, WorksWithContiguousContainers) {
+    constexpr int value = 42;
+    auto values = std::array<int, _min_elements_per_rank>{};
+    values.fill(value);
+
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, value)));
 }

@@ -6,6 +6,7 @@
 #include <numeric>
 
 #include "utils.hpp"
+#include "concepts.hpp"
 
 namespace reshuffle::internal {
     auto calc_num_values_per_rank(int total_num_values, int num_ranks) {
@@ -23,8 +24,9 @@ namespace reshuffle::internal {
         return displacements;
     }
 
-    template<typename T>
-    auto gather_values(const std::vector<T> &values, const MPI_Comm &comm) {
+    template<Container C>
+    auto gather_values(const C &values, const MPI_Comm &comm) {
+        using T = C::value_type;
         int num_ranks{};
         int rank{};
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
@@ -45,8 +47,9 @@ namespace reshuffle::internal {
         return all_values;
     }
 
-    template<typename T>
-    auto scatter_values(const std::vector<T> &values, const MPI_Comm &comm) {
+    template<Container C>
+    auto scatter_values(const C &values, const MPI_Comm &comm) {
+        using T = C::value_type;
         int num_ranks{};
         int rank{};
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
