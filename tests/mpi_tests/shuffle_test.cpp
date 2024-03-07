@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <array>
+#include <list>
 #include <reshuffle.hpp>
 
 using ::testing::Eq;
@@ -102,6 +103,14 @@ TEST_F(Shuffle, WorksWithContiguousContainers) {
     constexpr int value = 42;
     auto values = std::array<int, _min_elements_per_rank>{};
     values.fill(value);
+
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, value)));
+}
+
+TEST_F(Shuffle, WorksWithAnyIterableContainer) {
+    constexpr int value = 42;
+    auto values = std::list(_min_elements_per_rank, value);
 
     const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
     EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, value)));
