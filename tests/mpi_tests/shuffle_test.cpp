@@ -11,14 +11,17 @@
 using ::testing::Eq;
 
 class Shuffle : public testing::Test {
+private:
+    int _rank{};
+
 protected:
     int _num_ranks{};
-    int _rank{};
     static constexpr int _min_elements_per_rank{10};
     MPI_Comm _comm_rank_0{};
     MPI_Comm _comm_rank_1{};
+    const std::vector<int> _values{};
 
-    Shuffle() {
+    Shuffle() : _values(_min_elements_per_rank, 42) {
         MPI_Comm_rank(MPI_COMM_WORLD, &_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &_num_ranks);
 
@@ -77,10 +80,8 @@ TEST_F(Shuffle, GivesByDefaultRemainingElementsToLastRank) {
 }
 
 TEST_F(Shuffle, WorksIfEachRankHasData) {
-    const auto values = std::vector(_min_elements_per_rank, _rank);
-
-    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(values));
+    const auto new_values = reshuffle::shuffle(_values, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(_values));
 }
 
 
@@ -93,25 +94,24 @@ TEST_F(Shuffle, WorksIfSourceAndDestinyCommunicatorsAreDifferent) {
 }
 
 TEST_F(Shuffle, ThrowsIfCommunicatorsDoNotContainRootProcessor) {
-    constexpr int value = 42;
-    const auto values = std::vector(_min_elements_per_rank * _num_ranks, value);
-
-    EXPECT_THROW(reshuffle::shuffle(values, _comm_rank_1, MPI_COMM_WORLD), std::invalid_argument);
+    EXPECT_THROW(reshuffle::shuffle(_values, _comm_rank_1, MPI_COMM_WORLD), std::invalid_argument);
 }
 
 TEST_F(Shuffle, WorksWithContiguousContainers) {
     constexpr int value = 42;
-    auto values = std::array<int, _min_elements_per_rank>{};
+    constexpr int num_values_per_rank = 10;
+    auto values = std::array<int, num_values_per_rank>{};
     values.fill(value);
 
     const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, value)));
+    EXPECT_THAT(new_values, Eq(std::vector(num_values_per_rank, value)));
 }
 
 TEST_F(Shuffle, WorksWithAnyIterableContainer) {
     constexpr int value = 42;
-    auto values = std::list(_min_elements_per_rank, value);
+    constexpr int num_values_per_rank = 10;
+    auto values = std::list(num_values_per_rank, value);
 
     const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, value)));
+    EXPECT_THAT(new_values, Eq(std::vector(num_values_per_rank, value)));
 }
