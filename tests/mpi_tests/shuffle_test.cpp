@@ -60,12 +60,10 @@ TEST_F(Shuffle, SplitsDataEquallyAmongRanks) {
 }
 
 TEST_F(Shuffle, WorksForDifferentDatatypes) {
-    constexpr double value = 42.1;
-    const auto values = is_root() ? std::vector(_num_ranks * _min_elements_per_rank, value)
-                                  : std::vector<double>{};
+    const std::vector<double> values(_values.begin(), _values.end());
 
     const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, value)));
+    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, static_cast<double>(_value))));
 }
 
 TEST_F(Shuffle, GivesByDefaultRemainingElementsToLastRank) {
@@ -105,7 +103,7 @@ TEST_F(Shuffle, WorksWithContiguousContainers) {
 }
 
 TEST_F(Shuffle, WorksWithAnyIterableContainer) {
-    auto values = std::list(_min_elements_per_rank, _value);
+    auto values = std::list(_values.begin(), _values.end());
 
     const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
     EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, _value)));
