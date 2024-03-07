@@ -24,7 +24,7 @@ namespace reshuffle::internal {
         return displacements;
     }
 
-    template<Container C>
+    template<ContiguousContainer C>
     auto gather_values(const C &values, const MPI_Comm &comm) {
         using T = C::value_type;
         int num_ranks{};
@@ -47,7 +47,7 @@ namespace reshuffle::internal {
         return all_values;
     }
 
-    template<Container C>
+    template<ContiguousContainer C>
     auto scatter_values(const C &values, const MPI_Comm &comm) {
         using T = C::value_type;
         int num_ranks{};

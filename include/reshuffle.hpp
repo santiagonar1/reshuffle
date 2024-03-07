@@ -10,12 +10,12 @@
 #include "concepts.hpp"
 
 namespace reshuffle {
-    template<Container C>
+    template<ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &comm) {
         return internal::scatter_values(internal::gather_values(values, comm), comm);
     }
 
-    template<Container C>
+    template<ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
         using T = C::value_type;
         if (not internal::is_root_in_mpi_comm(origin_comm) or not internal::is_root_in_mpi_comm(destiny_comm)) {

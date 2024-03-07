@@ -9,7 +9,7 @@ namespace reshuffle {
     };
 
     template<typename T>
-    concept Container = Iterable<T> && requires(T &t) {
+    concept ContiguousContainer = Iterable<T> && requires(T &t) {
         typename T::value_type;
         t.data();
         t.size();
