@@ -3,17 +3,10 @@
 
 namespace reshuffle {
     template<typename T>
-    concept Iterable = requires(T t) {
-        { std::begin(t) } -> std::forward_iterator;
-        { std::end(t) } -> std::forward_iterator;
-    };
+    concept Iterable = std::ranges::range<T>;
 
     template<typename T>
-    concept ContiguousContainer = Iterable<T> && requires(T &t) {
-        typename T::value_type;
-        t.data();
-        t.size();
-    };
+    concept ContiguousContainer = std::ranges::contiguous_range<T>;
 }
 
 #endif //RESHUFFLE_CONCEPTS_HPP
