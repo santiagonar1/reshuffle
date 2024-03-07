@@ -5,6 +5,7 @@
 #include <mpi.h>
 #include <numeric>
 #include <algorithm>
+#include <ranges>
 
 #include "mpi_utils.hpp"
 #include "concepts.hpp"
@@ -33,14 +34,14 @@ namespace reshuffle {
     template<Iterable I>
     auto shuffle(const I &values, const MPI_Comm &comm) {
         using T = I::value_type;
-        const std::vector<T> v_values(std::begin(values), std::end(values));
+        const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
         return shuffle(v_values, comm);
     }
 
     template<Iterable I>
     auto shuffle(const I &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
         using T = I::value_type;
-        const std::vector<T> v_values(std::begin(values), std::end(values));
+        const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
         return shuffle(v_values, origin_comm, destiny_comm);
     }
 
