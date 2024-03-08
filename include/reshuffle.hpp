@@ -19,7 +19,7 @@ namespace reshuffle {
     template<ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
         using T = C::value_type;
-        if (not internal::is_root_in_mpi_comm(origin_comm) or not internal::is_root_in_mpi_comm(destiny_comm)) {
+        if (not internal::mpi_comm_contains_root(origin_comm) or not internal::mpi_comm_contains_root(destiny_comm)) {
             throw std::invalid_argument("The root process must be included in both origin_comm and destiny_comm");
         }
         const auto all_values = internal::in_mpi_comm(origin_comm) ? internal::gather_values(values, origin_comm)
