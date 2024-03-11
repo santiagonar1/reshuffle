@@ -6,9 +6,9 @@
 #include <numeric>
 #include <algorithm>
 #include <ranges>
-#include <zpp_bits.h>
 
 #include "mpi_utils.hpp"
+#include "utils.hpp"
 #include "concepts.hpp"
 
 namespace reshuffle {
@@ -55,25 +55,12 @@ namespace reshuffle {
     auto shuffle(const I &values, const MPI_Comm &comm) {
         using T = I::value_type;
 
-        T dummy{};
-        auto [dummy_data, dummy_out] = zpp::bits::data_out();
-        dummy_out(dummy).or_throw();
-        const auto num_bytes_type = dummy_data.size();
+        const auto num_bytes_type = internal::get_size_bytes<T>();
 
-        auto [data, out] = zpp::bits::data_out();
-        for (auto &v: values) {
-            out(v).or_throw();
-        }
+        const auto new_values = internal::scatter_values(internal::gather_values(internal::serialize(values), comm),
+                                                         num_bytes_type, comm);
 
-        const auto new_values = internal::scatter_values(internal::gather_values(data, comm), num_bytes_type, comm);
-
-        zpp::bits::in in(new_values);
-        std::vector<T> results(new_values.size() / num_bytes_type);
-        for (auto &v: results) {
-            in(v).or_throw();
-        }
-
-        return results;
+        return internal::deserialize<T>(new_values);
     }
 
 }

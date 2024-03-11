@@ -2,6 +2,10 @@
 #define RESHUFFLE_UTILS_HPP
 
 #include <mpi.h>
+#include <zpp_bits.h>
+#include <ranges>
+
+#include "concepts.hpp"
 
 namespace reshuffle::internal {
     template<typename DATATYPE>
@@ -12,11 +16,38 @@ namespace reshuffle::internal {
             return MPI_FLOAT;
         } else if (std::is_same_v<DATATYPE, double>) {
             return MPI_DOUBLE;
-        } else if (std::is_same_v<DATATYPE, std::byte> ) {
+        } else if (std::is_same_v<DATATYPE, std::byte>) {
             return MPI_BYTE;
         }
 
         throw std::invalid_argument("No MPI Datatype");
+    }
+
+    template<Serializable S>
+    auto get_size_bytes() {
+        S dummy{};
+        auto [data, out] = zpp::bits::data_out();
+        out(dummy).or_throw();
+        return data.size();
+    }
+
+    template<Iterable I>
+    requires Serializable<typename I::value_type>
+    auto serialize(const I &values) {
+        auto [data, out] = zpp::bits::data_out();
+        std::ranges::for_each(values, [&out](auto &v) { out(v).or_throw(); });
+
+        return data;
+    }
+
+    template<Serializable S>
+    auto deserialize(const std::vector<std::byte> &bytes) {
+        const auto num_bytes_type = get_size_bytes<S>();
+        std::vector<S> values(bytes.size() / num_bytes_type);
+        auto in = zpp::bits::in(bytes);
+        std::ranges::for_each(values, [&in](auto &v) { in(v).or_throw(); });
+
+        return values;
     }
 }
 
