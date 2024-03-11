@@ -73,6 +73,32 @@ namespace reshuffle::internal {
         return my_values;
     }
 
+    auto scatter_values(const std::vector<std::byte> &values, size_t num_bytes_type, const MPI_Comm &comm) {
+        int num_ranks{};
+        int rank{};
+
+        MPI_Comm_size(comm, &num_ranks);
+        MPI_Comm_rank(comm, &rank);
+
+        MPI_Datatype mpi_datatype;
+        MPI_Type_contiguous(num_bytes_type, MPI_BYTE, &mpi_datatype);
+        MPI_Type_commit(&mpi_datatype);
+
+        int total_num_values = static_cast<int>(std::ranges::size(values) / num_bytes_type);
+        MPI_Bcast(&total_num_values, 1, MPI_INT, 0, comm);
+
+        auto new_num_values_per_rank = internal::calc_num_values_per_rank(total_num_values, num_ranks);
+        const auto displacements = internal::calc_displacements(new_num_values_per_rank);
+        const int new_num_values = new_num_values_per_rank[rank];
+
+        std::vector<std::byte> my_values(new_num_values * num_bytes_type);
+        MPI_Scatterv(std::ranges::data(values), new_num_values_per_rank.data(), displacements.data(), mpi_datatype,
+                     my_values.data(),
+                     new_num_values, mpi_datatype, 0, comm);
+
+        return my_values;
+    }
+
     auto in_mpi_comm(const MPI_Comm &comm) {
         int rank{};
         MPI_Errhandler err_handler{};

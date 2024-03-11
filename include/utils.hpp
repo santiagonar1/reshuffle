@@ -12,6 +12,8 @@ namespace reshuffle::internal {
             return MPI_FLOAT;
         } else if (std::is_same_v<DATATYPE, double>) {
             return MPI_DOUBLE;
+        } else if (std::is_same_v<DATATYPE, std::byte> ) {
+            return MPI_BYTE;
         }
 
         throw std::invalid_argument("No MPI Datatype");

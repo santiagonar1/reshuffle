@@ -1,7 +1,13 @@
 #ifndef RESHUFFLE_CONCEPTS_HPP
 #define RESHUFFLE_CONCEPTS_HPP
 
+#include <zpp_bits.h>
+
 namespace reshuffle {
+    template<typename T>
+    concept Serializable = zpp::bits::concepts::byte_serializable < T> ||
+    zpp::bits::concepts::has_serialize<T>;
+
     template<typename T>
     concept Iterable = std::ranges::range<T>;
 

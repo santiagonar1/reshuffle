@@ -8,6 +8,8 @@
 #include <list>
 #include <reshuffle.hpp>
 
+#include "my_type.hpp"
+
 using ::testing::Eq;
 
 class Shuffle : public testing::Test {
@@ -107,4 +109,11 @@ TEST_F(Shuffle, WorksWithAnyIterableContainer) {
 
     const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
     EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, _value)));
+}
+
+TEST_F(Shuffle, WorksWithCustomDatatype) {
+    const auto values = is_root() ? std::vector<MyPOD>(_min_elements_per_rank * _num_ranks) : std::vector<MyPOD>{};
+
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, MyPOD{})));
 }
