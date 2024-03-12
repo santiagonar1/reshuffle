@@ -13,13 +13,13 @@
 
 namespace reshuffle {
     template<ContiguousContainer C>
-    requires FundamentalType<typename C::value_type>
+    requires Serializable<typename C::value_type>
     auto shuffle(const C &values, const MPI_Comm &comm) {
         return internal::scatter_values(internal::gather_values(values, comm), comm);
     }
 
     template<ContiguousContainer C>
-    requires FundamentalType<typename C::value_type>
+    requires Serializable<typename C::value_type>
     auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
         using T = C::value_type;
         if (not internal::mpi_comm_contains_root(origin_comm) or not internal::mpi_comm_contains_root(destiny_comm)) {
@@ -35,7 +35,7 @@ namespace reshuffle {
     }
 
     template<Iterable I>
-    requires FundamentalType<typename I::value_type>
+    requires Serializable<typename I::value_type>
     auto shuffle(const I &values, const MPI_Comm &comm) {
         using T = I::value_type;
         const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
@@ -43,26 +43,12 @@ namespace reshuffle {
     }
 
     template<Iterable I>
-    requires FundamentalType<typename I::value_type>
+    requires Serializable<typename I::value_type>
     auto shuffle(const I &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
         using T = I::value_type;
         const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
         return shuffle(v_values, origin_comm, destiny_comm);
     }
-
-    template<Iterable I>
-    requires Serializable<typename I::value_type> && (!FundamentalType<typename I::value_type>)
-    auto shuffle(const I &values, const MPI_Comm &comm) {
-        using T = I::value_type;
-
-        const auto num_bytes_type = internal::get_size_bytes<T>();
-
-        const auto new_values = internal::scatter_values(internal::gather_values(internal::serialize(values), comm),
-                                                         num_bytes_type, comm);
-
-        return internal::deserialize<T>(new_values);
-    }
-
 }
 
 #endif //RESHUFFLE_SHUFFLE_HPP

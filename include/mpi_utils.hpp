@@ -26,6 +26,7 @@ namespace reshuffle::internal {
     }
 
     template<ContiguousContainer C>
+    requires FundamentalType<typename C::value_type>
     auto gather_values(const C &values, const MPI_Comm &comm) {
         using T = C::value_type;
         int num_ranks{};
@@ -49,6 +50,33 @@ namespace reshuffle::internal {
     }
 
     template<ContiguousContainer C>
+    requires Serializable<typename C::value_type> && (not FundamentalType<typename C::value_type>)
+    auto gather_values(const C &values, const MPI_Comm &comm) {
+        using T = C::value_type;
+        const auto data = serialize(values);
+
+        int num_ranks{};
+        int rank{};
+        MPI_Datatype mpi_datatype = MPI_BYTE;
+
+        MPI_Comm_size(comm, &num_ranks);
+        MPI_Comm_rank(comm, &rank);
+
+        int num_values{static_cast<int>(std::ranges::size(data))};
+        std::vector<int> num_values_per_rank(num_ranks);
+        MPI_Gather(&num_values, 1, MPI_INT, num_values_per_rank.data(), 1, MPI_INT, 0, comm);
+        int total_num_values = std::accumulate(num_values_per_rank.cbegin(), num_values_per_rank.cend(), 0);
+
+        auto all_data = rank == 0 ? std::vector<std::byte>(total_num_values) : std::vector<std::byte>{};
+        auto displacements = calc_displacements(num_values_per_rank);
+        MPI_Gatherv(std::ranges::data(data), num_values, mpi_datatype, all_data.data(), num_values_per_rank.data(),
+                    displacements.data(), mpi_datatype, 0, comm);
+
+        return deserialize<T>(all_data);
+    }
+
+    template<ContiguousContainer C>
+    requires FundamentalType<typename C::value_type>
     auto scatter_values(const C &values, const MPI_Comm &comm) {
         using T = C::value_type;
         int num_ranks{};
@@ -73,30 +101,36 @@ namespace reshuffle::internal {
         return my_values;
     }
 
-    auto scatter_values(const std::vector<std::byte> &values, size_t num_bytes_type, const MPI_Comm &comm) {
+    template<ContiguousContainer C>
+    requires Serializable<typename C::value_type> && (not FundamentalType<typename C::value_type>)
+    auto scatter_values(const C &values, const MPI_Comm &comm) {
+        using T = C::value_type;
         int num_ranks{};
         int rank{};
 
         MPI_Comm_size(comm, &num_ranks);
         MPI_Comm_rank(comm, &rank);
 
+        const auto num_bytes_type = get_size_bytes<T>();
+        const auto data = serialize(values);
+
         MPI_Datatype mpi_datatype;
         MPI_Type_contiguous(num_bytes_type, MPI_BYTE, &mpi_datatype);
         MPI_Type_commit(&mpi_datatype);
 
-        int total_num_values = static_cast<int>(std::ranges::size(values) / num_bytes_type);
+        int total_num_values = static_cast<int>(std::ranges::size(values));
         MPI_Bcast(&total_num_values, 1, MPI_INT, 0, comm);
 
         auto new_num_values_per_rank = internal::calc_num_values_per_rank(total_num_values, num_ranks);
         const auto displacements = internal::calc_displacements(new_num_values_per_rank);
         const int new_num_values = new_num_values_per_rank[rank];
 
-        std::vector<std::byte> my_values(new_num_values * num_bytes_type);
-        MPI_Scatterv(std::ranges::data(values), new_num_values_per_rank.data(), displacements.data(), mpi_datatype,
-                     my_values.data(),
+        auto my_data = std::vector<std::byte>(new_num_values * num_bytes_type);
+        MPI_Scatterv(std::ranges::data(data), new_num_values_per_rank.data(), displacements.data(), mpi_datatype,
+                     my_data.data(),
                      new_num_values, mpi_datatype, 0, comm);
 
-        return my_values;
+        return deserialize<T>(my_data);
     }
 
     auto in_mpi_comm(const MPI_Comm &comm) {
