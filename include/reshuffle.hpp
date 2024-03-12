@@ -8,7 +8,6 @@
 #include <ranges>
 
 #include "mpi_utils.hpp"
-#include "utils.hpp"
 #include "concepts.hpp"
 
 namespace reshuffle {
