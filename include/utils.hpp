@@ -23,14 +23,6 @@ namespace reshuffle::internal {
         throw std::invalid_argument("No MPI Datatype");
     }
 
-    template<Serializable S>
-    auto get_size_bytes() {
-        S dummy{};
-        auto [data, out] = zpp::bits::data_out();
-        out(dummy).or_throw();
-        return data.size();
-    }
-
     template<Iterable I>
     requires Serializable<typename I::value_type>
     auto serialize(const I &values) {
@@ -42,7 +34,7 @@ namespace reshuffle::internal {
 
     template<Serializable S>
     auto deserialize(const std::vector<std::byte> &bytes) {
-        const auto num_bytes_type = get_size_bytes<S>();
+        const auto num_bytes_type = sizeof(S);
         std::vector<S> values(bytes.size() / num_bytes_type);
         auto in = zpp::bits::in(bytes);
         std::ranges::for_each(values, [&in](auto &v) { in(v).or_throw(); });

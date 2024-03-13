@@ -111,7 +111,7 @@ namespace reshuffle::internal {
         MPI_Comm_size(comm, &num_ranks);
         MPI_Comm_rank(comm, &rank);
 
-        const auto num_bytes_type = get_size_bytes<T>();
+        const auto num_bytes_type = sizeof(T);
         const auto data = serialize(values);
 
         MPI_Datatype mpi_datatype;
