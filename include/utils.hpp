@@ -32,10 +32,21 @@ namespace reshuffle::internal {
         return data;
     }
 
+    template<NonTriviallySerializable T>
+    auto make_object() {
+        return T::create();
+    }
+
+    template<DefaultConstructible T>
+    auto make_object() {
+        return T{};
+    }
+
+
     template<Serializable S>
     auto deserialize(const std::vector<std::byte> &bytes) {
         const auto num_bytes_type = sizeof(S);
-        std::vector<S> values(bytes.size() / num_bytes_type);
+        std::vector<S> values(bytes.size() / num_bytes_type, make_object<S>());
         auto in = zpp::bits::in(bytes);
         std::ranges::for_each(values, [&in](auto &v) { in(v).or_throw(); });
 

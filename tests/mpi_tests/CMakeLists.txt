@@ -1,5 +1,6 @@
 find_package(GTest REQUIRED)
 find_package(MPI REQUIRED)
+find_package(zpp_bits REQUIRED)
 
 include(GoogleTest)
 
@@ -13,7 +14,8 @@ macro(package_add_mpi_test TEST_NAME)
             reshuffle
             GTest::gmock
             GTest::gtest
-            MPI::MPI_CXX )
+            MPI::MPI_CXX
+            zpp_bits::zpp_bits)
 
     set(RESHUFFLE_TESTS_NUM_MPI_RANKS 2 CACHE STRING "Number of MPI Ranks to run Reshuffle tests with.")
     set_property(TARGET ${TEST_NAME} PROPERTY CROSSCOMPILING_EMULATOR '${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${RESHUFFLE_TESTS_NUM_MPI_RANKS}')

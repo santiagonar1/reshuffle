@@ -111,9 +111,16 @@ TEST_F(Shuffle, WorksWithAnyIterableContainer) {
     EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, _value)));
 }
 
-TEST_F(Shuffle, WorksWithCustomDatatype) {
+TEST_F(Shuffle, WorksWithAggregateDatatype) {
     const auto values = is_root() ? std::vector<MyPOD>(_min_elements_per_rank * _num_ranks) : std::vector<MyPOD>{};
 
     const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
     EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, MyPOD{})));
+}
+
+TEST_F(Shuffle, WorksWithNonAggregateDatatypeIfSerializableAndCreateMethodPresent) {
+    const auto values = is_root() ? std::vector<NonAggregate>(_min_elements_per_rank * _num_ranks, NonAggregate(12)) : std::vector<NonAggregate>{};
+
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, NonAggregate(12))));
 }
