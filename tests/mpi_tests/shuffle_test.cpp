@@ -124,3 +124,10 @@ TEST_F(Shuffle, WorksWithNonAggregateDatatypeIfSerializableAndCreateMethodPresen
     const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
     EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, NonAggregate(12))));
 }
+
+TEST_F(Shuffle, NonAggregateDefaultConstructibleDoesNotRequireCreate) {
+    const auto values = is_root() ? std::vector<NonAggregateDefaultConstructible>(_min_elements_per_rank * _num_ranks) : std::vector<NonAggregateDefaultConstructible>{};
+
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, NonAggregateDefaultConstructible())));
+}

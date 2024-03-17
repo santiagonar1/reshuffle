@@ -12,7 +12,6 @@ namespace reshuffle {
 
     template<typename T>
     concept NonTriviallySerializable = zpp::bits::concepts::has_serialize<T> && requires(T &t) {
-        // TODO: We only require this if class is not default_constructible. Add a constraint later on if needed
         { T::create() } -> std::same_as<T>;
     };
 

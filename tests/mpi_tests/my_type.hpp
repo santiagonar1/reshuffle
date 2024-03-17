@@ -29,4 +29,18 @@ public:
     }
 };
 
+struct NonAggregateDefaultConstructible {
+    using serialize = zpp::bits::members<1>;
+
+    int _my_value{42};
+
+public:
+    bool operator==(const NonAggregateDefaultConstructible &other) const {
+        return _my_value == other._my_value;
+    }
+
+    NonAggregateDefaultConstructible() = default;
+    explicit NonAggregateDefaultConstructible(int value) : _my_value(value) {}
+};
+
 #endif //RESHUFFLE_MY_TYPE_HPP
