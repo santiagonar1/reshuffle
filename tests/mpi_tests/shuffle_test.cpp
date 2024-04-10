@@ -133,3 +133,39 @@ TEST_F(Shuffle, NonAggregateDefaultConstructibleDoesNotRequireCreate) {
     const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
     EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, NonAggregateDefaultConstructible())));
 }
+
+TEST_F(Shuffle, CanUseColoringToIndicateWhereValuesShouldBeStored) {
+    const auto values = std::vector{1, 0, 1, 1};
+    const auto coloring = std::vector{1, 0, 1, 1};
+
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD, coloring);
+    if (is_root()) {
+        EXPECT_THAT(new_values, Eq(std::vector(2, 0)));
+    } else {
+        EXPECT_THAT(new_values, Eq(std::vector(6, 1)));
+    }
+}
+
+TEST_F(Shuffle, ColoringWorksWithDifferentCommunicators) {
+    const auto values = std::vector{1, 0, 1, 1};
+    const auto coloring = std::vector{1, 0, 1, 1};
+
+    const auto new_values = reshuffle::shuffle(values, _comm_rank_0, MPI_COMM_WORLD, coloring);
+    if (is_root()) {
+        EXPECT_THAT(new_values, Eq(std::vector{0}));
+    } else {
+        EXPECT_THAT(new_values, Eq(std::vector{1, 1, 1}));
+    }
+}
+
+TEST_F(Shuffle, ColoringWorksWithNonAggregate) {
+    const auto values = std::vector{NonAggregate(1), NonAggregate(0), NonAggregate(1), NonAggregate(1)};
+    const auto coloring = std::vector{1, 0, 1, 1};
+
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD, coloring);
+    if (is_root()) {
+        EXPECT_THAT(new_values, Eq(std::vector(2, NonAggregate(0))));
+    } else {
+        EXPECT_THAT(new_values, Eq(std::vector(6, NonAggregate(1))));
+    }
+}

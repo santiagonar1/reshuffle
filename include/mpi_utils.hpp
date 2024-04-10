@@ -10,10 +10,25 @@
 #include "concepts.hpp"
 
 namespace reshuffle::internal {
-    auto calc_num_values_per_rank(int total_num_values, int num_ranks) {
-        const int min_num_values_per_rank = total_num_values / num_ranks;
-        std::vector<int> values_per_rank(num_ranks, min_num_values_per_rank);
-        values_per_rank.back() += total_num_values % num_ranks;
+    auto is_root() {
+        int rank{};
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        return rank == 0;
+    }
+
+    auto calc_num_values_per_rank(int total_num_values, int num_ranks, const std::vector<int> &coloring = {}) {
+        std::vector<int> values_per_rank(num_ranks);
+
+        for (auto rank: coloring) {
+            values_per_rank[rank]++;
+        }
+
+        const auto using_coloring = not coloring.empty();
+        if (not using_coloring) {
+            const int min_num_values_per_rank = total_num_values / num_ranks;
+            std::ranges::fill(values_per_rank, min_num_values_per_rank);
+            values_per_rank.back() += total_num_values % num_ranks;
+        }
 
         return values_per_rank;
     }
@@ -26,12 +41,10 @@ namespace reshuffle::internal {
     }
 
     template<ContiguousContainer C>
-    requires FundamentalType<typename C::value_type>
-    auto gather_values(const C &values, const MPI_Comm &comm) {
+    auto gather(const C &values, const MPI_Comm &comm, const MPI_Datatype &mpi_datatype) {
         using T = C::value_type;
         int num_ranks{};
         int rank{};
-        MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
 
         MPI_Comm_size(comm, &num_ranks);
         MPI_Comm_rank(comm, &rank);
@@ -41,96 +54,149 @@ namespace reshuffle::internal {
         MPI_Gather(&num_values, 1, MPI_INT, num_values_per_rank.data(), 1, MPI_INT, 0, comm);
         int total_num_values = std::accumulate(num_values_per_rank.cbegin(), num_values_per_rank.cend(), 0);
 
-        auto all_values = rank == 0 ? std::vector<T>(total_num_values) : std::vector<T>{};
+        auto all_values = std::vector<T>(total_num_values);
         auto displacements = calc_displacements(num_values_per_rank);
-        MPI_Gatherv(std::ranges::data(values), num_values, mpi_datatype, all_values.data(), num_values_per_rank.data(),
+
+        MPI_Gatherv(std::ranges::data(values), num_values, mpi_datatype, all_values.data(),
+                    num_values_per_rank.data(),
                     displacements.data(), mpi_datatype, 0, comm);
 
         return all_values;
     }
 
     template<ContiguousContainer C>
-    requires Serializable<typename C::value_type> && (not FundamentalType<typename C::value_type>)
-    auto gather_values(const C &values, const MPI_Comm &comm) {
+    auto order_by_color(const C &values, const std::vector<int> &coloring, const std::vector<int> &displacements,
+                        [[maybe_unused]] int mpi_datatype_size) {
         using T = C::value_type;
-        const auto data = serialize(values);
+        const int num_ranks = static_cast<int>(displacements.size());
 
-        int num_ranks{};
-        int rank{};
-        MPI_Datatype mpi_datatype = MPI_BYTE;
+        if (std::ranges::size(values) != coloring.size()) {
+            throw std::invalid_argument("Lenght of coloring and values do not match");
+        }
 
-        MPI_Comm_size(comm, &num_ranks);
-        MPI_Comm_rank(comm, &rank);
+        auto ordered_values = std::vector<T>(std::ranges::size(values));
+        auto num_sorted_per_rank = std::vector(num_ranks, 0);
+        for (int i = 0; i < coloring.size(); ++i) {
+            const auto dest_rank = coloring[i];
+            const auto dest_index = displacements[dest_rank] + num_sorted_per_rank[dest_rank];
+            ordered_values[dest_index] = values[i];
 
-        int num_values{static_cast<int>(std::ranges::size(data))};
-        std::vector<int> num_values_per_rank(num_ranks);
-        MPI_Gather(&num_values, 1, MPI_INT, num_values_per_rank.data(), 1, MPI_INT, 0, comm);
-        int total_num_values = std::accumulate(num_values_per_rank.cbegin(), num_values_per_rank.cend(), 0);
+            num_sorted_per_rank[dest_rank]++;
+        }
 
-        auto all_data = rank == 0 ? std::vector<std::byte>(total_num_values) : std::vector<std::byte>{};
-        auto displacements = calc_displacements(num_values_per_rank);
-        MPI_Gatherv(std::ranges::data(data), num_values, mpi_datatype, all_data.data(), num_values_per_rank.data(),
-                    displacements.data(), mpi_datatype, 0, comm);
+        return ordered_values;
+    }
 
-        return deserialize<T>(all_data);
+    template<>
+    auto order_by_color(const std::vector<std::byte> &values, const std::vector<int> &coloring,
+                        const std::vector<int> &displacements, int mpi_datatype_size) {
+        using T = std::byte;
+        const int num_ranks = static_cast<int>(displacements.size());
+
+        if (std::ranges::size(values) != coloring.size() * mpi_datatype_size) {
+            throw std::invalid_argument("Lenght of coloring and values do not match");
+        }
+
+        auto ordered_values = std::vector<T>(std::ranges::size(values));
+        auto num_sorted_per_rank = std::vector(num_ranks, 0);
+        for (int i = 0; i < coloring.size(); ++i) {
+            const auto dest_rank = coloring[i];
+            const auto dest_index = (displacements[dest_rank] + num_sorted_per_rank[dest_rank]) * mpi_datatype_size;
+            const auto origin_index = i * mpi_datatype_size;
+            std::copy(values.begin() + origin_index, values.begin() + origin_index + mpi_datatype_size,
+                      ordered_values.begin() + dest_index);
+
+            num_sorted_per_rank[dest_rank]++;
+        }
+
+        return ordered_values;
     }
 
     template<ContiguousContainer C>
-    requires FundamentalType<typename C::value_type>
-    auto scatter_values(const C &values, const MPI_Comm &comm) {
+    auto scatter(const C &values, const MPI_Comm &comm, const MPI_Datatype &mpi_datatype,
+                 const std::vector<int> &coloring, bool values_are_serialized = false) {
         using T = C::value_type;
         int num_ranks{};
         int rank{};
-        MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
+        int mpi_datatype_size{};
+        const auto using_coloring = not coloring.empty();
+
+        // If values are serialized several contiguous elements of the values vector (which should be a vector<byte>)
+        // represent one value of the original information. We can get this value by checking the size of the datatype.
+        // This information can later be used to scale the total number of values and the sizes of the receiving vectors.
+        MPI_Type_size(mpi_datatype, &mpi_datatype_size);
+
+        const int total_num_values = values_are_serialized ? static_cast<int>(values.size() /
+                                                                              mpi_datatype_size)
+                                                           : static_cast<int>(values.size());
+
+
+        if (using_coloring and coloring.size() != total_num_values) {
+            throw std::invalid_argument("Coloring being used, but size of coloring vector does not match size of data");
+        }
 
         MPI_Comm_size(comm, &num_ranks);
         MPI_Comm_rank(comm, &rank);
 
-        int total_num_values = static_cast<int>(std::ranges::size(values));
-        MPI_Bcast(&total_num_values, 1, MPI_INT, 0, comm);
+        auto new_num_values_per_rank = is_root() ? internal::calc_num_values_per_rank(total_num_values, num_ranks,
+                                                                                      coloring) : std::vector<int>(
+                num_ranks);
 
-        auto new_num_values_per_rank = internal::calc_num_values_per_rank(total_num_values, num_ranks);
+        MPI_Bcast(new_num_values_per_rank.data(), static_cast<int>(new_num_values_per_rank.size()), MPI_INT, 0, comm);
+
         const auto displacements = internal::calc_displacements(new_num_values_per_rank);
         const int new_num_values = new_num_values_per_rank[rank];
 
-        std::vector<T> my_values(new_num_values);
-        MPI_Scatterv(std::ranges::data(values), new_num_values_per_rank.data(), displacements.data(), mpi_datatype,
-                     my_values.data(),
-                     new_num_values, mpi_datatype, 0, comm);
+        auto values_to_scatter = using_coloring ? order_by_color(values, coloring, displacements, mpi_datatype_size)
+                                                : std::vector<T>(
+                        std::ranges::begin(values), std::ranges::end(values));
+
+        auto my_values = values_are_serialized ? std::vector<T>(new_num_values * mpi_datatype_size) : std::vector<T>(
+                new_num_values);
+        MPI_Scatterv(values_to_scatter.data(), new_num_values_per_rank.data(), displacements.data(), mpi_datatype,
+                     my_values.data(), new_num_values, mpi_datatype, 0, comm);
 
         return my_values;
     }
 
     template<ContiguousContainer C>
-    requires Serializable<typename C::value_type> && (not FundamentalType<typename C::value_type>)
-    auto scatter_values(const C &values, const MPI_Comm &comm) {
+    requires FundamentalType<typename C::value_type>
+    auto gather_values(const C &values, const MPI_Comm &comm) {
         using T = C::value_type;
-        int num_ranks{};
-        int rank{};
+        MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
 
-        MPI_Comm_size(comm, &num_ranks);
-        MPI_Comm_rank(comm, &rank);
+        return gather(values, comm, mpi_datatype);
+    }
+
+    template<ContiguousContainer C>
+    requires Serializable<typename C::value_type> && (not FundamentalType<typename C::value_type>)
+    auto gather_values(const C &values, const MPI_Comm &comm) {
+        using T = C::value_type;
+
+        return deserialize<T>(gather(serialize(values), comm, MPI_BYTE));
+    }
+
+    template<ContiguousContainer C>
+    requires FundamentalType<typename C::value_type>
+    auto scatter_values(const C &values, const MPI_Comm &comm, const std::vector<int> &coloring) {
+        using T = C::value_type;
+        MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
+
+        return scatter(values, comm, mpi_datatype, coloring);
+    }
+
+    template<ContiguousContainer C>
+    requires Serializable<typename C::value_type> && (not FundamentalType<typename C::value_type>)
+    auto scatter_values(const C &values, const MPI_Comm &comm, const std::vector<int> &coloring) {
+        using T = C::value_type;
 
         const auto num_bytes_type = sizeof(T);
-        const auto data = serialize(values);
 
         MPI_Datatype mpi_datatype;
         MPI_Type_contiguous(num_bytes_type, MPI_BYTE, &mpi_datatype);
         MPI_Type_commit(&mpi_datatype);
 
-        int total_num_values = static_cast<int>(std::ranges::size(values));
-        MPI_Bcast(&total_num_values, 1, MPI_INT, 0, comm);
-
-        auto new_num_values_per_rank = internal::calc_num_values_per_rank(total_num_values, num_ranks);
-        const auto displacements = internal::calc_displacements(new_num_values_per_rank);
-        const int new_num_values = new_num_values_per_rank[rank];
-
-        auto my_data = std::vector<std::byte>(new_num_values * num_bytes_type);
-        MPI_Scatterv(std::ranges::data(data), new_num_values_per_rank.data(), displacements.data(), mpi_datatype,
-                     my_data.data(),
-                     new_num_values, mpi_datatype, 0, comm);
-
-        return deserialize<T>(my_data);
+        return deserialize<T>(scatter(serialize(values), comm, mpi_datatype, coloring, true));
     }
 
     auto in_mpi_comm(const MPI_Comm &comm) {
@@ -143,12 +209,6 @@ namespace reshuffle::internal {
         MPI_Errhandler_free(&err_handler);
 
         return err != MPI_ERR_COMM;
-    }
-
-    auto is_root() {
-        int rank{};
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        return rank == 0;
     }
 
     auto mpi_comm_contains_root(const MPI_Comm &comm) {
