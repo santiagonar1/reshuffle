@@ -19,8 +19,8 @@ namespace reshuffle {
             throw std::invalid_argument("Coloring being used, but size of coloring vector does not match size of data");
         }
 
-        const auto all_coloring = internal::gather_values(coloring, comm);
-        return internal::scatter_values(internal::gather_values(values, comm), comm, all_coloring);
+        const auto all_coloring = internal::gather_values_in_root(coloring, comm);
+        return internal::scatter_values_from_root(internal::gather_values_in_root(values, comm), comm, all_coloring);
     }
 
     template<ContiguousContainer C>
@@ -41,13 +41,13 @@ namespace reshuffle {
         auto all_values = std::vector<T>{};
 
         if (internal::in_mpi_comm(origin_comm)) {
-            all_coloring = internal::gather_values(coloring, origin_comm);
-            all_values = internal::gather_values(values, origin_comm);
+            all_coloring = internal::gather_values_in_root(coloring, origin_comm);
+            all_values = internal::gather_values_in_root(values, origin_comm);
         }
 
-        const auto my_values = internal::in_mpi_comm(destiny_comm) ? internal::scatter_values(all_values,
-                                                                                              destiny_comm,
-                                                                                              all_coloring)
+        const auto my_values = internal::in_mpi_comm(destiny_comm) ? internal::scatter_values_from_root(all_values,
+                                                                                                        destiny_comm,
+                                                                                                        all_coloring)
                                                                    : std::vector<T>{};
 
         return my_values;
