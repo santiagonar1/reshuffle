@@ -42,7 +42,6 @@ namespace reshuffle::internal {
         return T{};
     }
 
-
     template<Serializable S>
     auto deserialize(const std::vector<std::byte> &bytes) {
         const auto num_bytes_type = sizeof(S);
@@ -51,6 +50,18 @@ namespace reshuffle::internal {
         std::ranges::for_each(values, [&in](auto &v) { in(v).or_throw(); });
 
         return values;
+    }
+
+    template<typename T, typename U>
+    auto combine(const std::vector<T> &first, const std::vector<U> &second) {
+        std::vector<std::pair<T, U>> combination{};
+        for (const auto &v1: first) {
+            for (const auto &v2: second) {
+                combination.emplace_back(v2, v1);
+            }
+        }
+
+        return combination;
     }
 }
 
