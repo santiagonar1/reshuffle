@@ -27,3 +27,14 @@ TEST(CreateColoring, CanUseBlockWiseStrategyInTwoDimensions) {
                                                        0);
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 1, 2, 3}));
 }
+
+TEST(CreateColoring, ABlockWiseWithOneBlockIndicatesNoDivision) {
+    // i.e., 4 values in a 2x2 matrix, previously all in rank 0.
+    const auto current_coloring = std::vector<int>(4);
+    const auto strategy_x = reshuffle::BlockWise(1);
+    const auto strategy_y = reshuffle::BlockWise(2);
+
+    const auto coloring_0 = reshuffle::create_coloring(current_coloring, {2, 2}, {strategy_x, strategy_y},
+                                                       0);
+    EXPECT_THAT(coloring_0, Eq(std::vector{0, 0, 1, 1}));
+}
