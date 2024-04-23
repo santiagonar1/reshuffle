@@ -5,13 +5,16 @@
 
 using ::testing::Eq;
 
-TEST(CreateColoring, CanUseBlockWiseStrategyToGetColoringPerRank) {
+TEST(CreateColoring, ReturnsColoringPerRank) {
     // i.e., rank 0 has elements 1, 3, 4, and rank 1 elements 0, 2.
     const auto current_coloring = std::vector{1, 0, 1, 0, 0};
     const auto strategy = reshuffle::BlockWise(2);
 
     const auto coloring_0 = reshuffle::create_coloring(current_coloring, strategy, 0);
+    const auto coloring_1 = reshuffle::create_coloring(current_coloring, strategy, 1);
+
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 1, 1}));
+    EXPECT_THAT(coloring_1, Eq(std::vector{0, 1}));
 }
 
 TEST(CreateColoring, CanUseBlockWiseStrategyInTwoDimensions) {
