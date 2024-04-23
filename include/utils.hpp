@@ -55,9 +55,9 @@ namespace reshuffle::internal {
     template<typename T, typename U>
     auto combine(const std::vector<T> &first, const std::vector<U> &second) {
         std::vector<std::pair<T, U>> combination{};
-        for (const auto &v1: first) {
-            for (const auto &v2: second) {
-                combination.emplace_back(v2, v1);
+        for (const auto &v2: second) {
+            for (const auto &v1: first) {
+                combination.emplace_back(v1, v2);
             }
         }
 
