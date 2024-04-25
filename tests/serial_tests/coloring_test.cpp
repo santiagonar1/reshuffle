@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include <coloring.hpp>
+#include <reshuffle.hpp>
 
 using ::testing::Eq;
 
