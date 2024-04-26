@@ -50,14 +50,14 @@ namespace reshuffle {
         }
     };
 
-    std::vector<int> create_coloring(const std::vector<int> &current_coloring,
+    std::vector<int> create_coloring(const std::vector<int> &global_coloring,
                                      const BlockWise &strategy, int rank) {
-        const auto num_values = static_cast<int>(current_coloring.size());
+        const auto num_values = static_cast<int>(global_coloring.size());
         const auto coloring_descriptor = strategy.get_coloring_descriptor(num_values);
 
         auto coloring = std::vector<int>{};
-        for (int i = 0; i < current_coloring.size(); ++i) {
-            if (rank == current_coloring[i]) {
+        for (int i = 0; i < global_coloring.size(); ++i) {
+            if (rank == global_coloring[i]) {
                 coloring.push_back(internal::get_color(coloring_descriptor, i));
             }
         }
@@ -65,17 +65,17 @@ namespace reshuffle {
         return coloring;
     }
 
-    std::vector<int> create_coloring(const std::vector<int> &current_coloring,
-                                     const Dimensions2D &dimensions,
+    std::vector<int> create_coloring(const std::vector<int> &global_coloring,
+                                     const Dimensions2D &global_dimensions,
                                      const std::array<BlockWise, 2> &strategies, int rank) {
-        const auto coloring_x = strategies[0].get_coloring_descriptor(dimensions.num_columns);
-        const auto coloring_y = strategies[1].get_coloring_descriptor(dimensions.num_rows);
+        const auto coloring_x = strategies[0].get_coloring_descriptor(global_dimensions.num_columns);
+        const auto coloring_y = strategies[1].get_coloring_descriptor(global_dimensions.num_rows);
         const auto combination = internal::combine(coloring_x, coloring_y);
 
         auto coloring = std::vector<int>{};
-        for (int i = 0; i < current_coloring.size(); ++i) {
-            if (rank == current_coloring[i]) {
-                const auto [x_coord, y_coord] = internal::to_2D(dimensions.num_columns, i);
+        for (int i = 0; i < global_coloring.size(); ++i) {
+            if (rank == global_coloring[i]) {
+                const auto [x_coord, y_coord] = internal::to_2D(global_dimensions.num_columns, i);
 
                 auto it = std::ranges::find_if(combination, [x_coord, y_coord](const auto &r) {
                     return internal::in_range(r.first, x_coord) and internal::in_range(r.second, y_coord);
