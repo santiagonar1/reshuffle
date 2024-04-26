@@ -96,6 +96,33 @@ namespace reshuffle {
 
         return ColoringReturn{new_global_coloring, local_coloring};
     }
+
+    auto get_subdomain_dimension(const BlockWise &strategy, int num_values, rank_id rank) {
+        const auto coloring_descriptor = strategy.get_coloring_descriptor(num_values);
+
+        if (rank >= coloring_descriptor.size()) {
+            return 0;
+        }
+
+        return coloring_descriptor[rank].second - coloring_descriptor[rank].first;
+    }
+
+    auto get_subdomain_dimension(const std::array<BlockWise, 2> &strategies, Dimensions2D global_dimensions,
+                                 rank_id rank) {
+        const auto coloring_x = strategies[0].get_coloring_descriptor(global_dimensions.num_columns);
+        const auto coloring_y = strategies[1].get_coloring_descriptor(global_dimensions.num_rows);
+        const auto combination = internal::combine(coloring_x, coloring_y);
+
+        if (rank >= coloring_x.size() * coloring_y.size()) {
+            return Dimensions2D{0, 0};
+        }
+
+        const auto &subdomain_range = combination[rank];
+        const auto num_rows = subdomain_range.second.second - subdomain_range.second.first;
+        const auto num_columns = subdomain_range.first.second - subdomain_range.first.first;
+
+        return Dimensions2D{num_rows, num_columns};
+    }
 }
 
 #endif //RESHUFFLE_COLORING_HPP
