@@ -25,6 +25,11 @@ namespace reshuffle {
 
     }
 
+    struct ColoringReturn {
+        std::vector<rank_id> global_coloring;
+        std::vector<rank_id> local_coloring;
+    };
+
     class BlockWise {
     private:
         const int _num_blocks;
@@ -51,41 +56,45 @@ namespace reshuffle {
         }
     };
 
-    std::vector<rank_id> create_coloring(const std::vector<rank_id> &global_coloring,
-                                         const BlockWise &strategy, rank_id rank) {
+    auto create_coloring(const std::vector<rank_id> &global_coloring,
+                         const BlockWise &strategy, rank_id rank) {
         const auto num_values = static_cast<int>(global_coloring.size());
         const auto coloring_descriptor = strategy.get_coloring_descriptor(num_values);
 
-        auto coloring = std::vector<int>{};
+        auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
+        auto local_coloring = std::vector<rank_id>{};
         for (int i = 0; i < global_coloring.size(); ++i) {
+            new_global_coloring[i] = internal::get_color(coloring_descriptor, i);
             if (rank == global_coloring[i]) {
-                coloring.push_back(internal::get_color(coloring_descriptor, i));
+                local_coloring.push_back(new_global_coloring[i]);
             }
         }
 
-        return coloring;
+        return ColoringReturn{new_global_coloring, local_coloring};
     }
 
-    std::vector<rank_id> create_coloring(const std::vector<rank_id> &global_coloring,
-                                         const Dimensions2D &global_dimensions,
-                                         const std::array<BlockWise, 2> &strategies, rank_id rank) {
+    auto create_coloring(const std::vector<rank_id> &global_coloring,
+                         const Dimensions2D &global_dimensions,
+                         const std::array<BlockWise, 2> &strategies, rank_id rank) {
         const auto coloring_x = strategies[0].get_coloring_descriptor(global_dimensions.num_columns);
         const auto coloring_y = strategies[1].get_coloring_descriptor(global_dimensions.num_rows);
         const auto combination = internal::combine(coloring_x, coloring_y);
 
-        auto coloring = std::vector<rank_id>{};
+        auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
+        auto local_coloring = std::vector<rank_id>{};
         for (int i = 0; i < global_coloring.size(); ++i) {
-            if (rank == global_coloring[i]) {
-                const auto [x_coord, y_coord] = internal::to_2D(global_dimensions.num_columns, i);
+            const auto [x_coord, y_coord] = internal::to_2D(global_dimensions.num_columns, i);
 
-                auto it = std::ranges::find_if(combination, [x_coord, y_coord](const auto &r) {
-                    return internal::in_range(r.first, x_coord) and internal::in_range(r.second, y_coord);
-                });
-                coloring.push_back(static_cast<int>(std::distance(combination.begin(), it)));
+            auto it = std::ranges::find_if(combination, [x_coord, y_coord](const auto &r) {
+                return internal::in_range(r.first, x_coord) and internal::in_range(r.second, y_coord);
+            });
+            new_global_coloring[i] = static_cast<int>(std::distance(combination.begin(), it));
+            if (rank == global_coloring[i]) {
+                local_coloring.push_back(new_global_coloring[i]);
             }
         }
 
-        return coloring;
+        return ColoringReturn{new_global_coloring, local_coloring};
     }
 }
 
