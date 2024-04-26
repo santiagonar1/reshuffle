@@ -83,17 +83,17 @@ namespace reshuffle {
     auto create_coloring(const std::vector<rank_id> &global_coloring,
                          const Dimensions2D &global_dimensions,
                          const std::array<BlockWise, 2> &strategies, rank_id rank) {
-        const auto combination = internal::get_subdomains(global_dimensions, strategies);
+        const auto subdomains = internal::get_subdomains(global_dimensions, strategies);
 
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
         auto local_coloring = std::vector<rank_id>{};
         for (int i = 0; i < global_coloring.size(); ++i) {
             const auto [x_coord, y_coord] = internal::to_2D(global_dimensions.num_columns, i);
 
-            auto it = std::ranges::find_if(combination, [x_coord, y_coord](const auto &r) {
+            auto it = std::ranges::find_if(subdomains, [x_coord, y_coord](const auto &r) {
                 return internal::in_range(r.first, x_coord) and internal::in_range(r.second, y_coord);
             });
-            new_global_coloring[i] = static_cast<int>(std::distance(combination.begin(), it));
+            new_global_coloring[i] = static_cast<int>(std::distance(subdomains.begin(), it));
             if (rank == global_coloring[i]) {
                 local_coloring.push_back(new_global_coloring[i]);
             }
@@ -114,15 +114,15 @@ namespace reshuffle {
 
     auto get_subdomain_dimension(const std::array<BlockWise, 2> &strategies, Dimensions2D global_dimensions,
                                  rank_id rank) {
-        const auto combination = internal::get_subdomains(global_dimensions, strategies);
+        const auto subdomains = internal::get_subdomains(global_dimensions, strategies);
 
-        if (rank >= combination.size()) {
+        if (rank >= subdomains.size()) {
             return Dimensions2D{0, 0};
         }
 
-        const auto &subdomain_range = combination[rank];
-        const auto num_rows = subdomain_range.second.second - subdomain_range.second.first;
-        const auto num_columns = subdomain_range.first.second - subdomain_range.first.first;
+        const auto &subdomain = subdomains[rank];
+        const auto num_rows = subdomain.second.second - subdomain.second.first;
+        const auto num_columns = subdomain.first.second - subdomain.first.first;
 
         return Dimensions2D{num_rows, num_columns};
     }
