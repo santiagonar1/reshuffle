@@ -39,7 +39,7 @@ namespace reshuffle {
     };
 
     namespace internal {
-        int get_color(const ColoringDescriptor &coloring_descriptor, int i) {
+        rank_id get_color(const ColoringDescriptor &coloring_descriptor, int i) {
             auto it = std::ranges::find_if(coloring_descriptor, [i](const auto &r) { return in_range(r, i); });
             //TODO: Should we check whether the index requested is out of bounds?
             return static_cast<int>(std::distance(coloring_descriptor.begin(), it));
