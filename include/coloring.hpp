@@ -12,24 +12,6 @@
 namespace reshuffle {
     using ColoringDescriptor = std::vector<internal::LeftClosedRange>;
 
-    namespace internal {
-        int get_color(const ColoringDescriptor &coloring_descriptor, int i) {
-            auto it = std::ranges::find_if(coloring_descriptor, [i](const auto &r) { return in_range(r, i); });
-            //TODO: Should we check whether the index requested is out of bounds?
-            return static_cast<int>(std::distance(coloring_descriptor.begin(), it));
-        }
-
-        std::pair<int, int> to_2D(int num_columns, int index) {
-            return {index % num_columns, index / num_columns};
-        }
-
-    }
-
-    struct ColoringReturn {
-        std::vector<rank_id> global_coloring;
-        std::vector<rank_id> local_coloring;
-    };
-
     class BlockWise {
     private:
         const int _num_blocks;
@@ -56,6 +38,31 @@ namespace reshuffle {
         }
     };
 
+    namespace internal {
+        int get_color(const ColoringDescriptor &coloring_descriptor, int i) {
+            auto it = std::ranges::find_if(coloring_descriptor, [i](const auto &r) { return in_range(r, i); });
+            //TODO: Should we check whether the index requested is out of bounds?
+            return static_cast<int>(std::distance(coloring_descriptor.begin(), it));
+        }
+
+        std::pair<int, int> to_2D(int num_columns, int index) {
+            return {index % num_columns, index / num_columns};
+        }
+
+        auto get_subdomains(const Dimensions2D &global_dimensions,
+                            const std::array<BlockWise, 2> &strategies) {
+            const auto coloring_x = strategies[0].get_coloring_descriptor(global_dimensions.num_columns);
+            const auto coloring_y = strategies[1].get_coloring_descriptor(global_dimensions.num_rows);
+            return internal::combine(coloring_x, coloring_y);
+        }
+
+    }
+
+    struct ColoringReturn {
+        std::vector<rank_id> global_coloring;
+        std::vector<rank_id> local_coloring;
+    };
+
     auto create_coloring(const std::vector<rank_id> &global_coloring,
                          const BlockWise &strategy, rank_id rank) {
         const auto num_values = static_cast<int>(global_coloring.size());
@@ -76,9 +83,7 @@ namespace reshuffle {
     auto create_coloring(const std::vector<rank_id> &global_coloring,
                          const Dimensions2D &global_dimensions,
                          const std::array<BlockWise, 2> &strategies, rank_id rank) {
-        const auto coloring_x = strategies[0].get_coloring_descriptor(global_dimensions.num_columns);
-        const auto coloring_y = strategies[1].get_coloring_descriptor(global_dimensions.num_rows);
-        const auto combination = internal::combine(coloring_x, coloring_y);
+        const auto combination = internal::get_subdomains(global_dimensions, strategies);
 
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
         auto local_coloring = std::vector<rank_id>{};
@@ -109,11 +114,9 @@ namespace reshuffle {
 
     auto get_subdomain_dimension(const std::array<BlockWise, 2> &strategies, Dimensions2D global_dimensions,
                                  rank_id rank) {
-        const auto coloring_x = strategies[0].get_coloring_descriptor(global_dimensions.num_columns);
-        const auto coloring_y = strategies[1].get_coloring_descriptor(global_dimensions.num_rows);
-        const auto combination = internal::combine(coloring_x, coloring_y);
+        const auto combination = internal::get_subdomains(global_dimensions, strategies);
 
-        if (rank >= coloring_x.size() * coloring_y.size()) {
+        if (rank >= combination.size()) {
             return Dimensions2D{0, 0};
         }
 
