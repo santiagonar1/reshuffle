@@ -8,6 +8,7 @@
 
 #include "utils.hpp"
 #include "concepts.hpp"
+#include "rank_id.hpp"
 
 namespace reshuffle::internal {
     auto is_root() {
@@ -16,7 +17,7 @@ namespace reshuffle::internal {
         return rank == 0;
     }
 
-    auto calc_num_values_per_rank(int total_num_values, int num_ranks, const std::vector<int> &coloring = {}) {
+    auto calc_num_values_per_rank(int total_num_values, int num_ranks, const std::vector<rank_id> &coloring = {}) {
         std::vector<int> values_per_rank(num_ranks);
 
         for (auto rank: coloring) {
@@ -65,7 +66,7 @@ namespace reshuffle::internal {
     }
 
     template<ContiguousContainer C>
-    auto order_by_color(const C &values, const std::vector<int> &coloring, const std::vector<int> &displacements,
+    auto order_by_color(const C &values, const std::vector<rank_id> &coloring, const std::vector<int> &displacements,
                         [[maybe_unused]] int mpi_datatype_size) {
         using T = C::value_type;
         const int num_ranks = static_cast<int>(displacements.size());
@@ -88,7 +89,7 @@ namespace reshuffle::internal {
     }
 
     template<>
-    auto order_by_color(const std::vector<std::byte> &values, const std::vector<int> &coloring,
+    auto order_by_color(const std::vector<std::byte> &values, const std::vector<rank_id> &coloring,
                         const std::vector<int> &displacements, int mpi_datatype_size) {
         using T = std::byte;
         const int num_ranks = static_cast<int>(displacements.size());
@@ -114,7 +115,7 @@ namespace reshuffle::internal {
 
     template<ContiguousContainer C>
     auto scatter_from_root(const C &values, const MPI_Comm &comm, const MPI_Datatype &mpi_datatype,
-                           const std::vector<int> &coloring, bool values_are_serialized = false) {
+                           const std::vector<rank_id> &coloring, bool values_are_serialized = false) {
         using T = C::value_type;
         int num_ranks{};
         int rank{};
@@ -178,7 +179,7 @@ namespace reshuffle::internal {
 
     template<ContiguousContainer C>
     requires FundamentalType<typename C::value_type>
-    auto scatter_values_from_root(const C &values, const MPI_Comm &comm, const std::vector<int> &coloring) {
+    auto scatter_values_from_root(const C &values, const MPI_Comm &comm, const std::vector<rank_id> &coloring) {
         using T = C::value_type;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
 
@@ -187,7 +188,7 @@ namespace reshuffle::internal {
 
     template<ContiguousContainer C>
     requires Serializable<typename C::value_type> && (not FundamentalType<typename C::value_type>)
-    auto scatter_values_from_root(const C &values, const MPI_Comm &comm, const std::vector<int> &coloring) {
+    auto scatter_values_from_root(const C &values, const MPI_Comm &comm, const std::vector<rank_id> &coloring) {
         using T = C::value_type;
 
         const auto num_bytes_type = sizeof(T);

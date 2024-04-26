@@ -7,6 +7,7 @@
 #include "utils.hpp"
 #include "dimensions.hpp"
 #include "left_closed_range.hpp"
+#include "rank_id.hpp"
 
 namespace reshuffle {
     using ColoringDescriptor = std::vector<internal::LeftClosedRange>;
@@ -50,8 +51,8 @@ namespace reshuffle {
         }
     };
 
-    std::vector<int> create_coloring(const std::vector<int> &global_coloring,
-                                     const BlockWise &strategy, int rank) {
+    std::vector<rank_id> create_coloring(const std::vector<rank_id> &global_coloring,
+                                         const BlockWise &strategy, rank_id rank) {
         const auto num_values = static_cast<int>(global_coloring.size());
         const auto coloring_descriptor = strategy.get_coloring_descriptor(num_values);
 
@@ -65,14 +66,14 @@ namespace reshuffle {
         return coloring;
     }
 
-    std::vector<int> create_coloring(const std::vector<int> &global_coloring,
-                                     const Dimensions2D &global_dimensions,
-                                     const std::array<BlockWise, 2> &strategies, int rank) {
+    std::vector<rank_id> create_coloring(const std::vector<rank_id> &global_coloring,
+                                         const Dimensions2D &global_dimensions,
+                                         const std::array<BlockWise, 2> &strategies, rank_id rank) {
         const auto coloring_x = strategies[0].get_coloring_descriptor(global_dimensions.num_columns);
         const auto coloring_y = strategies[1].get_coloring_descriptor(global_dimensions.num_rows);
         const auto combination = internal::combine(coloring_x, coloring_y);
 
-        auto coloring = std::vector<int>{};
+        auto coloring = std::vector<rank_id>{};
         for (int i = 0; i < global_coloring.size(); ++i) {
             if (rank == global_coloring[i]) {
                 const auto [x_coord, y_coord] = internal::to_2D(global_dimensions.num_columns, i);
