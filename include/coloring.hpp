@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "utils.hpp"
 #include "dimensions.hpp"
+#include "indices.hpp"
 #include "left_closed_range.hpp"
 #include "rank_id.hpp"
 
@@ -45,7 +46,7 @@ namespace reshuffle {
             return static_cast<int>(std::distance(coloring_descriptor.begin(), it));
         }
 
-        std::pair<int, int> to_2D(int num_columns, int index) {
+        Indices2D to_2D(int num_columns, int index) {
             return {index % num_columns, index / num_columns};
         }
 
