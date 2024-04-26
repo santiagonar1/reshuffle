@@ -3,8 +3,8 @@
 
 namespace reshuffle {
     struct Dimensions2D {
-        const int num_rows;
-        const int num_columns;
+        const int num_rows{};
+        const int num_columns{};
     };
 }
 
