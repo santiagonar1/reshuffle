@@ -1,17 +1,64 @@
+#include <vector>
+#include <mpi.h>
+#include <ranges>
 #include <iostream>
+
 #include <reshuffle.hpp>
 
-#include <mpi.h>
+
+using Matrix = std::vector<std::vector<int>>;
+using Strategy2D = std::array<reshuffle::BlockWise, 2>;
+
+bool is_root();
+
+void print(const Matrix &matrix);
 
 int main() {
-    int rank{};
+    constexpr int num_rows = 20;
+    constexpr int num_columns = 20;
+    constexpr reshuffle::Dimensions2D global_dimension{num_rows, num_columns};
+    constexpr int num_elements = num_rows * num_columns;
 
     MPI_Init(nullptr, nullptr);
 
+    int rank{};
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    std::cout << "Hello, from rank " << rank << std::endl;
+    auto matrix = is_root() ? Matrix(num_rows, std::vector<int>(num_columns, 3)) : Matrix{};
+    const auto initial_global_coloring = std::vector(num_elements, 0);
+    const std::vector<Strategy2D> strategies = {{reshuffle::BlockWise(4), reshuffle::BlockWise(1)},
+                                                {reshuffle::BlockWise(2), reshuffle::BlockWise(2)},
+                                                {reshuffle::BlockWise(1), reshuffle::BlockWise(4)}};
+
+
+    auto global_coloring = initial_global_coloring;
+    auto local_coloring = std::vector<reshuffle::rank_id>{};
+    for (const auto &strategy: strategies) {
+        std::tie(global_coloring, local_coloring) = reshuffle::create_coloring(global_coloring, global_dimension,
+                                                                               strategy, rank).as_tuple();
+        const auto subdomain_dimension = reshuffle::get_subdomain_dimension(strategy, global_dimension, rank);
+        matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, local_coloring, subdomain_dimension);
+        if (is_root()) {
+            print(matrix);
+            std::cout << "\n";
+        }
+    }
 
     MPI_Finalize();
     return 0;
+}
+
+bool is_root() {
+    int rank{};
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    return rank == 0;
+}
+
+void print(const Matrix &matrix) {
+    for (const auto &row: matrix) {
+        for (const auto &value: row) {
+            std::cout << value << " ";
+        }
+        std::cout << std::endl;
+    }
 }
