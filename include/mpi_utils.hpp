@@ -41,7 +41,7 @@ namespace reshuffle::internal {
         return displacements;
     }
 
-    template<ContiguousContainer C>
+    template<concepts::ContiguousContainer C>
     auto gather_in_root(const C &values, const MPI_Comm &comm, const MPI_Datatype &mpi_datatype) {
         using T = C::value_type;
         int num_ranks{};
@@ -65,7 +65,7 @@ namespace reshuffle::internal {
         return all_values;
     }
 
-    template<ContiguousContainer C>
+    template<concepts::ContiguousContainer C>
     auto order_by_color(const C &values, const std::vector<rank_id> &coloring, const std::vector<int> &displacements,
                         [[maybe_unused]] int mpi_datatype_size) {
         using T = C::value_type;
@@ -113,7 +113,7 @@ namespace reshuffle::internal {
         return ordered_values;
     }
 
-    template<ContiguousContainer C>
+    template<concepts::ContiguousContainer C>
     auto scatter_from_root(const C &values, const MPI_Comm &comm, const MPI_Datatype &mpi_datatype,
                            const std::vector<rank_id> &coloring, bool values_are_serialized = false) {
         using T = C::value_type;
@@ -160,8 +160,8 @@ namespace reshuffle::internal {
         return my_values;
     }
 
-    template<ContiguousContainer C>
-    requires FundamentalType<typename C::value_type>
+    template<concepts::ContiguousContainer C>
+    requires concepts::FundamentalType<typename C::value_type>
     auto gather_values_in_root(const C &values, const MPI_Comm &comm) {
         using T = C::value_type;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
@@ -169,16 +169,16 @@ namespace reshuffle::internal {
         return gather_in_root(values, comm, mpi_datatype);
     }
 
-    template<ContiguousContainer C>
-    requires Serializable<typename C::value_type> && (not FundamentalType<typename C::value_type>)
+    template<concepts::ContiguousContainer C>
+    requires concepts::Serializable<typename C::value_type> && (not concepts::FundamentalType<typename C::value_type>)
     auto gather_values_in_root(const C &values, const MPI_Comm &comm) {
         using T = C::value_type;
 
         return deserialize<T>(gather_in_root(serialize(values), comm, MPI_BYTE));
     }
 
-    template<ContiguousContainer C>
-    requires FundamentalType<typename C::value_type>
+    template<concepts::ContiguousContainer C>
+    requires concepts::FundamentalType<typename C::value_type>
     auto scatter_values_from_root(const C &values, const MPI_Comm &comm, const std::vector<rank_id> &coloring) {
         using T = C::value_type;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
@@ -186,8 +186,8 @@ namespace reshuffle::internal {
         return scatter_from_root(values, comm, mpi_datatype, coloring);
     }
 
-    template<ContiguousContainer C>
-    requires Serializable<typename C::value_type> && (not FundamentalType<typename C::value_type>)
+    template<concepts::ContiguousContainer C>
+    requires concepts::Serializable<typename C::value_type> && (not concepts::FundamentalType<typename C::value_type>)
     auto scatter_values_from_root(const C &values, const MPI_Comm &comm, const std::vector<rank_id> &coloring) {
         using T = C::value_type;
 

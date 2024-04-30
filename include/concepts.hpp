@@ -3,7 +3,7 @@
 
 #include <zpp_bits.h>
 
-namespace reshuffle {
+namespace reshuffle::concepts {
     template<typename T>
     concept DefaultConstructible = std::is_default_constructible_v<T>;
 

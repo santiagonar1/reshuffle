@@ -24,8 +24,8 @@ namespace reshuffle::internal {
         throw std::invalid_argument("No MPI Datatype");
     }
 
-    template<Iterable I>
-    requires Serializable<typename I::value_type>
+    template<concepts::Iterable I>
+    requires concepts::Serializable<typename I::value_type>
     auto serialize(const I &values) {
         auto [data, out] = zpp::bits::data_out();
         std::ranges::for_each(values, [&out](auto &v) { out(v).or_throw(); });
@@ -33,17 +33,17 @@ namespace reshuffle::internal {
         return data;
     }
 
-    template<NonTriviallySerializable T>
+    template<concepts::NonTriviallySerializable T>
     auto make_object() {
         return T::create();
     }
 
-    template<DefaultConstructible T>
+    template<concepts::DefaultConstructible T>
     auto make_object() {
         return T{};
     }
 
-    template<Serializable S>
+    template<concepts::Serializable S>
     auto deserialize(const std::vector<std::byte> &bytes) {
         const auto num_bytes_type = sizeof(S);
         std::vector<S> values(bytes.size() / num_bytes_type, make_object<S>());

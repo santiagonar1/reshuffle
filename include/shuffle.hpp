@@ -14,8 +14,8 @@
 #include "utils.hpp"
 
 namespace reshuffle {
-    template<ContiguousContainer C>
-    requires Serializable<typename C::value_type>
+    template<concepts::ContiguousContainer C>
+    requires concepts::Serializable<typename C::value_type>
     auto shuffle(const C &values, const MPI_Comm &comm, const std::vector<rank_id> &coloring = {}) {
         const auto using_coloring = not coloring.empty();
         if (using_coloring and coloring.size() != std::ranges::size(values)) {
@@ -26,8 +26,8 @@ namespace reshuffle {
         return internal::scatter_values_from_root(internal::gather_values_in_root(values, comm), comm, all_coloring);
     }
 
-    template<ContiguousContainer C>
-    requires Serializable<typename C::value_type>
+    template<concepts::ContiguousContainer C>
+    requires concepts::Serializable<typename C::value_type>
     auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
                  const std::vector<rank_id> &coloring = {}) {
         using T = C::value_type;
@@ -56,16 +56,16 @@ namespace reshuffle {
         return my_values;
     }
 
-    template<Iterable I>
-    requires Serializable<typename I::value_type>
+    template<concepts::Iterable I>
+    requires concepts::Serializable<typename I::value_type>
     auto shuffle(const I &values, const MPI_Comm &comm, const std::vector<rank_id> &coloring = {}) {
         using T = I::value_type;
         const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
         return shuffle(v_values, comm, coloring);
     }
 
-    template<Iterable I>
-    requires Serializable<typename I::value_type>
+    template<concepts::Iterable I>
+    requires concepts::Serializable<typename I::value_type>
     auto shuffle(const I &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
                  const std::vector<rank_id> &coloring = {}) {
         using T = I::value_type;
@@ -73,7 +73,7 @@ namespace reshuffle {
         return shuffle(v_values, origin_comm, destiny_comm, coloring);
     }
 
-    template<Matrix2D M>
+    template<concepts::Matrix2D M>
     auto shuffle(const M &values, const MPI_Comm &comm, const std::vector<rank_id> &coloring,
                  const Dimensions2D &subdomain_dimension) {
         using T = M::value_type::value_type;
@@ -84,7 +84,7 @@ namespace reshuffle {
         return internal::to_matrix(buffer, subdomain_dimension);;
     }
 
-    template<Matrix2D M>
+    template<concepts::Matrix2D M>
     auto shuffle(const M &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
                  const std::vector<rank_id> &coloring, const Dimensions2D &subdomain_dimension) {
         using T = M::value_type::value_type;
