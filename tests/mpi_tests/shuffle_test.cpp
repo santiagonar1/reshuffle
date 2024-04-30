@@ -169,3 +169,43 @@ TEST_F(Shuffle, ColoringWorksWithNonAggregate) {
         EXPECT_THAT(new_values, Eq(std::vector(6, NonAggregate(1))));
     }
 }
+
+TEST_F(Shuffle, CanSplit2DContainers) {
+    using Matrix = std::vector<std::vector<int>>;
+    constexpr int num_rows = 10;
+    constexpr int num_columns = 4;
+    constexpr int num_values = num_rows * num_columns;
+
+    auto m = is_root() ? Matrix(num_rows, std::vector(num_columns, 0)) : Matrix();
+    auto coloring = is_root() ? std::vector(num_values, 1) : std::vector<int>{};
+    auto subdomain_dimension = is_root() ? reshuffle::Dimensions2D{0, 0} : reshuffle::Dimensions2D{num_rows,
+                                                                                                   num_columns};
+    m = reshuffle::shuffle(m, MPI_COMM_WORLD, coloring, subdomain_dimension);
+
+    if (is_root()) {
+        EXPECT_THAT(m.size(), Eq(0));
+    } else {
+        EXPECT_THAT(m.size(), num_rows);
+        EXPECT_THAT(m[0].size(), num_columns);
+    }
+}
+
+TEST_F(Shuffle, CanSplit2DContainersWithDifferentCommunicators) {
+    using Matrix = std::vector<std::vector<int>>;
+    constexpr int num_rows = 10;
+    constexpr int num_columns = 4;
+    constexpr int num_values = num_rows * num_columns;
+
+    auto m = is_root() ? Matrix(num_rows, std::vector(num_columns, 0)) : Matrix();
+    auto coloring = is_root() ? std::vector(num_values, 1) : std::vector<int>{};
+    auto subdomain_dimension = is_root() ? reshuffle::Dimensions2D{0, 0} : reshuffle::Dimensions2D{num_rows,
+                                                                                                   num_columns};
+    m = reshuffle::shuffle(m, _comm_rank_0, MPI_COMM_WORLD, coloring, subdomain_dimension);
+
+    if (is_root()) {
+        EXPECT_THAT(m.size(), Eq(0));
+    } else {
+        EXPECT_THAT(m.size(), num_rows);
+        EXPECT_THAT(m[0].size(), num_columns);
+    }
+}

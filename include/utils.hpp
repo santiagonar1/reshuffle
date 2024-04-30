@@ -6,6 +6,7 @@
 #include <ranges>
 
 #include "concepts.hpp"
+#include "dimensions.hpp"
 
 namespace reshuffle::internal {
     template<typename DATATYPE>
@@ -62,6 +63,22 @@ namespace reshuffle::internal {
         }
 
         return combination;
+    }
+
+    template<typename T>
+    auto to_matrix(const std::vector<T> &values, const Dimensions2D &dimension) {
+        using Matrix = std::vector<std::vector<T>>;
+
+        auto matrix = Matrix(dimension.num_rows, std::vector<T>(dimension.num_columns));
+        int i = 0;
+        for (auto &row: matrix) {
+            for (auto &value: row) {
+                value = values[i];
+                ++i;
+            }
+        }
+
+        return matrix;
     }
 }
 

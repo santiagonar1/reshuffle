@@ -26,6 +26,11 @@ namespace reshuffle {
 
     template<typename T>
     concept FundamentalType = std::is_fundamental_v<T>;
+
+    template <typename T>
+    concept Matrix2D = requires(T t) {
+        t[0][0];
+    };
 }
 
 #endif //RESHUFFLE_CONCEPTS_HPP
