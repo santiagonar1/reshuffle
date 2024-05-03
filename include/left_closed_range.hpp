@@ -9,6 +9,6 @@ namespace reshuffle::internal {
     bool in_range(const LeftClosedRange &range, int value) {
         return range.first <= value and value < range.second;
     }
-}
+}// namespace reshuffle::internal
 
-#endif //RESHUFFLE_LEFT_CLOSED_RANGE_HPP
+#endif// RESHUFFLE_LEFT_CLOSED_RANGE_HPP

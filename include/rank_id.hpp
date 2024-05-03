@@ -5,4 +5,4 @@ namespace reshuffle {
     using rank_id = int;
 }
 
-#endif //RESHUFFLE_RANK_ID_HPP
+#endif//RESHUFFLE_RANK_ID_HPP

@@ -1,5 +1,5 @@
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <mpi.h>
 #include <vector>
@@ -47,13 +47,9 @@ protected:
                                          : std::vector<int>{};
     }
 
-    [[nodiscard]] bool is_root() const {
-        return _rank == 0;
-    }
+    [[nodiscard]] bool is_root() const { return _rank == 0; }
 
-    [[nodiscard]] bool is_last() const {
-        return _rank == _num_ranks - 1;
-    }
+    [[nodiscard]] bool is_last() const { return _rank == _num_ranks - 1; }
 };
 
 TEST_F(Shuffle, SplitsDataEquallyAmongRanks) {
@@ -69,9 +65,7 @@ TEST_F(Shuffle, WorksForDifferentDatatypes) {
 }
 
 TEST_F(Shuffle, GivesByDefaultRemainingElementsToLastRank) {
-    if (is_root()) {
-        _values_only_in_root.push_back(_value);
-    }
+    if (is_root()) { _values_only_in_root.push_back(_value); }
 
     const auto new_values = reshuffle::shuffle(_values_only_in_root, MPI_COMM_WORLD);
     if (is_last()) {
@@ -112,14 +106,16 @@ TEST_F(Shuffle, WorksWithAnyIterableContainer) {
 }
 
 TEST_F(Shuffle, WorksWithAggregateDatatype) {
-    const auto values = is_root() ? std::vector<MyPOD>(_min_elements_per_rank * _num_ranks) : std::vector<MyPOD>{};
+    const auto values = is_root() ? std::vector<MyPOD>(_min_elements_per_rank * _num_ranks)
+                                  : std::vector<MyPOD>{};
 
     const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
     EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, MyPOD{})));
 }
 
 TEST_F(Shuffle, WorksWithNonAggregateDatatypeIfSerializableAndCreateMethodPresent) {
-    const auto values = is_root() ? std::vector<NonAggregate>(_min_elements_per_rank * _num_ranks, NonAggregate(12))
+    const auto values = is_root() ? std::vector<NonAggregate>(_min_elements_per_rank * _num_ranks,
+                                                              NonAggregate(12))
                                   : std::vector<NonAggregate>{};
 
     const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
@@ -127,11 +123,13 @@ TEST_F(Shuffle, WorksWithNonAggregateDatatypeIfSerializableAndCreateMethodPresen
 }
 
 TEST_F(Shuffle, NonAggregateDefaultConstructibleDoesNotRequireCreate) {
-    const auto values = is_root() ? std::vector<NonAggregateDefaultConstructible>(_min_elements_per_rank * _num_ranks)
+    const auto values = is_root() ? std::vector<NonAggregateDefaultConstructible>(
+                                            _min_elements_per_rank * _num_ranks)
                                   : std::vector<NonAggregateDefaultConstructible>{};
 
     const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, NonAggregateDefaultConstructible())));
+    EXPECT_THAT(new_values,
+                Eq(std::vector(_min_elements_per_rank, NonAggregateDefaultConstructible())));
 }
 
 TEST_F(Shuffle, CanUseColoringToIndicateWhereValuesShouldBeStored) {
@@ -159,7 +157,8 @@ TEST_F(Shuffle, ColoringWorksWithDifferentCommunicators) {
 }
 
 TEST_F(Shuffle, ColoringWorksWithNonAggregate) {
-    const auto values = std::vector{NonAggregate(1), NonAggregate(0), NonAggregate(1), NonAggregate(1)};
+    const auto values =
+            std::vector{NonAggregate(1), NonAggregate(0), NonAggregate(1), NonAggregate(1)};
     const auto coloring = std::vector{1, 0, 1, 1};
 
     const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD, coloring);
@@ -178,8 +177,8 @@ TEST_F(Shuffle, CanSplit2DContainers) {
 
     auto m = is_root() ? Matrix(num_rows, std::vector(num_columns, 0)) : Matrix();
     auto coloring = is_root() ? std::vector(num_values, 1) : std::vector<int>{};
-    auto subdomain_dimension = is_root() ? reshuffle::Dimensions2D{0, 0} : reshuffle::Dimensions2D{num_rows,
-                                                                                                   num_columns};
+    auto subdomain_dimension = is_root() ? reshuffle::Dimensions2D{0, 0}
+                                         : reshuffle::Dimensions2D{num_rows, num_columns};
     m = reshuffle::shuffle(m, MPI_COMM_WORLD, coloring, subdomain_dimension);
 
     if (is_root()) {
@@ -198,8 +197,8 @@ TEST_F(Shuffle, CanSplit2DContainersWithDifferentCommunicators) {
 
     auto m = is_root() ? Matrix(num_rows, std::vector(num_columns, 0)) : Matrix();
     auto coloring = is_root() ? std::vector(num_values, 1) : std::vector<int>{};
-    auto subdomain_dimension = is_root() ? reshuffle::Dimensions2D{0, 0} : reshuffle::Dimensions2D{num_rows,
-                                                                                                   num_columns};
+    auto subdomain_dimension = is_root() ? reshuffle::Dimensions2D{0, 0}
+                                         : reshuffle::Dimensions2D{num_rows, num_columns};
     m = reshuffle::shuffle(m, _comm_rank_0, MPI_COMM_WORLD, coloring, subdomain_dimension);
 
     if (is_root()) {

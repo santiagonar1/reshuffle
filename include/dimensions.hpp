@@ -6,6 +6,6 @@ namespace reshuffle {
         const int num_rows{};
         const int num_columns{};
     };
-}
+}// namespace reshuffle
 
-#endif //RESHUFFLE_DIMENSIONS_HPP
+#endif//RESHUFFLE_DIMENSIONS_HPP

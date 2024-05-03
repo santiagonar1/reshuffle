@@ -2,8 +2,8 @@
 #define RESHUFFLE_UTILS_HPP
 
 #include <mpi.h>
-#include <zpp_bits.h>
 #include <ranges>
+#include <zpp_bits.h>
 
 #include "concepts.hpp"
 #include "dimensions.hpp"
@@ -25,7 +25,7 @@ namespace reshuffle::internal {
     }
 
     template<concepts::Iterable I>
-    requires concepts::Serializable<typename I::value_type>
+        requires concepts::Serializable<typename I::value_type>
     auto serialize(const I &values) {
         auto [data, out] = zpp::bits::data_out();
         std::ranges::for_each(values, [&out](auto &v) { out(v).or_throw(); });
@@ -57,9 +57,7 @@ namespace reshuffle::internal {
     auto combine(const std::vector<T> &first, const std::vector<U> &second) {
         std::vector<std::pair<T, U>> combination{};
         for (const auto &v2: second) {
-            for (const auto &v1: first) {
-                combination.emplace_back(v1, v2);
-            }
+            for (const auto &v1: first) { combination.emplace_back(v1, v2); }
         }
 
         return combination;
@@ -80,6 +78,6 @@ namespace reshuffle::internal {
 
         return matrix;
     }
-}
+}// namespace reshuffle::internal
 
-#endif //RESHUFFLE_UTILS_HPP
+#endif//RESHUFFLE_UTILS_HPP

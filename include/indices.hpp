@@ -6,6 +6,6 @@ namespace reshuffle::internal {
         int i{};
         int j{};
     };
-}
+}// namespace reshuffle::internal
 
-#endif //RESHUFFLE_INDICES_HPP
+#endif//RESHUFFLE_INDICES_HPP

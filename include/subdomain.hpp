@@ -7,4 +7,4 @@ namespace reshuffle::internal {
     using Subdomain = internal::LeftClosedRange;
 }
 
-#endif //RESHUFFLE_SUBDOMAIN_HPP
+#endif//RESHUFFLE_SUBDOMAIN_HPP

@@ -1,11 +1,11 @@
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <mpi.h>
 #include <utils.hpp>
 
-using ::testing::Eq;
 using reshuffle::internal::to_mpi_datatype;
+using ::testing::Eq;
 
 TEST(ToMPIDatatype, ConvertsDatatypeToMPIDatatype) {
     EXPECT_THAT(to_mpi_datatype<int>(), Eq(MPI_INT));

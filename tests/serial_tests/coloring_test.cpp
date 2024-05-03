@@ -1,5 +1,5 @@
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <reshuffle.hpp>
 
@@ -10,7 +10,8 @@ TEST(CreateColoring, ReturnsColoringPerRankAndGlobalColoring) {
     const auto current_coloring = std::vector{1, 0, 1, 0, 0};
     const auto strategy = reshuffle::BlockWise(2);
 
-    const auto [global_coloring, coloring_0] = reshuffle::create_coloring(current_coloring, strategy, 0);
+    const auto [global_coloring, coloring_0] =
+            reshuffle::create_coloring(current_coloring, strategy, 0);
     const auto [_, coloring_1] = reshuffle::create_coloring(current_coloring, strategy, 1);
 
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 1, 1}));
@@ -24,9 +25,8 @@ TEST(CreateColoring, CanUseBlockWiseStrategyInTwoDimensions) {
     const auto strategy_x = reshuffle::BlockWise(2);
     const auto strategy_y = reshuffle::BlockWise(2);
 
-    const auto [global_coloring, coloring_0] = reshuffle::create_coloring(current_coloring, {2, 2},
-                                                                          {strategy_x, strategy_y},
-                                                                          0);
+    const auto [global_coloring, coloring_0] =
+            reshuffle::create_coloring(current_coloring, {2, 2}, {strategy_x, strategy_y}, 0);
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 1, 2, 3}));
 }
 
@@ -36,9 +36,8 @@ TEST(CreateColoring, ABlockWiseWithOneBlockIndicatesNoDivision) {
     const auto strategy_x = reshuffle::BlockWise(1);
     const auto strategy_y = reshuffle::BlockWise(2);
 
-    const auto [global_coloring, coloring_0] = reshuffle::create_coloring(current_coloring, {2, 2},
-                                                                          {strategy_x, strategy_y},
-                                                                          0);
+    const auto [global_coloring, coloring_0] =
+            reshuffle::create_coloring(current_coloring, {2, 2}, {strategy_x, strategy_y}, 0);
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 0, 1, 1}));
 }
 
@@ -59,7 +58,8 @@ TEST(GetSubdomainDimensions, In2DReturnsTheSubdomainDimension) {
     const auto strategy_x = reshuffle::BlockWise(2);
     const auto strategy_y = reshuffle::BlockWise(1);
 
-    const auto dimensions_0 = reshuffle::get_subdomain_dimension({strategy_x, strategy_y}, {20, 20}, 0);
+    const auto dimensions_0 =
+            reshuffle::get_subdomain_dimension({strategy_x, strategy_y}, {20, 20}, 0);
 
     EXPECT_THAT(dimensions_0.num_columns, Eq(10));
     EXPECT_THAT(dimensions_0.num_rows, Eq(20));

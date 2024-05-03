@@ -1,7 +1,7 @@
 #ifndef RESHUFFLE_RESHUFFLE_HPP
 #define RESHUFFLE_RESHUFFLE_HPP
 
-#include "shuffle.hpp"
 #include "coloring.hpp"
+#include "shuffle.hpp"
 
-#endif //RESHUFFLE_RESHUFFLE_HPP
+#endif//RESHUFFLE_RESHUFFLE_HPP

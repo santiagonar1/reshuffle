@@ -1,7 +1,7 @@
-#include <vector>
+#include <iostream>
 #include <mpi.h>
 #include <ranges>
-#include <iostream>
+#include <vector>
 
 #include <reshuffle.hpp>
 
@@ -34,9 +34,11 @@ int main() {
     auto global_coloring = initial_global_coloring;
     auto local_coloring = std::vector<reshuffle::rank_id>{};
     for (const auto &strategy: strategies) {
-        std::tie(global_coloring, local_coloring) = reshuffle::create_coloring(global_coloring, global_dimension,
-                                                                               strategy, rank).as_tuple();
-        const auto subdomain_dimension = reshuffle::get_subdomain_dimension(strategy, global_dimension, rank);
+        std::tie(global_coloring, local_coloring) =
+                reshuffle::create_coloring(global_coloring, global_dimension, strategy, rank)
+                        .as_tuple();
+        const auto subdomain_dimension =
+                reshuffle::get_subdomain_dimension(strategy, global_dimension, rank);
         matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, local_coloring, subdomain_dimension);
         if (is_root()) {
             print(matrix);
@@ -56,9 +58,7 @@ bool is_root() {
 
 void print(const Matrix &matrix) {
     for (const auto &row: matrix) {
-        for (const auto &value: row) {
-            std::cout << value << " ";
-        }
+        for (const auto &value: row) { std::cout << value << " "; }
         std::cout << std::endl;
     }
 }
