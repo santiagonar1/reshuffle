@@ -25,7 +25,7 @@ int main() {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     auto matrix = is_root() ? Matrix(num_rows, std::vector<int>(num_columns, 3)) : Matrix{};
-    const auto initial_global_coloring = std::vector(num_elements, 0);
+    const auto initial_global_coloring = std::vector<reshuffle::rank_id>(num_elements, 0);
     const std::vector<Strategy2D> strategies = {{reshuffle::BlockWise(4), reshuffle::BlockWise(1)},
                                                 {reshuffle::BlockWise(2), reshuffle::BlockWise(2)},
                                                 {reshuffle::BlockWise(1), reshuffle::BlockWise(4)}};
