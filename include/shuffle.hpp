@@ -88,7 +88,6 @@ namespace reshuffle {
         buffer = shuffle(buffer, comm, coloring);
 
         return internal::to_matrix(buffer, subdomain_dimension);
-        ;
     }
 
     template<concepts::Matrix2D M>
@@ -101,7 +100,6 @@ namespace reshuffle {
         buffer = shuffle(buffer, origin_comm, destiny_comm, coloring);
 
         return internal::to_matrix(buffer, subdomain_dimension);
-        ;
     }
 }// namespace reshuffle
 
