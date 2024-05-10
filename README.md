@@ -26,12 +26,24 @@ If `cmake` fails to detect the location of your MPI library, use instead:
 cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DCMAKE_CXX_COMPILER:FILEPATH=/path/to/mpicxx -DCMAKE_C_COMPILER:FILEPATH=/path/to/mpicc ..
 ```
 
-If you are planning to test the code in docker, then make sure to set the corresponding `MPIEXEC_PREFLAGS`. For example,
-if you are using OpenMPI you will need to indicate the `--allow-run-as-root` to be able to compile the tests
-(i.e., the tests are immediately run):
+### Docker
 
-```sh
+You can use the `Dockerfile` provided by us to create an image in which to build and run the code. So first, build
+the image:
+
+```shell
+docker build -t reshuffle .
+```
+
+Then you can start it and compile/run the code. Note that since the image uses OpenMPI, we need to allow the execution
+of MPI code as root in order to successfully compile the tests. This is done with the `--allow-run-as-root`, set via
+the `MPIEXEC_PREFLAGS` variable.
+
+```shell
+docker run --rm -it -v .:/reshuffle reshuffle bash
+mkdir /reshuffle/build && cd /reshuffle/build
 cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DMPIEXEC_PREFLAGS=--allow-run-as-root ..
+make
 ```
 
 ## Usage
