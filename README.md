@@ -17,6 +17,7 @@ the following two lines should be enough to compile the library and its examples
 ```shell
 mkdir build && cd build
 cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake ..
+make
 ```
 
 If `cmake` fails to detect the location of your MPI library, use instead:
