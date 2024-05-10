@@ -25,6 +25,14 @@ If `cmake` fails to detect the location of your MPI library, use instead:
 cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DCMAKE_CXX_COMPILER:FILEPATH=/path/to/mpicxx -DCMAKE_C_COMPILER:FILEPATH=/path/to/mpicc ..
 ```
 
+If you are planning to test the code in docker, then make sure to set the corresponding `MPIEXEC_PREFLAGS`. For example,
+if you are using OpenMPI you will need to indicate the `--allow-run-as-root` to be able to compile the tests
+(i.e., the tests are immediately run):
+
+```sh
+cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DMPIEXEC_PREFLAGS=--allow-run-as-root ..
+```
+
 ## Usage
 
 ### TLDR

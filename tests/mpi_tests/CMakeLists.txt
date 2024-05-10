@@ -18,7 +18,7 @@ macro(package_add_mpi_test TEST_NAME)
             zpp_bits::zpp_bits)
 
     set(RESHUFFLE_TESTS_NUM_MPI_RANKS 2 CACHE STRING "Number of MPI Ranks to run Reshuffle tests with.")
-    set_property(TARGET ${TEST_NAME} PROPERTY CROSSCOMPILING_EMULATOR '${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${RESHUFFLE_TESTS_NUM_MPI_RANKS}')
+    set_property(TARGET ${TEST_NAME} PROPERTY CROSSCOMPILING_EMULATOR '${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${RESHUFFLE_TESTS_NUM_MPI_RANKS} ${MPIEXEC_PREFLAGS}')
 
     # gtest_discover_tests replaces gtest_add_tests,
     # see https://cmake.org/cmake/help/v3.10/module/GoogleTest.html for more options to pass to it
