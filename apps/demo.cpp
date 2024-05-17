@@ -24,6 +24,15 @@ int main() {
     int rank{};
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+    int num_ranks{};
+    MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
+
+    if (num_ranks != 4) {
+        const std::string error_msg =
+                "Please run with 4 ranks. Currently running with " + std::to_string(num_ranks);
+        throw std::invalid_argument(error_msg);
+    }
+
     auto matrix = is_root() ? Matrix(num_rows, std::vector<int>(num_columns, 3)) : Matrix{};
     const auto initial_global_coloring = std::vector<reshuffle::rank_id>(num_elements, 0);
     const std::vector<Strategy2D> strategies = {{reshuffle::BlockWise(4), reshuffle::BlockWise(1)},
