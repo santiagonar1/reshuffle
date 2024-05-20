@@ -11,6 +11,7 @@ RUN apt install -y build-essential \
     python3-pip \
     python3-venv \
     python3-virtualenv \
+    gdb \
     ninja-build
 
 RUN pip install conan --break-system-packages
