@@ -5,17 +5,28 @@
 
 #include <reshuffle.hpp>
 
+struct StringArray {
+    char **_data{};
+    int _size{};
+
+    StringArray() = default;
+
+    explicit StringArray(int size) : _size(size) {
+        _data = (char **) malloc(size * sizeof(char *));
+    }
+
+    ~StringArray() {
+        for (int i = 0; i < _size; i++) { free(_data[i]); }
+        free(_data);
+    }
+};
+
 reshuffle::rank_id get_rank(const MPI_Comm &comm = MPI_COMM_WORLD);
 int get_num_ranks(const MPI_Comm &comm = MPI_COMM_WORLD);
 MPI_Comm get_comm_from_pset(const std::string &pset_name, const MPI_Session &session);
 bool is_dynamic_process(const MPI_Session &session);
 std::string get_grown_main_pset(std::string default_pset, const MPI_Session &session);
 std::string get_main_pset(const MPI_Session &session);
-
-void free_string_array(char **array, int size) {
-    for (int i = 0; i < size; i++) { free(array[i]); }
-    free(array);
-}
 
 void request_expansion(const std::string &main_pset, const MPI_Session &session);
 
@@ -40,26 +51,26 @@ int main() {
         if (rank == 0) { request_expansion(main_pset, session); }
 
         int op = MPI_PSETOP_GROW;
-        char **output_psets;
+        StringArray output_psets;
         MPI_Info info = MPI_INFO_NULL;
         int noutput{};
-        char *dict_key = strdup("main_pset");
+        StringArray dict_key(1);
+        dict_key._data[0] = strdup("main_pset");
         int flag{};
 
 
         /* All processes can query the information about the pending Set operation */
         MPI_Session_dyn_v2a_query_psetop(session, main_pset.data(), main_pset.data(), &op,
-                                         &output_psets, &noutput);
+                                         &output_psets._data, &noutput);
+        output_psets._size = noutput;
 
         /* Lookup the name of the new main PSet stored on the delta PSet */
         main_pset.reserve(MPI_MAX_PSET_NAME_LEN);
-        MPI_Session_get_pset_data(session, main_pset.data(), output_psets[0], (char **) &dict_key,
+        MPI_Session_get_pset_data(session, main_pset.data(), output_psets._data[0], dict_key._data,
                                   1, true, &info);
         MPI_Info_get(info, "main_pset", MPI_MAX_PSET_NAME_LEN, main_pset.data(), &flag);
-        free_string_array(output_psets, noutput);
         MPI_Info_free(&info);
 
-        /* Disconnect from the old communicator */
         MPI_Comm old_comm = comm;
         comm = get_comm_from_pset(main_pset, session);
         rank = get_rank(comm);
@@ -98,23 +109,23 @@ void request_expansion(const std::string &main_pset, const MPI_Session &session)
     MPI_Info_create(&info);
     MPI_Info_set(info, "mpi_num_procs_add", std::to_string(num_add_proc).data());
 
-    char **input_psets = (char **) malloc(1 * sizeof(char *));
-    char **output_psets;
-    input_psets[0] = strdup(main_pset.data());
+    StringArray input_psets(1);
+    StringArray output_psets;
+    input_psets._data[0] = strdup(main_pset.data());
 
     int noutput{};
 
     /* Send the Set Operation request */
-    MPI_Session_dyn_v2a_psetop(session, &op, input_psets, 1, &output_psets, &noutput, info);
+    MPI_Session_dyn_v2a_psetop(session, &op, input_psets._data, 1, &output_psets._data, &noutput,
+                               info);
+    output_psets._size = noutput;
     MPI_Info_free(&info);
 
     /* Publish the name of the new main PSet on the delta Pset */
     MPI_Info_create(&info);
-    MPI_Info_set(info, "main_pset", output_psets[1]);
-    MPI_Session_set_pset_data(session, output_psets[0], info);
+    MPI_Info_set(info, "main_pset", output_psets._data[1]);
+    MPI_Session_set_pset_data(session, output_psets._data[0], info);
     MPI_Info_free(&info);
-    free_string_array(input_psets, 1);
-    free_string_array(output_psets, noutput);
 }
 
 
@@ -161,13 +172,14 @@ bool is_dynamic_process(const MPI_Session &session) {
 
 std::string get_grown_main_pset(std::string default_pset, const MPI_Session &session) {
     auto main_pset = std::string(MPI_MAX_PSET_NAME_LEN, ' ');
-    char *dict_key = strdup("main_pset");
+    StringArray dict_key(1);
+    dict_key._data[0] = strdup("main_pset");
     int flag{};
     MPI_Info info = MPI_INFO_NULL;
 
     /* Lookup the value for the "grown_main_pset" key in the PSet Dictionary and use it as our main PSet */
-    MPI_Session_get_pset_data(session, default_pset.data(), default_pset.data(),
-                              (char **) &dict_key, 1, true, &info);
+    MPI_Session_get_pset_data(session, default_pset.data(), default_pset.data(), dict_key._data, 1,
+                              true, &info);
     MPI_Info_get(info, "main_pset", MPI_MAX_PSET_NAME_LEN, main_pset.data(), &flag);
     MPI_Info_free(&info);
 
