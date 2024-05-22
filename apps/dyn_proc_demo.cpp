@@ -68,8 +68,18 @@ int main() {
 
     const auto dyn_proc = is_dynamic_process(session);
 
-    /* Original processes will switch to a grown communicator */
-    if (not dyn_proc) {
+    constexpr int num_adaptations = 1;
+    int starting_iteration{};
+
+    if (dyn_proc) {
+        MPI_Bcast(&starting_iteration, 1, MPI_INT, 0, comm);
+        auto data = std::vector<int>{};
+        data = reshuffle::shuffle(data, comm);
+        std::cout << "Dynamic: After adaptation " << rank << " of " << num_ranks << " with "
+                  << data.size() << " values\n";
+    }
+
+    for (int i = starting_iteration; i < num_adaptations; ++i) {
         std::cout << "Origin: Hello from rank " << rank << " of " << num_ranks << std::endl;
 
         /* One process needs to request the set operation and publish the kickof information */
@@ -88,6 +98,9 @@ int main() {
 
             std::cout << "Origin: After adaptation " << rank << " of " << num_ranks << std::endl;
 
+            int next_iter = i + 1;
+            MPI_Bcast(&next_iter, 1, MPI_INT, 0, comm);
+
             auto data = std::vector<int>(20, 42);
             data = reshuffle::shuffle(data, comm);
 
@@ -96,12 +109,6 @@ int main() {
             /* Indicate completion of the Pset operation*/
             if (rank == 0) { MPI_Session_dyn_finalize_psetop(session, main_pset.data()); }
         }
-
-    } else {
-        auto data = std::vector<int>{};
-        data = reshuffle::shuffle(data, comm);
-        std::cout << "Dynamic: After adaptation " << rank << " of " << num_ranks << " with "
-                  << data.size() << " values\n";
     }
 
     /* Disconnect from the old communicator */
