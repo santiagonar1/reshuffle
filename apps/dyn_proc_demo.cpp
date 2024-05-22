@@ -15,6 +15,24 @@ struct StringArray {
         _data = (char **) malloc(size * sizeof(char *));
     }
 
+    StringArray(const StringArray &other) : _size(other._size) {
+        _data = (char **) malloc(_size * sizeof(char *));
+        for (int i = 0; i < _size; ++i) { _data[i] = strdup(other._data[i]); }
+    }
+
+    StringArray &operator=(const StringArray &other) {
+        if (this == &other) { return *this; }
+
+        for (int i = 0; i < _size; i++) { free(_data[i]); }
+        free(_data);
+
+        _size = other._size;
+        _data = (char **) malloc(_size * sizeof(char *));
+        for (int i = 0; i < _size; ++i) { _data[i] = strdup(other._data[i]); }
+
+        return *this;
+    }
+
     ~StringArray() {
         for (int i = 0; i < _size; i++) { free(_data[i]); }
         free(_data);
@@ -29,6 +47,13 @@ std::string get_grown_main_pset(std::string default_pset, const MPI_Session &ses
 std::string get_main_pset(const MPI_Session &session);
 
 void request_expansion(const std::string &main_pset, const MPI_Session &session);
+
+std::pair<int, StringArray> get_set_operation_info(std::string main_pset,
+                                                   const MPI_Session &session);
+
+std::string get_new_main_pset(std::string main_pset, std::string delta_pset,
+                              const MPI_Session &session);
+
 
 int main() {
     MPI_Session session = MPI_SESSION_NULL;
@@ -50,41 +75,28 @@ int main() {
         /* One process needs to request the set operation and publish the kickof information */
         if (rank == 0) { request_expansion(main_pset, session); }
 
-        int op = MPI_PSETOP_GROW;
-        StringArray output_psets;
-        MPI_Info info = MPI_INFO_NULL;
-        int noutput{};
-        StringArray dict_key(1);
-        dict_key._data[0] = strdup("main_pset");
-        int flag{};
-
-
         /* All processes can query the information about the pending Set operation */
-        MPI_Session_dyn_v2a_query_psetop(session, main_pset.data(), main_pset.data(), &op,
-                                         &output_psets._data, &noutput);
-        output_psets._size = noutput;
+        auto [op, output_psets] = get_set_operation_info(main_pset, session);
 
-        /* Lookup the name of the new main PSet stored on the delta PSet */
-        main_pset.reserve(MPI_MAX_PSET_NAME_LEN);
-        MPI_Session_get_pset_data(session, main_pset.data(), output_psets._data[0], dict_key._data,
-                                  1, true, &info);
-        MPI_Info_get(info, "main_pset", MPI_MAX_PSET_NAME_LEN, main_pset.data(), &flag);
-        MPI_Info_free(&info);
+        if (op == MPI_PSETOP_GROW) {
+            main_pset = get_new_main_pset(main_pset, output_psets._data[0], session);
 
-        MPI_Comm old_comm = comm;
-        comm = get_comm_from_pset(main_pset, session);
-        rank = get_rank(comm);
-        num_ranks = get_num_ranks(comm);
+            MPI_Comm old_comm = comm;
+            comm = get_comm_from_pset(main_pset, session);
+            rank = get_rank(comm);
+            num_ranks = get_num_ranks(comm);
 
-        std::cout << "Origin: After adaptation " << rank << " of " << num_ranks << std::endl;
+            std::cout << "Origin: After adaptation " << rank << " of " << num_ranks << std::endl;
 
-        auto data = std::vector<int>(20, 42);
-        data = reshuffle::shuffle(data, comm);
+            auto data = std::vector<int>(20, 42);
+            data = reshuffle::shuffle(data, comm);
 
-        MPI_Comm_disconnect(&old_comm);
+            MPI_Comm_disconnect(&old_comm);
 
-        /* Indicate completion of the Pset operation*/
-        if (rank == 0) { MPI_Session_dyn_finalize_psetop(session, main_pset.data()); }
+            /* Indicate completion of the Pset operation*/
+            if (rank == 0) { MPI_Session_dyn_finalize_psetop(session, main_pset.data()); }
+        }
+
     } else {
         auto data = std::vector<int>{};
         data = reshuffle::shuffle(data, comm);
@@ -126,6 +138,17 @@ void request_expansion(const std::string &main_pset, const MPI_Session &session)
     MPI_Info_set(info, "main_pset", output_psets._data[1]);
     MPI_Session_set_pset_data(session, output_psets._data[0], info);
     MPI_Info_free(&info);
+}
+
+std::pair<int, StringArray> get_set_operation_info(std::string main_pset,
+                                                   const MPI_Session &session) {
+    StringArray output_psets;
+    int n_output{}, op{};
+    MPI_Session_dyn_v2a_query_psetop(session, main_pset.data(), main_pset.data(), &op,
+                                     &output_psets._data, &n_output);
+    output_psets._size = n_output;
+
+    return {op, output_psets};
 }
 
 
@@ -192,4 +215,20 @@ std::string get_main_pset(const MPI_Session &session) {
     if (is_dynamic_process(session)) { return get_grown_main_pset(default_pset, session); }
 
     return default_pset;
+}
+
+std::string get_new_main_pset(std::string main_pset, std::string delta_pset,
+                              const MPI_Session &session) {
+    main_pset.reserve(MPI_MAX_PSET_NAME_LEN);
+    MPI_Info info = MPI_INFO_NULL;
+    StringArray dict_key(1);
+    dict_key._data[0] = strdup("main_pset");
+    int flag{};
+
+    MPI_Session_get_pset_data(session, main_pset.data(), delta_pset.data(), dict_key._data, 1, true,
+                              &info);
+    MPI_Info_get(info, "main_pset", MPI_MAX_PSET_NAME_LEN, main_pset.data(), &flag);
+    MPI_Info_free(&info);
+
+    return main_pset;
 }
