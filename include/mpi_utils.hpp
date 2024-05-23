@@ -11,9 +11,9 @@
 #include "utils.hpp"
 
 namespace reshuffle::internal {
-    auto is_root() {
+    auto is_root(const MPI_Comm &comm) {
         int rank{};
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_rank(comm, &rank);
         return rank == 0;
     }
 
@@ -145,7 +145,7 @@ namespace reshuffle::internal {
         MPI_Comm_rank(comm, &rank);
 
         auto new_num_values_per_rank =
-                is_root()
+                is_root(comm)
                         ? internal::calc_num_values_per_rank(total_num_values, num_ranks, coloring)
                         : std::vector<int>(num_ranks);
 
