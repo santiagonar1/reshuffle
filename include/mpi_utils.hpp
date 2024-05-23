@@ -224,13 +224,6 @@ namespace reshuffle::internal {
 
         return err != MPI_ERR_COMM;
     }
-
-    auto mpi_comm_contains_root(const MPI_Comm &comm) {
-        auto root_in_comm = is_root() && in_mpi_comm(comm);
-        // TODO: Check if we should use something else besides MPI_COMM_WORLD here (maybe simply comm?).
-        MPI_Bcast(&root_in_comm, 1, MPI_CXX_BOOL, 0, MPI_COMM_WORLD);
-        return root_in_comm;
-    }
 }// namespace reshuffle::internal
 
 #endif//RESHUFFLE_MPI_UTILS_HPP

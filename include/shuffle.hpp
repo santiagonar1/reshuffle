@@ -33,11 +33,11 @@ namespace reshuffle {
     auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
                  const std::vector<rank_id> &coloring = {}) {
         using T = C::value_type;
-        if (not internal::mpi_comm_contains_root(origin_comm) or
-            not internal::mpi_comm_contains_root(destiny_comm)) {
-            throw std::invalid_argument(
-                    "The root process must be included in both origin_comm and destiny_comm");
-        }
+
+        // TODO: Find way to check if root belongs to both communicators (or change algorithm)
+        // Right now root is expected to belong to both origin and destiny communicators. We used
+        // to have a check for this, but it was faulty. The largest issue was that it was using
+        // MPI_COMM_WORLD, which did not work with Sessions and PSets.
 
         const auto using_coloring = not coloring.empty();
         if (using_coloring and coloring.size() != std::ranges::size(values)) {
