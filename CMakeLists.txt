@@ -12,6 +12,8 @@ find_package(zpp_bits REQUIRED)
 
 message(STATUS "Found MPI_CXX_COMPILER: ${MPI_CXX_COMPILER}")
 
+option(BUILD_DYN_PROC_DEMOS "Turn on compilation Dyn Proc Demos. Requires special OpenMPI" OFF)
+
 enable_testing()
 
 file(GLOB SOURCES

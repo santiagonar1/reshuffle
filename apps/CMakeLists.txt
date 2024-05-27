@@ -1,14 +1,13 @@
-add_executable(demo.out demo.cpp)
-target_link_libraries(demo.out
-        PRIVATE reshuffle
-        PRIVATE MPI::MPI_CXX)
+function (compile_demo demo_name)
+    add_executable(${demo_name}.out ${demo_name}.cpp)
+    target_link_libraries(${demo_name}.out
+            PRIVATE reshuffle
+            PRIVATE MPI::MPI_CXX)
+endfunction()
 
-add_executable(elastic_demo.out elastic_demo.cpp)
-target_link_libraries(elastic_demo.out
-        PRIVATE reshuffle
-        PRIVATE MPI::MPI_CXX)
+compile_demo(demo)
+compile_demo(elastic_demo)
 
-add_executable(dyn_proc_demo.out dyn_proc_demo.cpp)
-target_link_libraries(dyn_proc_demo.out
-        PRIVATE reshuffle
-        PRIVATE MPI::MPI_CXX)
+if (BUILD_DYN_PROC_DEMOS)
+    compile_demo(dyn_proc_demo)
+endif ()

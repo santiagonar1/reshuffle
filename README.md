@@ -46,11 +46,25 @@ cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DMPIEXEC_PREFLAGS
 make
 ```
 
+### Dyn Proc Demo
+
+We have implemented a demo that makes use of a modified OpenMPI library, which allows for expansions and reductions
+via PSets and MPI Sessions, described in [this paper](https://dl.acm.org/doi/abs/10.1145/3555819.3555856).
+The whole infrastructure describe in the aforementioned paper has been made available by the authors
+[here](https://gitlab.inria.fr/dynres).
+
+Once you have set up the infrastructure, you can turn on the compilation of the demo via the `BUILD_DYN_PROC_DEMOS`
+option:
+
+```sh
+cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DBUILD_DYN_PROC_DEMOS=ON ..
+```
+
 ## Usage
 
 ### TLDR
 
-Currently supports 1D and 2D buffers. Below you see an example of partitioning a 2D domain:
+Currently, supports 1D and 2D buffers. Below you see an example of partitioning a 2D domain:
 
 ```c++
 constexpr int num_rows = 20;
@@ -123,7 +137,7 @@ We provide two helper functions for coloring:
 The first one, `create_coloring`, can be used to get the required coloring to split either a 1D or 2D domain according
 to a strategy.
 
-The following example returns the global and local coloring for rank 0 in order to parition the buffer in two blocks:
+The following example returns the global and local coloring for rank 0 in order to partition the buffer in two blocks:
 
 ```c++
 const auto strategy = reshuffle::BlockWise(2);// i.e., split the domain in two blocks
