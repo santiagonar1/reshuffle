@@ -1,3 +1,5 @@
+#include <absl/flags/flag.h>
+#include <absl/flags/parse.h>
 #include <iostream>
 #include <mpi.h>
 #include <string>
@@ -68,7 +70,12 @@ bool is_process_leaving(std::string delta_pset, const MPI_Session &session) {
     return strcmp(boolean_string.data(), "True") == 0;
 }
 
-int main() {
+ABSL_FLAG(bool, reduction, false, "Execute a reduction instead of an expansion");
+
+int main(int argc, char **argv) {
+
+    absl::ParseCommandLine(argc, argv);
+
     MPI_Session session = MPI_SESSION_NULL;
 
     MPI_Session_init(MPI_INFO_NULL, MPI_ERRORS_ARE_FATAL, &session);
@@ -96,7 +103,13 @@ int main() {
         std::cout << "Origin: Hello from rank " << rank << " of " << num_ranks << std::endl;
 
         /* One process needs to request the set operation and publish the kickof information */
-        if (rank == 0) { request_reduction(main_pset, session); }
+        if (rank == 0) {
+            if (absl::GetFlag(FLAGS_reduction)) {
+                request_reduction(main_pset, session);
+            } else {
+                request_expansion(main_pset, session);
+            }
+        }
 
         /* All processes can query the information about the pending Set operation */
         auto [op, output_psets] = get_set_operation_info(main_pset, session);
