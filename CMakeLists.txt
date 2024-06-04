@@ -9,6 +9,7 @@ endif ()
 
 find_package(MPI REQUIRED)
 find_package(zpp_bits REQUIRED)
+find_package(benchmark REQUIRED)
 
 message(STATUS "Found MPI_CXX_COMPILER: ${MPI_CXX_COMPILER}")
 
@@ -30,5 +31,6 @@ target_link_libraries(reshuffle
 target_include_directories(reshuffle
         PUBLIC "${reshuffle_SOURCE_DIR}/include")
 
+add_subdirectory(benchmarks)
 add_subdirectory(demos)
 add_subdirectory(tests)
