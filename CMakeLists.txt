@@ -30,5 +30,5 @@ target_link_libraries(reshuffle
 target_include_directories(reshuffle
         PUBLIC "${reshuffle_SOURCE_DIR}/include")
 
-add_subdirectory(apps)
+add_subdirectory(demos)
 add_subdirectory(tests)

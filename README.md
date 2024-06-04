@@ -94,7 +94,7 @@ const auto new_values = reshuffle::shuffle(values_only_in_root, comm_rank_0, MPI
 ### Basics
 
 You can find detailed examples of the library functionality inside the [tests](tests) folder, and demo applications
-inside [apps](apps).
+inside [demos](demos).
 
 The main function in the library is `shuffle`, which takes care of splitting some data among ranks. For example, the
 following line will take the data stored in `buffer` on each rank, merge it, and split it again between them.
