@@ -18,7 +18,7 @@ namespace reshuffle {
 
         [[nodiscard]] auto get_subdomains(int num_values) const {
             const auto min_values_per_block = get_min_values_per_block(num_values);
-            std::vector<internal::Subdomain> subdomains{};
+            std::vector<Subdomain> subdomains{};
 
             for (int i = 0; i < min_values_per_block * _num_blocks; i += min_values_per_block) {
                 const auto starting_index = i;

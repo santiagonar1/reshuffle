@@ -3,7 +3,7 @@
 
 #include "left_closed_range.hpp"
 
-namespace reshuffle::internal {
+namespace reshuffle {
     using Subdomain = internal::LeftClosedRange;
 }
 
