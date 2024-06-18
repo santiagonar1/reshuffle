@@ -8,52 +8,52 @@ using ::testing::Eq;
 TEST(CreateColoring, ReturnsColoringPerRankAndGlobalColoring) {
     // i.e., rank 0 has elements 1, 3, 4, and rank 1 elements 0, 2.
     const auto current_coloring = std::vector{1, 0, 1, 0, 0};
-    const auto strategy = reshuffle::BlockWise(2);
+    const auto data_distribution = reshuffle::BlockWise(2);
 
     const auto [global_coloring, coloring_0] =
-            reshuffle::create_coloring(current_coloring, strategy, 0);
-    const auto [_, coloring_1] = reshuffle::create_coloring(current_coloring, strategy, 1);
+            reshuffle::create_coloring(current_coloring, data_distribution, 0);
+    const auto [_, coloring_1] = reshuffle::create_coloring(current_coloring, data_distribution, 1);
 
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 1, 1}));
     EXPECT_THAT(coloring_1, Eq(std::vector{0, 1}));
     EXPECT_THAT(global_coloring, Eq(std::vector{0, 0, 1, 1, 1}));
 }
 
-TEST(CreateColoring, CanUseBlockWiseStrategyInTwoDimensions) {
+TEST(CreateColoring, CanUseBlockWiseDataDistributionInTwoDimensions) {
     // i.e., 4 values in a 2x2 matrix, previously all in rank 0.
     const auto current_coloring = std::vector<int>(4);
-    const auto strategy_x = reshuffle::BlockWise(2);
-    const auto strategy_y = reshuffle::BlockWise(2);
+    const auto data_distribution_x = reshuffle::BlockWise(2);
+    const auto data_distribution_y = reshuffle::BlockWise(2);
 
-    const auto strategies = std::array{strategy_x, strategy_y};
+    const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
     const auto global_dimensions = reshuffle::Dimensions2D{2, 2};
 
     const auto [global_coloring, coloring_0] =
-            reshuffle::create_coloring(current_coloring, global_dimensions, strategies, 0);
+            reshuffle::create_coloring(current_coloring, global_dimensions, data_distributions, 0);
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 1, 2, 3}));
 }
 
 TEST(CreateColoring, ABlockWiseWithOneBlockIndicatesNoDivision) {
     // i.e., 4 values in a 2x2 matrix, previously all in rank 0.
     const auto current_coloring = std::vector<int>(4);
-    const auto strategy_x = reshuffle::BlockWise(1);
-    const auto strategy_y = reshuffle::BlockWise(2);
+    const auto data_distribution_x = reshuffle::BlockWise(1);
+    const auto data_distribution_y = reshuffle::BlockWise(2);
 
-    const auto strategies = std::array{strategy_x, strategy_y};
+    const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
     const auto global_dimensions = reshuffle::Dimensions2D{2, 2};
 
     const auto [global_coloring, coloring_0] =
-            reshuffle::create_coloring(current_coloring, global_dimensions, strategies, 0);
+            reshuffle::create_coloring(current_coloring, global_dimensions, data_distributions, 0);
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 0, 1, 1}));
 }
 
 TEST(GetSubdomainDimensions, In1DReturnsTheNumberOfValues) {
     constexpr int num_values = 5;
-    const auto strategy = reshuffle::BlockWise(2);
+    const auto data_distribution = reshuffle::BlockWise(2);
 
-    const auto num_values_0 = reshuffle::get_subdomain_dimension(strategy, num_values, 0);
-    const auto num_values_1 = reshuffle::get_subdomain_dimension(strategy, num_values, 1);
-    const auto num_values_2 = reshuffle::get_subdomain_dimension(strategy, num_values, 2);
+    const auto num_values_0 = reshuffle::get_subdomain_dimension(data_distribution, num_values, 0);
+    const auto num_values_1 = reshuffle::get_subdomain_dimension(data_distribution, num_values, 1);
+    const auto num_values_2 = reshuffle::get_subdomain_dimension(data_distribution, num_values, 2);
 
     EXPECT_THAT(num_values_0, Eq(2));
     EXPECT_THAT(num_values_1, Eq(3));
@@ -61,14 +61,14 @@ TEST(GetSubdomainDimensions, In1DReturnsTheNumberOfValues) {
 }
 
 TEST(GetSubdomainDimensions, In2DReturnsTheSubdomainDimension) {
-    const auto strategy_x = reshuffle::BlockWise(2);
-    const auto strategy_y = reshuffle::BlockWise(1);
+    const auto data_distribution_x = reshuffle::BlockWise(2);
+    const auto data_distribution_y = reshuffle::BlockWise(1);
 
-    const auto strategies = std::array{strategy_x, strategy_y};
+    const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
     const auto global_dimensions = reshuffle::Dimensions2D{20, 20};
 
 
-    const auto dimensions_0 = reshuffle::get_subdomain_dimension(strategies, global_dimensions, 0);
+    const auto dimensions_0 = reshuffle::get_subdomain_dimension(data_distributions, global_dimensions, 0);
 
     EXPECT_THAT(dimensions_0.num_columns, Eq(10));
     EXPECT_THAT(dimensions_0.num_rows, Eq(20));

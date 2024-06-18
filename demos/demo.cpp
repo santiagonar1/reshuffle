@@ -7,7 +7,7 @@
 
 
 using Matrix = std::vector<std::vector<int>>;
-using Strategy2D = std::array<reshuffle::BlockWise, 2>;
+using DataDistribution2D = std::array<reshuffle::BlockWise, 2>;
 
 bool is_root();
 
@@ -35,19 +35,20 @@ int main() {
 
     auto matrix = is_root() ? Matrix(num_rows, std::vector<int>(num_columns, 3)) : Matrix{};
     const auto initial_global_coloring = std::vector<reshuffle::rank_id>(num_elements, 0);
-    const std::vector<Strategy2D> strategies = {{reshuffle::BlockWise(4), reshuffle::BlockWise(1)},
-                                                {reshuffle::BlockWise(2), reshuffle::BlockWise(2)},
-                                                {reshuffle::BlockWise(1), reshuffle::BlockWise(4)}};
+    const std::vector<DataDistribution2D> distributions = {
+            {reshuffle::BlockWise(4), reshuffle::BlockWise(1)},
+            {reshuffle::BlockWise(2), reshuffle::BlockWise(2)},
+            {reshuffle::BlockWise(1), reshuffle::BlockWise(4)}};
 
 
     auto global_coloring = initial_global_coloring;
     auto local_coloring = std::vector<reshuffle::rank_id>{};
-    for (const auto &strategy: strategies) {
+    for (const auto &distribution: distributions) {
         std::tie(global_coloring, local_coloring) =
-                reshuffle::create_coloring(global_coloring, global_dimension, strategy, rank)
+                reshuffle::create_coloring(global_coloring, global_dimension, distribution, rank)
                         .as_tuple();
         const auto subdomain_dimension =
-                reshuffle::get_subdomain_dimension(strategy, global_dimension, rank);
+                reshuffle::get_subdomain_dimension(distribution, global_dimension, rank);
         matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, local_coloring, subdomain_dimension);
         if (is_root()) {
             print(matrix);

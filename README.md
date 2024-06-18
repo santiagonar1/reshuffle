@@ -72,14 +72,14 @@ constexpr int num_columns = 20;
 constexpr int num_elements = num_rows * num_columns;
 constexpr auto global_dimension = reshuffle::Dimensions2D{num_rows, num_columns};
 
-const auto strategies = std::array{reshuffle::BlockWise(4), reshuffle::BlockWise(1)};
+const auto data_distributions = std::array{reshuffle::BlockWise(4), reshuffle::BlockWise(1)};
 auto global_coloring = std::vector<reshuffle::rank_id>(num_elements, 0);
 auto local_coloring = std::vector<reshuffle::rank_id>{};
 
 std::tie(global_coloring, local_coloring) =
-        reshuffle::create_coloring(global_coloring, global_dimension, strategy, rank).as_tuple();
+        reshuffle::create_coloring(global_coloring, global_dimension, data_distributions, rank).as_tuple();
 const auto subdomain_dimension =
-        reshuffle::get_subdomain_dimension(strategy, global_dimension, rank);
+        reshuffle::get_subdomain_dimension(data_distributions, global_dimension, rank);
 matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, local_coloring, subdomain_dimension);
 ```
 
@@ -135,40 +135,40 @@ We provide two helper functions for coloring:
 2. `get_subdomain_dimension`
 
 The first one, `create_coloring`, can be used to get the required coloring to split either a 1D or 2D domain according
-to a strategy.
+to a data distribution.
 
 The following example returns the global and local coloring for rank 0 in order to partition the buffer in two blocks:
 
 ```c++
-const auto strategy = reshuffle::BlockWise(2);// i.e., split the domain in two blocks
+const auto data_distribution = reshuffle::BlockWise(2);// i.e., split the domain in two blocks
 const auto [global_coloring, coloring_rank_0] =
-        reshuffle::create_coloring(current_coloring, strategy, 0)
+        reshuffle::create_coloring(current_coloring, data_distribution, 0)
 ```
 
 The following example partitions a 2D matrix of size 20x20 in 2x2 blocks (i.e., 4 ranks):
 
 ```c++
-const auto strategy_x = reshuffle::BlockWise(2);
-const auto strategy_y = reshuffle::BlockWise(2);
+const auto data_distribution_x = reshuffle::BlockWise(2);
+const auto data_distribution_y = reshuffle::BlockWise(2);
 
-const auto strategies = std::array{strategy_x, strategy_y};
+const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
 const auto global_dimensions = reshuffle::Dimensions2D{20, 20};
 
 const auto [global_coloring, coloring_0] =
-        reshuffle::create_coloring(current_coloring, global_dimensions, strategies, 0);
+        reshuffle::create_coloring(current_coloring, global_dimensions, data_distributions, 0);
 ```
 
 The second function, `get_subdomain_dimension`, is used to get the dimension of the subdomain assigned to a specific
 rank.
 
 ```c++
-const auto strategy_x = reshuffle::BlockWise(2);
-const auto strategy_y = reshuffle::BlockWise(1);
+const auto data_distribution_x = reshuffle::BlockWise(2);
+const auto data_distribution_y = reshuffle::BlockWise(1);
 
-const auto strategies = std::array{strategy_x, strategy_y};
+const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
 const auto global_dimensions = reshuffle::Dimensions2D{20, 20};
 
-const auto dimensions_0 = reshuffle::get_subdomain_dimension(strategies, global_dimensions, 0);
+const auto dimensions_0 = reshuffle::get_subdomain_dimension(data_distributions, global_dimensions, 0);
 ```
 
 So, the expected workflow is:

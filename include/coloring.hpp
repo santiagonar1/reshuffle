@@ -26,9 +26,11 @@ namespace reshuffle {
         }
 
         auto get_subdomains_2D(const Dimensions2D &global_dimensions,
-                               const std::array<BlockWise, 2> &strategies) {
-            const auto subdomains_x = strategies[0].get_subdomains(global_dimensions.num_columns);
-            const auto subdomains_y = strategies[1].get_subdomains(global_dimensions.num_rows);
+                               const std::array<BlockWise, 2> &data_distributions) {
+            const auto subdomains_x =
+                    data_distributions[0].get_subdomains(global_dimensions.num_columns);
+            const auto subdomains_y =
+                    data_distributions[1].get_subdomains(global_dimensions.num_rows);
             return internal::combine(subdomains_x, subdomains_y);
         }
 
@@ -43,10 +45,10 @@ namespace reshuffle {
         }
     };
 
-    auto create_coloring(const std::vector<rank_id> &global_coloring, const BlockWise &strategy,
-                         rank_id rank) {
+    auto create_coloring(const std::vector<rank_id> &global_coloring,
+                         const BlockWise &data_distribution, rank_id rank) {
         const auto num_values = static_cast<int>(global_coloring.size());
-        const auto subdomains = strategy.get_subdomains(num_values);
+        const auto subdomains = data_distribution.get_subdomains(num_values);
 
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
         auto local_coloring = std::vector<rank_id>{};
@@ -60,8 +62,8 @@ namespace reshuffle {
 
     auto create_coloring(const std::vector<rank_id> &global_coloring,
                          const Dimensions2D &global_dimensions,
-                         const std::array<BlockWise, 2> &strategies, rank_id rank) {
-        const auto subdomains = internal::get_subdomains_2D(global_dimensions, strategies);
+                         const std::array<BlockWise, 2> &data_distributions, rank_id rank) {
+        const auto subdomains = internal::get_subdomains_2D(global_dimensions, data_distributions);
 
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
         auto local_coloring = std::vector<rank_id>{};
@@ -79,17 +81,17 @@ namespace reshuffle {
         return ColoringReturn{new_global_coloring, local_coloring};
     }
 
-    auto get_subdomain_dimension(const BlockWise &strategy, int num_values, rank_id rank) {
-        const auto coloring_descriptor = strategy.get_subdomains(num_values);
+    auto get_subdomain_dimension(const BlockWise &data_distribution, int num_values, rank_id rank) {
+        const auto coloring_descriptor = data_distribution.get_subdomains(num_values);
 
         if (rank >= coloring_descriptor.size()) { return 0; }
 
         return coloring_descriptor[rank].second - coloring_descriptor[rank].first;
     }
 
-    auto get_subdomain_dimension(const std::array<BlockWise, 2> &strategies,
+    auto get_subdomain_dimension(const std::array<BlockWise, 2> &data_distributions,
                                  Dimensions2D global_dimensions, rank_id rank) {
-        const auto subdomains = internal::get_subdomains_2D(global_dimensions, strategies);
+        const auto subdomains = internal::get_subdomains_2D(global_dimensions, data_distributions);
 
         if (rank >= subdomains.size()) { return Dimensions2D{0, 0}; }
 
