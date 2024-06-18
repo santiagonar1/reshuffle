@@ -18,6 +18,7 @@ namespace reshuffle::internal {
 
         [[nodiscard]] int get_left_bound() const { return _interval.first; }
         [[nodiscard]] int get_right_bound() const { return _interval.second; }
+        [[nodiscard]] int get_length() const { return _interval.second - _interval.first; }
 
         bool operator==(const LeftClosedRange &other) const { return _interval == other._interval; }
     };

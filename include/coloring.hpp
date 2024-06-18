@@ -83,7 +83,7 @@ namespace reshuffle {
 
         if (rank >= blocks.size()) { return 0; }
 
-        return blocks[rank].get_right_bound() - blocks[rank].get_left_bound();
+        return blocks[rank].get_length();
     }
 
     auto get_block_dimension(const std::array<BlockWise, 2> &data_distributions,
@@ -93,10 +93,8 @@ namespace reshuffle {
         if (rank >= block_pairs.size()) { return Dimensions2D{0, 0}; }
 
         const auto &block_pair = block_pairs[rank];
-        const auto num_rows =
-                block_pair.second.get_right_bound() - block_pair.second.get_left_bound();
-        const auto num_columns =
-                block_pair.first.get_right_bound() - block_pair.first.get_left_bound();
+        const auto num_rows = block_pair.second.get_length();
+        const auto num_columns = block_pair.first.get_length();
 
         return Dimensions2D{num_rows, num_columns};
     }
