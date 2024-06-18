@@ -16,7 +16,7 @@ namespace reshuffle {
     namespace internal {
         rank_id get_color(const std::vector<Subdomain> &subdomains, int i) {
             auto it = std::ranges::find_if(
-                    subdomains, [i](const auto &subdomain) { return in_range(subdomain, i); });
+                    subdomains, [i](const auto &subdomain) { return subdomain.contains(i); });
             //TODO: Should we check whether the index requested is out of bounds?
             return static_cast<int>(std::distance(subdomains.begin(), it));
         }
@@ -71,8 +71,7 @@ namespace reshuffle {
             const auto [x_coord, y_coord] = internal::to_2D(global_dimensions.num_columns, i);
 
             auto it = std::ranges::find_if(subdomains, [x_coord, y_coord](const auto &r) {
-                return internal::in_range(r.first, x_coord) and
-                       internal::in_range(r.second, y_coord);
+                return r.first.contains(x_coord) and r.second.contains(y_coord);
             });
             new_global_coloring[i] = static_cast<int>(std::distance(subdomains.begin(), it));
             if (rank == global_coloring[i]) { local_coloring.push_back(new_global_coloring[i]); }
@@ -86,7 +85,8 @@ namespace reshuffle {
 
         if (rank >= coloring_descriptor.size()) { return 0; }
 
-        return coloring_descriptor[rank].second - coloring_descriptor[rank].first;
+        return coloring_descriptor[rank].get_right_bound() -
+               coloring_descriptor[rank].get_left_bound();
     }
 
     auto get_subdomain_dimension(const std::array<BlockWise, 2> &data_distributions,
@@ -96,8 +96,10 @@ namespace reshuffle {
         if (rank >= subdomains.size()) { return Dimensions2D{0, 0}; }
 
         const auto &subdomain = subdomains[rank];
-        const auto num_rows = subdomain.second.second - subdomain.second.first;
-        const auto num_columns = subdomain.first.second - subdomain.first.first;
+        const auto num_rows =
+                subdomain.second.get_right_bound() - subdomain.second.get_left_bound();
+        const auto num_columns =
+                subdomain.first.get_right_bound() - subdomain.first.get_left_bound();
 
         return Dimensions2D{num_rows, num_columns};
     }

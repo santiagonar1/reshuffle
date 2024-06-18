@@ -26,7 +26,9 @@ namespace reshuffle {
                 subdomains.emplace_back(starting_index, last_index);
             }
 
-            subdomains.back().second = num_values;
+            Subdomain last_block{subdomains.back().get_left_bound(), num_values};
+            subdomains.pop_back();
+            subdomains.push_back(last_block);
             return subdomains;
         }
     };
