@@ -78,9 +78,9 @@ auto local_coloring = std::vector<reshuffle::rank_id>{};
 
 std::tie(global_coloring, local_coloring) =
         reshuffle::create_coloring(global_coloring, global_dimension, data_distributions, rank).as_tuple();
-const auto subdomain_dimension =
-        reshuffle::get_subdomain_dimension(data_distributions, global_dimension, rank);
-matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, local_coloring, subdomain_dimension);
+const auto block_dimension =
+        reshuffle::get_block_dimension(data_distributions, global_dimension, rank);
+matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, local_coloring, block_dimension);
 ```
 
 You can also move the data from a set of ranks specified in a `MPI_Comm` to a set of ranks in a different
@@ -121,10 +121,10 @@ under the hood to automatically serialize aggregate types).
 We are working on supporting multidimensional datatypes, but for now only 2D (e.g., `std::vector<std::vector<>>) are
 supported. If you work with a 2D type, you must indicate the coloring (which is optional in 1D). The reason for this is
 that, unlike 1D, there is not a clear default of how to partition the domain. You also have to additionally indicate
-the expected subdomain size after the shuffling has occurred (check the *Coloring* section to see how to obtain this):
+the expected block size after the shuffling has occurred (check the *Coloring* section to see how to obtain this):
 
 ```c++
-m = reshuffle::shuffle(m, MPI_COMM_WORLD, coloring, subdomain_dimension);
+m = reshuffle::shuffle(m, MPI_COMM_WORLD, coloring, block_dimension);
 ```
 
 ### Coloring
@@ -132,7 +132,7 @@ m = reshuffle::shuffle(m, MPI_COMM_WORLD, coloring, subdomain_dimension);
 We provide two helper functions for coloring:
 
 1. `create_coloring`.
-2. `get_subdomain_dimension`
+2. `get_block_dimension`
 
 The first one, `create_coloring`, can be used to get the required coloring to split either a 1D or 2D domain according
 to a data distribution.
@@ -158,7 +158,7 @@ const auto [global_coloring, coloring_0] =
         reshuffle::create_coloring(current_coloring, global_dimensions, data_distributions, 0);
 ```
 
-The second function, `get_subdomain_dimension`, is used to get the dimension of the subdomain assigned to a specific
+The second function, `get_block_dimension`, is used to get the dimension of the block assigned to a specific
 rank.
 
 ```c++
@@ -168,14 +168,14 @@ const auto data_distribution_y = reshuffle::BlockWise(1);
 const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
 const auto global_dimensions = reshuffle::Dimensions2D{20, 20};
 
-const auto dimensions_0 = reshuffle::get_subdomain_dimension(data_distributions, global_dimensions, 0);
+const auto dimensions_0 = reshuffle::get_block_dimension(data_distributions, global_dimensions, 0);
 ```
 
 So, the expected workflow is:
 
 1. Get local and global coloring from `create_coloring`.
-2. For 2D: Get the subdomain size via `get_subdomain_dimension`.
-3. Use the local coloring and, if partitioning 2D, the subdomain size to shuffle data.
+2. For 2D: Get the block size via `get_block_dimension`.
+3. Use the local coloring and, if partitioning 2D, the block size to shuffle data.
 4. Use the global coloring to split the domain again, if needed.
 
 ### Using different communicators

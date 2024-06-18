@@ -47,20 +47,20 @@ TEST(CreateColoring, ABlockWiseWithOneBlockIndicatesNoDivision) {
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 0, 1, 1}));
 }
 
-TEST(GetSubdomainDimensions, In1DReturnsTheNumberOfValues) {
+TEST(GetBlockDimensions, In1DReturnsTheNumberOfValues) {
     constexpr int num_values = 5;
     const auto data_distribution = reshuffle::BlockWise(2);
 
-    const auto num_values_0 = reshuffle::get_subdomain_dimension(data_distribution, num_values, 0);
-    const auto num_values_1 = reshuffle::get_subdomain_dimension(data_distribution, num_values, 1);
-    const auto num_values_2 = reshuffle::get_subdomain_dimension(data_distribution, num_values, 2);
+    const auto num_values_0 = reshuffle::get_block_dimension(data_distribution, num_values, 0);
+    const auto num_values_1 = reshuffle::get_block_dimension(data_distribution, num_values, 1);
+    const auto num_values_2 = reshuffle::get_block_dimension(data_distribution, num_values, 2);
 
     EXPECT_THAT(num_values_0, Eq(2));
     EXPECT_THAT(num_values_1, Eq(3));
     EXPECT_THAT(num_values_2, Eq(0));
 }
 
-TEST(GetSubdomainDimensions, In2DReturnsTheSubdomainDimension) {
+TEST(GetBlockDimensions, In2DReturnsTheBlockDimension) {
     const auto data_distribution_x = reshuffle::BlockWise(2);
     const auto data_distribution_y = reshuffle::BlockWise(1);
 
@@ -68,7 +68,8 @@ TEST(GetSubdomainDimensions, In2DReturnsTheSubdomainDimension) {
     const auto global_dimensions = reshuffle::Dimensions2D{20, 20};
 
 
-    const auto dimensions_0 = reshuffle::get_subdomain_dimension(data_distributions, global_dimensions, 0);
+    const auto dimensions_0 =
+            reshuffle::get_block_dimension(data_distributions, global_dimensions, 0);
 
     EXPECT_THAT(dimensions_0.num_columns, Eq(10));
     EXPECT_THAT(dimensions_0.num_rows, Eq(20));

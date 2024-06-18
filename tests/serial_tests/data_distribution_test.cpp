@@ -10,10 +10,10 @@ using ::testing::Eq;
 
 TEST(BlockWise, SplitsADomainInEqualBlocksIfEvenlyDivisible) {
     const auto block_data_distribution = reshuffle::BlockWise(2);
-    const auto subdomains = block_data_distribution.get_subdomains(10);
+    const auto subdomains = block_data_distribution.get_blocks(10);
 
     EXPECT_THAT(subdomains,
-                Eq(std::vector{reshuffle::Subdomain{0, 5}, reshuffle::Subdomain{5, 10}}));
+                Eq(std::vector{reshuffle::Block{0, 5}, reshuffle::Block{5, 10}}));
 }
 
 #endif//RESHUFFLE_DATA_DISTRIBUTION_TEST_HPP
