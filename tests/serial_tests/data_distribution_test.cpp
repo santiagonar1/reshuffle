@@ -1,6 +1,3 @@
-#ifndef RESHUFFLE_DATA_DISTRIBUTION_TEST_HPP
-#define RESHUFFLE_DATA_DISTRIBUTION_TEST_HPP
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -21,5 +18,3 @@ TEST(BlockWise, AddsRemainingElementsToLastBlock) {
 
     EXPECT_THAT(subdomains, Eq(std::vector{reshuffle::Block{0, 5}, reshuffle::Block{5, 11}}));
 }
-
-#endif//RESHUFFLE_DATA_DISTRIBUTION_TEST_HPP
