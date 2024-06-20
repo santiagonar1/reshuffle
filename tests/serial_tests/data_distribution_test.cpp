@@ -18,3 +18,19 @@ TEST(BlockWise, AddsRemainingElementsToLastBlock) {
 
     EXPECT_THAT(subdomains, Eq(std::vector{reshuffle::Block{0, 5}, reshuffle::Block{5, 11}}));
 }
+
+TEST(BlockCyclic, CreatesBlocksOfGivenSize) {
+    const auto data_distribution = reshuffle::BlockCyclic(2, 6);
+    const auto blocks = data_distribution.get_blocks();
+
+    EXPECT_THAT(blocks, Eq(std::vector{reshuffle::Block{0, 2}, reshuffle::Block{2, 4},
+                                       reshuffle::Block{4, 6}}));
+}
+
+TEST(BlockCyclic, MakesLastBlockSmallerIfNumValuesNoDivisible) {
+    const auto data_distribution = reshuffle::BlockCyclic(2, 5);
+    const auto blocks = data_distribution.get_blocks();
+
+    EXPECT_THAT(blocks, Eq(std::vector{reshuffle::Block{0, 2}, reshuffle::Block{2, 4},
+                                       reshuffle::Block{4, 5}}));
+}
