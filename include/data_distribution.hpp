@@ -2,6 +2,7 @@
 #define RESHUFFLE_DATA_DISTRIBUTION_HPP
 
 #include "block.hpp"
+#include <cmath>
 #include <vector>
 
 namespace reshuffle {
@@ -29,6 +30,8 @@ namespace reshuffle {
             return blocks;
         }
     };
+
+    auto make_block_wise(int num_values, int num_blocks) -> BlockCyclic;
 
     class BlockWise {
     private:
