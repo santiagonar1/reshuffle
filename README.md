@@ -72,12 +72,15 @@ constexpr int num_columns = 20;
 constexpr int num_elements = num_rows * num_columns;
 constexpr auto global_dimension = reshuffle::Dimensions2D{num_rows, num_columns};
 
-const auto data_distributions = std::array{reshuffle::BlockWise(4), reshuffle::BlockWise(1)};
+const auto data_distributions = std::array{reshuffle::make_block_wise(num_columns, 4),
+                                           reshuffle::make_block_wise(num_rows, 1)};
 auto global_coloring = std::vector<reshuffle::rank_id>(num_elements, 0);
 auto local_coloring = std::vector<reshuffle::rank_id>{};
 
-std::tie(global_coloring, local_coloring) =
-        reshuffle::create_coloring(global_coloring, global_dimension, data_distributions, rank).as_tuple();
+std::tie(global_coloring, local_coloring) = reshuffle::create_coloring(global_coloring,
+                                                                       global_dimension,
+                                                                       data_distributions, rank)
+                                                    .as_tuple();
 const auto block_dimension =
         reshuffle::get_block_dimension(data_distributions, global_dimension, rank);
 matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, local_coloring, block_dimension);
@@ -140,7 +143,7 @@ to a data distribution.
 The following example returns the global and local coloring for rank 0 in order to partition the buffer in two blocks:
 
 ```c++
-const auto data_distribution = reshuffle::BlockWise(2);// i.e., split the domain in two blocks
+const auto data_distribution = reshuffle::make_block_wise(num_values, 2);// i.e., split the domain in two blocks
 const auto [global_coloring, coloring_rank_0] =
         reshuffle::create_coloring(current_coloring, data_distribution, 0)
 ```
@@ -148,8 +151,8 @@ const auto [global_coloring, coloring_rank_0] =
 The following example partitions a 2D matrix of size 20x20 in 2x2 blocks (i.e., 4 ranks):
 
 ```c++
-const auto data_distribution_x = reshuffle::BlockWise(2);
-const auto data_distribution_y = reshuffle::BlockWise(2);
+const auto data_distribution_x = reshuffle::make_block_wise(num_values_x, 2);
+const auto data_distribution_y = reshuffle::make_block_wise(num_values_y, 2);
 
 const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
 const auto global_dimensions = reshuffle::Dimensions2D{20, 20};
@@ -162,8 +165,8 @@ The second function, `get_block_dimension`, is used to get the dimension of the 
 rank.
 
 ```c++
-const auto data_distribution_x = reshuffle::BlockWise(2);
-const auto data_distribution_y = reshuffle::BlockWise(1);
+const auto data_distribution_x = reshuffle::make_block_wise(num_values_x, 2);
+const auto data_distribution_y = reshuffle::make_block_wise(num_values_y, 1);
 
 const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
 const auto global_dimensions = reshuffle::Dimensions2D{20, 20};

@@ -25,10 +25,11 @@ namespace reshuffle {
             return {index % num_columns, index / num_columns};
         }
 
+        // TODO: global_dimension not needed anymore!
         auto get_blocks_2D(const Dimensions2D &global_dimensions,
-                           const std::array<BlockWise, 2> &data_distributions) {
-            const auto blocks_x = data_distributions[0].get_blocks(global_dimensions.num_columns);
-            const auto blocks_y = data_distributions[1].get_blocks(global_dimensions.num_rows);
+                           const std::array<BlockCyclic, 2> &data_distributions) {
+            const auto blocks_x = data_distributions[0].get_blocks();
+            const auto blocks_y = data_distributions[1].get_blocks();
             return internal::combine(blocks_x, blocks_y);
         }
 
@@ -44,9 +45,8 @@ namespace reshuffle {
     };
 
     auto create_coloring(const std::vector<rank_id> &global_coloring,
-                         const BlockWise &data_distribution, rank_id rank) {
-        const auto num_values = static_cast<int>(global_coloring.size());
-        const auto blocks = data_distribution.get_blocks(num_values);
+                         const BlockCyclic &data_distribution, rank_id rank) {
+        const auto blocks = data_distribution.get_blocks();
 
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
         auto local_coloring = std::vector<rank_id>{};
@@ -60,7 +60,7 @@ namespace reshuffle {
 
     auto create_coloring(const std::vector<rank_id> &global_coloring,
                          const Dimensions2D &global_dimensions,
-                         const std::array<BlockWise, 2> &data_distributions, rank_id rank) {
+                         const std::array<BlockCyclic, 2> &data_distributions, rank_id rank) {
         const auto blocks = internal::get_blocks_2D(global_dimensions, data_distributions);
 
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
@@ -78,15 +78,16 @@ namespace reshuffle {
         return ColoringReturn{new_global_coloring, local_coloring};
     }
 
-    auto get_block_dimension(const BlockWise &data_distribution, int num_values, rank_id rank) {
-        const auto blocks = data_distribution.get_blocks(num_values);
+    auto get_block_dimension(const BlockCyclic &data_distribution, int num_values, rank_id rank) {
+        const auto blocks = data_distribution.get_blocks();
 
         if (rank >= blocks.size()) { return 0; }
 
         return blocks[rank].get_length();
+        // TODO: num_values not required anymore
     }
 
-    auto get_block_dimension(const std::array<BlockWise, 2> &data_distributions,
+    auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions,
                              Dimensions2D global_dimensions, rank_id rank) {
         const auto block_pairs = internal::get_blocks_2D(global_dimensions, data_distributions);
 

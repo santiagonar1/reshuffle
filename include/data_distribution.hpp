@@ -32,34 +32,6 @@ namespace reshuffle {
     };
 
     auto make_block_wise(int num_values, int num_blocks) -> BlockCyclic;
-
-    class BlockWise {
-    private:
-        const int _num_blocks;
-
-        [[nodiscard]] int get_min_values_per_block(int num_values) const {
-            return num_values / _num_blocks;
-        }
-
-    public:
-        explicit BlockWise(int num_blocks) : _num_blocks(num_blocks) {}
-
-        [[nodiscard]] auto get_blocks(int num_values) const {
-            const auto min_values_per_block = get_min_values_per_block(num_values);
-            std::vector<Block> blocks{};
-
-            for (int i = 0; i < min_values_per_block * _num_blocks; i += min_values_per_block) {
-                const auto starting_index = i;
-                const auto last_index = starting_index + min_values_per_block;
-                blocks.emplace_back(starting_index, last_index);
-            }
-
-            Block last_block{blocks.back().get_left_bound(), num_values};
-            blocks.pop_back();
-            blocks.push_back(last_block);
-            return blocks;
-        }
-    };
 }// namespace reshuffle
 
 

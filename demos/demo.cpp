@@ -7,7 +7,7 @@
 
 
 using Matrix = std::vector<std::vector<int>>;
-using DataDistribution2D = std::array<reshuffle::BlockWise, 2>;
+using DataDistribution2D = std::array<reshuffle::BlockCyclic, 2>;
 
 bool is_root();
 
@@ -36,9 +36,12 @@ int main() {
     auto matrix = is_root() ? Matrix(num_rows, std::vector<int>(num_columns, 3)) : Matrix{};
     const auto initial_global_coloring = std::vector<reshuffle::rank_id>(num_elements, 0);
     const std::vector<DataDistribution2D> distributions = {
-            {reshuffle::BlockWise(4), reshuffle::BlockWise(1)},
-            {reshuffle::BlockWise(2), reshuffle::BlockWise(2)},
-            {reshuffle::BlockWise(1), reshuffle::BlockWise(4)}};
+            {reshuffle::make_block_wise(num_columns, 4),
+             reshuffle::make_block_wise(num_rows, 1)},
+            {reshuffle::make_block_wise(num_columns, 2),
+             reshuffle::make_block_wise(num_rows, 2)},
+            {reshuffle::make_block_wise(num_columns, 1),
+             reshuffle::make_block_wise(num_rows, 4)}};
 
 
     auto global_coloring = initial_global_coloring;
