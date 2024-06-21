@@ -78,13 +78,12 @@ namespace reshuffle {
         return ColoringReturn{new_global_coloring, local_coloring};
     }
 
-    auto get_block_dimension(const BlockCyclic &data_distribution, int num_values, rank_id rank) {
+    auto get_block_dimension(const BlockCyclic &data_distribution, rank_id rank) {
         const auto blocks = data_distribution.get_blocks();
 
         if (rank >= blocks.size()) { return 0; }
 
         return blocks[rank].get_length();
-        // TODO: num_values not required anymore
     }
 
     auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions,

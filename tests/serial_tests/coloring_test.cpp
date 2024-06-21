@@ -54,9 +54,9 @@ TEST(GetBlockDimensions, In1DReturnsTheNumberOfValues) {
     constexpr int num_values = 5;
     const auto data_distribution = reshuffle::make_block_wise(num_values, 2);
 
-    const auto num_values_0 = reshuffle::get_block_dimension(data_distribution, num_values, 0);
-    const auto num_values_1 = reshuffle::get_block_dimension(data_distribution, num_values, 1);
-    const auto num_values_2 = reshuffle::get_block_dimension(data_distribution, num_values, 2);
+    const auto num_values_0 = reshuffle::get_block_dimension(data_distribution, 0);
+    const auto num_values_1 = reshuffle::get_block_dimension(data_distribution, 1);
+    const auto num_values_2 = reshuffle::get_block_dimension(data_distribution, 2);
 
     EXPECT_THAT(num_values_0, Eq(3));
     EXPECT_THAT(num_values_1, Eq(2));
