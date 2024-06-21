@@ -25,9 +25,7 @@ namespace reshuffle {
             return {index % num_columns, index / num_columns};
         }
 
-        // TODO: global_dimension not needed anymore!
-        auto get_blocks_2D(const Dimensions2D &global_dimensions,
-                           const std::array<BlockCyclic, 2> &data_distributions) {
+        auto get_blocks_2D(const std::array<BlockCyclic, 2> &data_distributions) {
             const auto blocks_x = data_distributions[0].get_blocks();
             const auto blocks_y = data_distributions[1].get_blocks();
             return internal::combine(blocks_x, blocks_y);
@@ -61,7 +59,7 @@ namespace reshuffle {
     auto create_coloring(const std::vector<rank_id> &global_coloring,
                          const Dimensions2D &global_dimensions,
                          const std::array<BlockCyclic, 2> &data_distributions, rank_id rank) {
-        const auto blocks = internal::get_blocks_2D(global_dimensions, data_distributions);
+        const auto blocks = internal::get_blocks_2D(data_distributions);
 
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
         auto local_coloring = std::vector<rank_id>{};
@@ -88,7 +86,7 @@ namespace reshuffle {
 
     auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions,
                              Dimensions2D global_dimensions, rank_id rank) {
-        const auto block_pairs = internal::get_blocks_2D(global_dimensions, data_distributions);
+        const auto block_pairs = internal::get_blocks_2D(data_distributions);
 
         if (rank >= block_pairs.size()) { return Dimensions2D{0, 0}; }
 
