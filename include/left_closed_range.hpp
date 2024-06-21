@@ -9,18 +9,15 @@ namespace reshuffle::internal {
         const std::pair<int, int> _interval;
 
     public:
-        LeftClosedRange() : _interval(){};
-        LeftClosedRange(int left_bound, int right_bound) : _interval{left_bound, right_bound} {};
+        LeftClosedRange();
+        LeftClosedRange(int left_bound, int right_bound);
 
-        [[nodiscard]] bool contains(int value) const {
-            return _interval.first <= value and value < _interval.second;
-        }
+        [[nodiscard]] auto contains(int value) const -> bool;
+        [[nodiscard]] auto get_left_bound() const -> int;
+        [[nodiscard]] auto get_right_bound() const -> int;
+        [[nodiscard]] auto get_length() const -> int;
 
-        [[nodiscard]] int get_left_bound() const { return _interval.first; }
-        [[nodiscard]] int get_right_bound() const { return _interval.second; }
-        [[nodiscard]] int get_length() const { return _interval.second - _interval.first; }
-
-        bool operator==(const LeftClosedRange &other) const { return _interval == other._interval; }
+        auto operator==(const LeftClosedRange &other) const -> bool;
     };
 }// namespace reshuffle::internal
 
