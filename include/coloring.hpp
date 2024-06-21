@@ -84,8 +84,7 @@ namespace reshuffle {
         return blocks[rank].get_length();
     }
 
-    auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions,
-                             Dimensions2D global_dimensions, rank_id rank) {
+    auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions, rank_id rank) {
         const auto block_pairs = internal::get_blocks_2D(data_distributions);
 
         if (rank >= block_pairs.size()) { return Dimensions2D{0, 0}; }

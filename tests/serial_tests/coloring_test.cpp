@@ -73,7 +73,7 @@ TEST(GetBlockDimensions, In2DReturnsTheBlockDimension) {
 
 
     const auto dimensions_0 =
-            reshuffle::get_block_dimension(data_distributions, global_dimensions, 0);
+            reshuffle::get_block_dimension(data_distributions, 0);
 
     EXPECT_THAT(dimensions_0.num_columns, Eq(10));
     EXPECT_THAT(dimensions_0.num_rows, Eq(20));

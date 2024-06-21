@@ -51,7 +51,7 @@ int main() {
                 reshuffle::create_coloring(global_coloring, global_dimension, distribution, rank)
                         .as_tuple();
         const auto block_dimension =
-                reshuffle::get_block_dimension(distribution, global_dimension, rank);
+                reshuffle::get_block_dimension(distribution, rank);
         matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, local_coloring, block_dimension);
         if (is_root()) {
             print(matrix);
