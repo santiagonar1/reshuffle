@@ -14,6 +14,7 @@ namespace reshuffle {
         explicit BlockCyclic(int block_size, int num_values);
 
         [[nodiscard]] auto get_blocks() const -> std::vector<Block>;
+        [[nodiscard]] auto get_num_values() const -> int;
     };
 
     auto make_block_wise(int num_values, int num_blocks) -> BlockCyclic;

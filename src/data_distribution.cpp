@@ -21,6 +21,8 @@ namespace reshuffle {
         return blocks;
     }
 
+    auto BlockCyclic::get_num_values() const -> int { return _num_values; }
+
     auto make_block_wise(int num_values, int num_blocks) -> BlockCyclic {
         const int block_size = std::ceil(static_cast<double>(num_values) / num_blocks);
         return BlockCyclic(block_size, num_values);
