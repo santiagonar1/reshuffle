@@ -13,16 +13,6 @@
 
 
 namespace reshuffle {
-    namespace internal {
-        auto get_color(const std::vector<Block> &blocks, int i) -> rank_id;
-
-        auto to_2D(int num_columns, int index) -> Indices2D;
-
-        auto get_blocks_2D(const std::array<BlockCyclic, 2> &data_distributions)
-                -> std::vector<std::pair<LeftClosedRange, LeftClosedRange>>;
-
-    }// namespace internal
-
     struct ColoringReturn {
         std::vector<rank_id> global_coloring;
         std::vector<rank_id> local_coloring;
