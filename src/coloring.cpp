@@ -23,6 +23,10 @@ namespace reshuffle {
             const auto blocks_y = data_distributions[1].get_blocks();
             return internal::combine(blocks_x, blocks_y);
         }
+
+        auto throw_if_different(int val1, int val2, const std::string &error_msg) {
+            if (val1 != val2) { throw std::invalid_argument(error_msg); }
+        }
     }// namespace internal
 
     auto create_coloring(const std::vector<rank_id> &global_coloring,
@@ -43,6 +47,13 @@ namespace reshuffle {
                          const Dimensions2D &global_dimensions,
                          const std::array<BlockCyclic, 2> &data_distributions,
                          rank_id rank) -> ColoringReturn {
+
+        internal::throw_if_different(static_cast<int>(global_coloring.size()),
+                                     global_dimensions.num_columns * global_dimensions.num_rows,
+                                     std::string{"Mismatch between size of global_coloring and "
+                                                 "number of elements global_dimensions"});
+
+
         const auto blocks = internal::get_blocks_2D(data_distributions);
 
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());

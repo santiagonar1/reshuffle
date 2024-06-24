@@ -50,6 +50,19 @@ TEST(CreateColoring, ABlockWiseWithOneBlockIndicatesNoDivision) {
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 0, 1, 1}));
 }
 
+TEST(CreateColoring, ThrowsIfGlobalColoringSizeDoesNotMatchGlobalDimension) {
+    constexpr int num_rows = 4;
+    constexpr int num_columns = num_rows;
+    const auto global_dimensions = reshuffle::Dimensions2D{num_rows, num_columns};
+    const auto global_coloring = std::vector<reshuffle::rank_id>{};
+    const auto data_distributions = std::array{reshuffle::make_block_wise(num_columns, 1),
+                                               reshuffle::make_block_wise(num_rows, 2)};
+
+    EXPECT_THROW(
+            reshuffle::create_coloring(global_coloring, global_dimensions, data_distributions, 0),
+            std::invalid_argument);
+}
+
 TEST(GetBlockDimensions, In1DReturnsTheNumberOfValues) {
     constexpr int num_values = 5;
     const auto data_distribution = reshuffle::make_block_wise(num_values, 2);
@@ -72,8 +85,7 @@ TEST(GetBlockDimensions, In2DReturnsTheBlockDimension) {
     const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
 
 
-    const auto dimensions_0 =
-            reshuffle::get_block_dimension(data_distributions, 0);
+    const auto dimensions_0 = reshuffle::get_block_dimension(data_distributions, 0);
 
     EXPECT_THAT(dimensions_0.num_columns, Eq(10));
     EXPECT_THAT(dimensions_0.num_rows, Eq(20));
