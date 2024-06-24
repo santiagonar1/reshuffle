@@ -37,7 +37,7 @@ TEST(CreateColoring, CanUseBlockWiseDataDistributionInTwoDimensions) {
 TEST(CreateColoring, ABlockWiseWithOneBlockIndicatesNoDivision) {
     // i.e., 4 values in a 2x2 matrix, previously all in rank 0.
     const auto global_dimensions = reshuffle::Dimensions2D{2, 2};
-    const auto num_values = global_dimensions.num_rows * global_dimensions.num_columns;
+    const auto num_values = global_dimensions.get_num_values();
 
     const auto current_coloring = std::vector<int>(num_values);
     const auto data_distribution_x = reshuffle::make_block_wise(global_dimensions.num_columns, 1);
@@ -103,7 +103,8 @@ TEST(CreateColoring, NumberOfValuesSecondElementOfDistributionMustBeEqualToNumbe
     constexpr int num_rows = 4;
     constexpr int num_columns = num_rows * 2;
     const auto global_dimensions = reshuffle::Dimensions2D{num_rows, num_columns};
-    const auto global_coloring = std::vector<reshuffle::rank_id>(num_rows * num_columns);
+    const auto global_coloring =
+            std::vector<reshuffle::rank_id>(global_dimensions.get_num_values());
     const auto data_distributions = std::array{reshuffle::make_block_wise(num_columns, 1),
                                                reshuffle::make_block_wise(num_columns, 2)};
 

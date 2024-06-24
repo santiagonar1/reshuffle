@@ -55,7 +55,7 @@ namespace reshuffle {
                          rank_id rank) -> ColoringReturn {
 
         internal::throw_if_different(static_cast<int>(global_coloring.size()),
-                                     global_dimensions.num_columns * global_dimensions.num_rows,
+                                     global_dimensions.get_num_values(),
                                      std::string{"Mismatch between size of global_coloring and "
                                                  "number of elements global_dimensions"});
 
