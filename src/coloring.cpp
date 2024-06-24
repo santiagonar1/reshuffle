@@ -31,6 +31,12 @@ namespace reshuffle {
 
     auto create_coloring(const std::vector<rank_id> &global_coloring,
                          const BlockCyclic &data_distribution, rank_id rank) -> ColoringReturn {
+
+        internal::throw_if_different(static_cast<int>(global_coloring.size()),
+                                     data_distribution.get_num_values(),
+                                     std::string{"Mismatch between size of global_coloring and "
+                                                 "number of values data_distribution"});
+
         const auto blocks = data_distribution.get_blocks();
 
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
