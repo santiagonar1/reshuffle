@@ -9,6 +9,7 @@ namespace reshuffle {
     private:
         const int _block_size;
         const int _num_values;
+        const std::vector<Block> _blocks;
 
     public:
         explicit BlockCyclic(int block_size, int num_values);
