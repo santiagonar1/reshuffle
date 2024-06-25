@@ -30,7 +30,7 @@ TEST(BlockCyclic, AssignsBlocksInRoundRobbinFashion) {
     auto result = std::vector<reshuffle::rank_id>{};
 
     for (int i = 0; i < num_values; ++i) {
-        result.push_back(data_distribution.get_rank_id(num_procs, i));
+        result.push_back(data_distribution.get_rank_id(i));
     }
 
     EXPECT_THAT(result, Eq(std::vector<reshuffle::rank_id>{0, 0, 1, 1, 0, 0}));

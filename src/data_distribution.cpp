@@ -27,11 +27,11 @@ namespace reshuffle {
 
     auto BlockCyclic::get_blocks() const -> std::vector<Block> { return _blocks; }
 
-    auto BlockCyclic::get_rank_id(std::size_t num_procs, std::size_t index) const -> rank_id {
+    auto BlockCyclic::get_rank_id(std::size_t index) const -> rank_id {
         auto it = std::ranges::find_if(
                 _blocks, [index](const auto &block) { return block.contains(index); });
         const auto block_id = static_cast<std::size_t>(std::distance(_blocks.begin(), it));
-        return static_cast<reshuffle::rank_id>(block_id % num_procs);
+        return static_cast<reshuffle::rank_id>(block_id % _num_procs);
     }
 
     auto BlockCyclic::get_num_values() const -> int { return _num_values; }

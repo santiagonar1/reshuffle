@@ -17,7 +17,7 @@ namespace reshuffle {
 
         [[nodiscard]] auto get_blocks() const -> std::vector<Block>;
         [[nodiscard]] auto get_num_values() const -> int;
-        [[nodiscard]] auto get_rank_id(std::size_t num_procs, std::size_t index) const -> rank_id;
+        [[nodiscard]] auto get_rank_id(std::size_t index) const -> rank_id;
     };
 
     auto make_block_wise(int num_values, int num_blocks) -> BlockCyclic;
