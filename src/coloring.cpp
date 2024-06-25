@@ -6,13 +6,6 @@
 
 namespace reshuffle {
     namespace internal {
-        auto get_color(const std::vector<Block> &blocks, int i) -> rank_id {
-            auto it = std::ranges::find_if(blocks,
-                                           [i](const auto &block) { return block.contains(i); });
-            //TODO: Should we check whether the index requested is out of bounds?
-            return static_cast<int>(std::distance(blocks.begin(), it));
-        }
-
         auto to_2D(int num_columns, int index) -> Indices2D {
             return {index % num_columns, index / num_columns};
         }
@@ -37,12 +30,10 @@ namespace reshuffle {
                                      std::string{"Mismatch between size of global_coloring and "
                                                  "number of values data_distribution"});
 
-        const auto blocks = data_distribution.get_blocks();
-
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
         auto local_coloring = std::vector<rank_id>{};
         for (int i = 0; i < global_coloring.size(); ++i) {
-            new_global_coloring[i] = internal::get_color(blocks, i);
+            new_global_coloring[i] = data_distribution.get_rank_id(i);
             if (rank == global_coloring[i]) { local_coloring.push_back(new_global_coloring[i]); }
         }
 
