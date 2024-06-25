@@ -21,8 +21,9 @@ namespace reshuffle {
         }
     }// namespace internal
 
-    BlockCyclic::BlockCyclic(int block_size, int num_values)
-        : _num_values(num_values), _blocks(internal::get_blocks(block_size, num_values)) {}
+    BlockCyclic::BlockCyclic(int block_size, int num_values, int num_procs)
+        : _num_procs(num_procs), _num_values(num_values),
+          _blocks(internal::get_blocks(block_size, num_values)) {}
 
     auto BlockCyclic::get_blocks() const -> std::vector<Block> { return _blocks; }
 
@@ -37,7 +38,7 @@ namespace reshuffle {
 
     auto make_block_wise(int num_values, int num_blocks) -> BlockCyclic {
         const int block_size = std::ceil(static_cast<double>(num_values) / num_blocks);
-        return BlockCyclic(block_size, num_values);
+        return BlockCyclic(block_size, num_values, num_blocks);
     }
 
 }// namespace reshuffle

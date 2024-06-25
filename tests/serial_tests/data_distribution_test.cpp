@@ -6,7 +6,7 @@
 using ::testing::Eq;
 
 TEST(BlockCyclic, CreatesBlocksOfGivenSize) {
-    const auto data_distribution = reshuffle::BlockCyclic(2, 6);
+    const auto data_distribution = reshuffle::BlockCyclic(2, 6, 1);
     const auto blocks = data_distribution.get_blocks();
 
     EXPECT_THAT(blocks, Eq(std::vector{reshuffle::Block{0, 2}, reshuffle::Block{2, 4},
@@ -14,7 +14,7 @@ TEST(BlockCyclic, CreatesBlocksOfGivenSize) {
 }
 
 TEST(BlockCyclic, MakesLastBlockSmallerIfNumValuesNoDivisible) {
-    const auto data_distribution = reshuffle::BlockCyclic(2, 5);
+    const auto data_distribution = reshuffle::BlockCyclic(2, 5, 1);
     const auto blocks = data_distribution.get_blocks();
 
     EXPECT_THAT(blocks, Eq(std::vector{reshuffle::Block{0, 2}, reshuffle::Block{2, 4},
@@ -25,7 +25,7 @@ TEST(BlockCyclic, AssignsBlocksInRoundRobbinFashion) {
     constexpr int block_size = 2;
     constexpr int num_values = 6;
     constexpr int num_procs = 2;
-    const auto data_distribution = reshuffle::BlockCyclic(block_size, num_values);
+    const auto data_distribution = reshuffle::BlockCyclic(block_size, num_values, num_procs);
 
     auto result = std::vector<reshuffle::rank_id>{};
 
