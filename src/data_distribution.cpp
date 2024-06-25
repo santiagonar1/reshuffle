@@ -22,8 +22,7 @@ namespace reshuffle {
     }// namespace internal
 
     BlockCyclic::BlockCyclic(int block_size, int num_values)
-        : _block_size(block_size), _num_values(num_values),
-          _blocks(internal::get_blocks(block_size, num_values)) {}
+        : _num_values(num_values), _blocks(internal::get_blocks(block_size, num_values)) {}
 
     auto BlockCyclic::get_blocks() const -> std::vector<Block> { return _blocks; }
 
