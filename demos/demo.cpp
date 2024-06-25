@@ -17,7 +17,7 @@ int main() {
     constexpr int num_rows = 20;
     constexpr int num_columns = 20;
     constexpr reshuffle::Dimensions2D global_dimension{num_rows, num_columns};
-    constexpr int num_elements = num_rows * num_columns;
+    const int num_values = global_dimension.get_num_values();
 
     MPI_Init(nullptr, nullptr);
 
@@ -34,7 +34,7 @@ int main() {
     }
 
     auto matrix = is_root() ? Matrix(num_rows, std::vector<int>(num_columns, 3)) : Matrix{};
-    const auto initial_global_coloring = std::vector<reshuffle::rank_id>(num_elements, 0);
+    const auto initial_global_coloring = std::vector<reshuffle::rank_id>(num_values, 0);
     const std::vector<DataDistribution2D> distributions = {
             {reshuffle::make_block_wise(num_columns, 4), reshuffle::make_block_wise(num_rows, 1)},
             {reshuffle::make_block_wise(num_columns, 2), reshuffle::make_block_wise(num_rows, 2)},
