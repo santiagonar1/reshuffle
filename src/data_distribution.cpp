@@ -1,5 +1,6 @@
 #include "data_distribution.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 namespace reshuffle {
@@ -26,16 +27,11 @@ namespace reshuffle {
 
     auto BlockCyclic::get_blocks() const -> std::vector<Block> { return _blocks; }
 
-        for (int i = 0; i < _num_values; i += _block_size) {
-            const auto starting_index = i;
-            const auto last_index = starting_index + _block_size;
-            blocks.emplace_back(starting_index, last_index);
-        }
-
-        Block last_block{blocks.back().get_left_bound(), _num_values};
-        blocks.pop_back();
-        blocks.push_back(last_block);
-        return blocks;
+    auto BlockCyclic::get_rank_id(std::size_t num_procs, std::size_t index) const -> rank_id {
+        auto it = std::ranges::find_if(
+                _blocks, [index](const auto &block) { return block.contains(index); });
+        const auto block_id = static_cast<std::size_t>(std::distance(_blocks.begin(), it));
+        return static_cast<reshuffle::rank_id>(block_id % num_procs);
     }
 
     auto BlockCyclic::get_num_values() const -> int { return _num_values; }

@@ -21,6 +21,21 @@ TEST(BlockCyclic, MakesLastBlockSmallerIfNumValuesNoDivisible) {
                                        reshuffle::Block{4, 5}}));
 }
 
+TEST(BlockCyclic, AssignsBlocksInRoundRobbinFashion) {
+    constexpr int block_size = 2;
+    constexpr int num_values = 6;
+    constexpr int num_procs = 2;
+    const auto data_distribution = reshuffle::BlockCyclic(block_size, num_values);
+
+    auto result = std::vector<reshuffle::rank_id>{};
+
+    for (int i = 0; i < num_values; ++i) {
+        result.push_back(data_distribution.get_rank_id(num_procs, i));
+    }
+
+    EXPECT_THAT(result, Eq(std::vector<reshuffle::rank_id>{0, 0, 1, 1, 0, 0}));
+}
+
 TEST(MakeBlockWise, CanBeUsedToGetABlockWiseFromBlockCyclic) {
     const auto data_distribution = reshuffle::make_block_wise(10, 2);
     const auto blocks = data_distribution.get_blocks();
