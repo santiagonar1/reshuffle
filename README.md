@@ -54,10 +54,13 @@ The whole infrastructure describe in the aforementioned paper has been made avai
 [here](https://gitlab.inria.fr/dynres).
 
 Once you have set up the infrastructure, you can turn on the compilation of the demo via the `BUILD_DYN_PROC_DEMOS`
-option:
+option. Additionally, one needs to run programs via `prterun` instead of `mpirun` plus some flags. This is relevant to
+us because by default GTest will try to use `mpirun` to run the tests, which will fail on the docker cluster. Therefore,
+make sure to indicate the correct values via the `DMPIEXEC_EXECUTABLE` and `MPIEXEC_PREFLAGS` variables. Bellow you can
+see an example of the correct configuration for a cluster with 4 nodes (named `n1` to `n4`), each one with 8 cores:
 
 ```sh
-cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DBUILD_DYN_PROC_DEMOS=ON ..
+cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DMPIEXEC_EXECUTABLE=prterun -DMPIEXEC_PREFLAGS='--display;map;--mca;btl_tcp_if_include;eth0;--host;n1:8,n2:8,n3:8,n4:8;-x;LD_LIBRARY_PATH' ..
 ```
 
 ## Usage
