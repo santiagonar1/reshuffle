@@ -27,7 +27,7 @@ TEST(CreateColoring, CanUseBlockWiseDataDistributionInTwoDimensions) {
     const auto data_distribution_y = reshuffle::make_block_wise(2, 2);
 
     const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
-    const auto global_dimensions = reshuffle::Dimensions2D{2, 2};
+    const auto global_dimensions = reshuffle::Dimension<2>{{2, 2}};
 
     const auto [global_coloring, coloring_0] =
             reshuffle::create_coloring(current_coloring, global_dimensions, data_distributions, 0);
@@ -36,12 +36,14 @@ TEST(CreateColoring, CanUseBlockWiseDataDistributionInTwoDimensions) {
 
 TEST(CreateColoring, ABlockWiseWithOneBlockIndicatesNoDivision) {
     // i.e., 4 values in a 2x2 matrix, previously all in rank 0.
-    const auto global_dimensions = reshuffle::Dimensions2D{2, 2};
-    const auto num_values = global_dimensions.get_num_values();
+    const auto global_dimensions = reshuffle::Dimension<2>{{2, 2}};
+    const auto num_values = global_dimensions.get_total_number_of_values();
 
     const auto current_coloring = std::vector<int>(num_values);
-    const auto data_distribution_x = reshuffle::make_block_wise(global_dimensions.num_columns, 1);
-    const auto data_distribution_y = reshuffle::make_block_wise(global_dimensions.num_rows, 2);
+    const auto data_distribution_x =
+            reshuffle::make_block_wise(global_dimensions.get_num_values_dim(0), 1);
+    const auto data_distribution_y =
+            reshuffle::make_block_wise(global_dimensions.get_num_values_dim(1), 2);
 
     const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
 
@@ -53,7 +55,7 @@ TEST(CreateColoring, ABlockWiseWithOneBlockIndicatesNoDivision) {
 TEST(CreateColoring, ThrowsIfGlobalColoringSizeDoesNotMatchGlobalDimension) {
     constexpr int num_rows = 4;
     constexpr int num_columns = num_rows;
-    const auto global_dimensions = reshuffle::Dimensions2D{num_rows, num_columns};
+    const auto global_dimensions = reshuffle::Dimension<2>{{num_rows, num_columns}};
     const auto global_coloring = std::vector<reshuffle::rank_id>{};
     const auto data_distributions = std::array{reshuffle::make_block_wise(num_columns, 1),
                                                reshuffle::make_block_wise(num_rows, 2)};
@@ -75,7 +77,7 @@ TEST(CreateColoring, In1DNumberOfValuesDistributionMustBeTheSameAsSizeGlobalColo
 TEST(CreateColoring, NumberOfValuesDistributionMustBeEqualToSizeGlobalColoring) {
     constexpr int num_rows = 4;
     constexpr int num_columns = num_rows;
-    const auto global_dimensions = reshuffle::Dimensions2D{num_rows, num_columns};
+    const auto global_dimensions = reshuffle::Dimension<2>{{num_rows, num_columns}};
     const auto global_coloring = std::vector<reshuffle::rank_id>{};
     const auto data_distributions = std::array{reshuffle::make_block_wise(num_columns, 1),
                                                reshuffle::make_block_wise(num_rows, 2)};
@@ -89,7 +91,7 @@ TEST(CreateColoring, NumberOfValuesDistributionMustBeEqualToSizeGlobalColoring) 
 TEST(CreateColoring, NumberOfValuesFirstElementOfDistributionMustBeEqualToNumberOfColumns) {
     constexpr int num_rows = 4;
     constexpr int num_columns = num_rows * 2;
-    const auto global_dimensions = reshuffle::Dimensions2D{num_rows, num_columns};
+    const auto global_dimensions = reshuffle::Dimension<2>{{num_rows, num_columns}};
     const auto global_coloring = std::vector<reshuffle::rank_id>(num_rows * num_columns);
     const auto data_distributions = std::array{reshuffle::make_block_wise(num_rows, 1),
                                                reshuffle::make_block_wise(num_rows, 2)};
@@ -102,9 +104,9 @@ TEST(CreateColoring, NumberOfValuesFirstElementOfDistributionMustBeEqualToNumber
 TEST(CreateColoring, NumberOfValuesSecondElementOfDistributionMustBeEqualToNumberOfRows) {
     constexpr int num_rows = 4;
     constexpr int num_columns = num_rows * 2;
-    const auto global_dimensions = reshuffle::Dimensions2D{num_rows, num_columns};
+    const auto global_dimensions = reshuffle::Dimension<2>{{num_rows, num_columns}};
     const auto global_coloring =
-            std::vector<reshuffle::rank_id>(global_dimensions.get_num_values());
+            std::vector<reshuffle::rank_id>(global_dimensions.get_total_number_of_values());
     const auto data_distributions = std::array{reshuffle::make_block_wise(num_columns, 1),
                                                reshuffle::make_block_wise(num_columns, 2)};
 
@@ -128,16 +130,18 @@ TEST(GetBlockDimensions, In1DReturnsTheNumberOfValues) {
 }
 
 TEST(GetBlockDimensions, In2DReturnsTheBlockDimension) {
-    const auto global_dimensions = reshuffle::Dimensions2D{20, 20};
+    const auto global_dimensions = reshuffle::Dimension<2>{{20, 20}};
 
-    const auto data_distribution_x = reshuffle::make_block_wise(global_dimensions.num_columns, 2);
-    const auto data_distribution_y = reshuffle::make_block_wise(global_dimensions.num_rows, 1);
+    const auto data_distribution_x =
+            reshuffle::make_block_wise(global_dimensions.get_num_values_dim(0), 2);
+    const auto data_distribution_y =
+            reshuffle::make_block_wise(global_dimensions.get_num_values_dim(1), 1);
 
     const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
 
 
     const auto dimensions_0 = reshuffle::get_block_dimension(data_distributions, 0);
 
-    EXPECT_THAT(dimensions_0.num_columns, Eq(10));
-    EXPECT_THAT(dimensions_0.num_rows, Eq(20));
+    EXPECT_THAT(dimensions_0.get_num_values_dim(0), Eq(10));
+    EXPECT_THAT(dimensions_0.get_num_values_dim(1), Eq(20));
 }

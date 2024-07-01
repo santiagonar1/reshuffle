@@ -41,24 +41,24 @@ namespace reshuffle {
     }
 
     auto create_coloring(const std::vector<rank_id> &global_coloring,
-                         const Dimensions2D &global_dimensions,
+                         const Dimension<2> &global_dimensions,
                          const std::array<BlockCyclic, 2> &data_distributions,
                          rank_id rank) -> ColoringReturn {
 
         internal::throw_if_different(static_cast<int>(global_coloring.size()),
-                                     global_dimensions.get_num_values(),
+                                     global_dimensions.get_total_number_of_values(),
                                      std::string{"Mismatch between size of global_coloring and "
                                                  "number of elements global_dimensions"});
 
-        internal::throw_if_different(global_dimensions.num_columns,
+        internal::throw_if_different(global_dimensions.get_num_values_dim(0),
                                      data_distributions[0].get_num_values(),
                                      std::string{"Mismatch between data_distributions and "
                                                  "global_dimensions on first dimension"});
 
-        internal::throw_if_different(global_dimensions.num_rows,
+        internal::throw_if_different(global_dimensions.get_num_values_dim(1),
                                      data_distributions[1].get_num_values(),
                                      std::string{"Mismatch between data_distributions and "
-                                                 "global_dimensions on first dimension"});
+                                                 "global_dimensions on second dimension"});
 
 
         const auto blocks = internal::get_blocks_2D(data_distributions);
@@ -66,7 +66,8 @@ namespace reshuffle {
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
         auto local_coloring = std::vector<rank_id>{};
         for (int i = 0; i < global_coloring.size(); ++i) {
-            const auto [x_coord, y_coord] = internal::to_2D(global_dimensions.num_columns, i);
+            const auto [x_coord, y_coord] =
+                    internal::to_2D(global_dimensions.get_num_values_dim(0), i);
 
             auto it = std::ranges::find_if(blocks, [x_coord, y_coord](const auto &r) {
                 return r.first.contains(x_coord) and r.second.contains(y_coord);
@@ -87,15 +88,15 @@ namespace reshuffle {
     }
 
     auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions,
-                             rank_id rank) -> Dimensions2D {
+                             rank_id rank) -> Dimension<2> {
         const auto block_pairs = internal::get_blocks_2D(data_distributions);
 
-        if (rank >= block_pairs.size()) { return Dimensions2D{0, 0}; }
+        if (rank >= block_pairs.size()) { return Dimension<2>{{0, 0}}; }
 
         const auto &block_pair = block_pairs[rank];
-        const auto num_rows = block_pair.second.get_length();
-        const auto num_columns = block_pair.first.get_length();
+        const auto num_values_x = block_pair.first.get_length();
+        const auto num_values_y = block_pair.second.get_length();
 
-        return Dimensions2D{num_rows, num_columns};
+        return Dimension<2>{{num_values_x, num_values_y}};
     }
 }// namespace reshuffle

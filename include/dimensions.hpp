@@ -16,13 +16,6 @@ namespace reshuffle {
         }
     }// namespace internal
 
-    struct Dimensions2D {
-        const int num_rows{};
-        const int num_columns{};
-
-        [[nodiscard]] auto get_num_values() const { return num_rows * num_columns; }
-    };
-
     template<std::size_t N>
     class Dimension {
     private:

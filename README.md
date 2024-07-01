@@ -70,10 +70,10 @@ cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DMPIEXEC_EXECUTAB
 Currently, supports 1D and 2D buffers. Below you see an example of partitioning a 2D domain:
 
 ```c++
-constexpr int num_rows = 20;
-constexpr int num_columns = 20;
+constexpr int num_values_x = 20;
+constexpr int num_valuex_y = 20;
 constexpr int num_elements = num_rows * num_columns;
-constexpr auto global_dimension = reshuffle::Dimensions2D{num_rows, num_columns};
+constexpr auto global_dimension = reshuffle::Dimension<2>{{num_values_x, num_values_y}};
 
 const auto data_distributions = std::array{reshuffle::make_block_wise(num_columns, 4),
                                            reshuffle::make_block_wise(num_rows, 1)};
@@ -158,7 +158,7 @@ const auto data_distribution_x = reshuffle::make_block_wise(num_values_x, 2);
 const auto data_distribution_y = reshuffle::make_block_wise(num_values_y, 2);
 
 const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
-const auto global_dimensions = reshuffle::Dimensions2D{20, 20};
+const auto global_dimensions = reshuffle::Dimension<2>{{20, 20}};
 
 const auto [global_coloring, coloring_0] =
         reshuffle::create_coloring(current_coloring, global_dimensions, data_distributions, 0);
@@ -172,7 +172,7 @@ const auto data_distribution_x = reshuffle::make_block_wise(num_values_x, 2);
 const auto data_distribution_y = reshuffle::make_block_wise(num_values_y, 1);
 
 const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
-const auto global_dimensions = reshuffle::Dimensions2D{20, 20};
+const auto global_dimensions = reshuffle::Dimension<2>{{20, 20}};
 
 const auto dimensions_0 = reshuffle::get_block_dimension(data_distributions, global_dimensions, 0);
 ```

@@ -64,10 +64,11 @@ namespace reshuffle::internal {
     }
 
     template<typename T>
-    auto to_matrix(const std::vector<T> &values, const Dimensions2D &dimension) {
+    auto to_matrix(const std::vector<T> &values, const Dimension<2> &dimension) {
         using Matrix = std::vector<std::vector<T>>;
 
-        auto matrix = Matrix(dimension.num_rows, std::vector<T>(dimension.num_columns));
+        auto matrix = Matrix(dimension.get_num_values_dim(1),
+                             std::vector<T>(dimension.get_num_values_dim(0)));
         int i = 0;
         for (auto &row: matrix) {
             for (auto &value: row) {
