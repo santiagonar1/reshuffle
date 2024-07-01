@@ -17,7 +17,7 @@ int main() {
     constexpr int num_rows = 20;
     constexpr int num_columns = 20;
     const reshuffle::Dimension<2> global_dimension{{num_rows, num_columns}};
-    const int num_values = global_dimension.get_total_number_of_values();
+    const int num_values = reshuffle::calc_total_num_values(global_dimension);
 
     MPI_Init(nullptr, nullptr);
 

@@ -46,16 +46,16 @@ namespace reshuffle {
                          rank_id rank) -> ColoringReturn {
 
         internal::throw_if_different(static_cast<int>(global_coloring.size()),
-                                     global_dimensions.get_total_number_of_values(),
+                                     calc_total_num_values(global_dimensions),
                                      std::string{"Mismatch between size of global_coloring and "
                                                  "number of elements global_dimensions"});
 
-        internal::throw_if_different(global_dimensions.get_num_values_dim(0),
+        internal::throw_if_different(global_dimensions[0],
                                      data_distributions[0].get_num_values(),
                                      std::string{"Mismatch between data_distributions and "
                                                  "global_dimensions on first dimension"});
 
-        internal::throw_if_different(global_dimensions.get_num_values_dim(1),
+        internal::throw_if_different(global_dimensions[1],
                                      data_distributions[1].get_num_values(),
                                      std::string{"Mismatch between data_distributions and "
                                                  "global_dimensions on second dimension"});
@@ -67,7 +67,7 @@ namespace reshuffle {
         auto local_coloring = std::vector<rank_id>{};
         for (int i = 0; i < global_coloring.size(); ++i) {
             const auto [x_coord, y_coord] =
-                    internal::to_2D(global_dimensions.get_num_values_dim(0), i);
+                    internal::to_2D(global_dimensions[0], i);
 
             auto it = std::ranges::find_if(blocks, [x_coord, y_coord](const auto &r) {
                 return r.first.contains(x_coord) and r.second.contains(y_coord);
