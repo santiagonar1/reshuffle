@@ -53,9 +53,9 @@ namespace reshuffle::internal {
         return values;
     }
 
-    template<typename T, typename U>
-    auto combine(const std::vector<T> &first, const std::vector<U> &second) {
-        std::vector<std::pair<T, U>> combination{};
+    template<typename T>
+    auto combine(const std::vector<T> &first, const std::vector<T> &second) {
+        std::vector<std::pair<T, T>> combination{};
         for (const auto &v2: second) {
             for (const auto &v1: first) { combination.emplace_back(v1, v2); }
         }
