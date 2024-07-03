@@ -52,15 +52,6 @@ namespace reshuffle {
                                      std::string{"Mismatch between size of global_coloring and "
                                                  "number of elements global_dimensions"});
 
-        internal::throw_if_different(global_dimensions[0], data_distributions[0].get_num_values(),
-                                     std::string{"Mismatch between data_distributions and "
-                                                 "global_dimensions on first dimension"});
-
-        internal::throw_if_different(global_dimensions[1], data_distributions[1].get_num_values(),
-                                     std::string{"Mismatch between data_distributions and "
-                                                 "global_dimensions on second dimension"});
-
-
         const auto blocks = internal::get_blocks_2D(data_distributions);
 
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
