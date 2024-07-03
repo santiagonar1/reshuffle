@@ -11,11 +11,13 @@
 #include "utils.hpp"
 
 namespace reshuffle::internal {
-    auto is_root(const MPI_Comm &comm) {
+    auto get_rank_id(const MPI_Comm &comm) -> rank_id {
         int rank{};
         MPI_Comm_rank(comm, &rank);
-        return rank == 0;
+        return rank;
     }
+
+    auto is_root(const MPI_Comm &comm) { return get_rank_id(comm) == 0; }
 
     auto calc_num_values_per_rank(int total_num_values, int num_ranks,
                                   const std::vector<rank_id> &coloring = {}) {
