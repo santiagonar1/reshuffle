@@ -45,7 +45,7 @@ int main() {
     auto local_coloring = std::vector<reshuffle::rank_id>{};
     for (const auto &distribution: distributions) {
         std::tie(global_coloring, local_coloring) =
-                reshuffle::create_coloring(global_coloring, global_dimension, distribution, rank)
+                reshuffle::create_coloring(global_coloring, distribution, rank)
                         .as_tuple();
         const auto block_dimension = reshuffle::get_block_dimension(distribution, rank);
         matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, local_coloring, block_dimension);

@@ -41,22 +41,22 @@ namespace reshuffle {
     }
 
     auto create_coloring(const std::vector<rank_id> &global_coloring,
-                         const Dimension<2> &global_dimensions,
                          const std::array<BlockCyclic, 2> &data_distributions,
                          rank_id rank) -> ColoringReturn {
+
+        const auto global_dimensions = Dimension<2>{data_distributions[0].get_num_values(),
+                                                    data_distributions[1].get_num_values()};
 
         internal::throw_if_different(static_cast<int>(global_coloring.size()),
                                      calc_total_num_values(global_dimensions),
                                      std::string{"Mismatch between size of global_coloring and "
                                                  "number of elements global_dimensions"});
 
-        internal::throw_if_different(global_dimensions[0],
-                                     data_distributions[0].get_num_values(),
+        internal::throw_if_different(global_dimensions[0], data_distributions[0].get_num_values(),
                                      std::string{"Mismatch between data_distributions and "
                                                  "global_dimensions on first dimension"});
 
-        internal::throw_if_different(global_dimensions[1],
-                                     data_distributions[1].get_num_values(),
+        internal::throw_if_different(global_dimensions[1], data_distributions[1].get_num_values(),
                                      std::string{"Mismatch between data_distributions and "
                                                  "global_dimensions on second dimension"});
 
@@ -66,8 +66,7 @@ namespace reshuffle {
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
         auto local_coloring = std::vector<rank_id>{};
         for (int i = 0; i < global_coloring.size(); ++i) {
-            const auto [x_coord, y_coord] =
-                    internal::to_2D(global_dimensions[0], i);
+            const auto [x_coord, y_coord] = internal::to_2D(global_dimensions[0], i);
 
             auto it = std::ranges::find_if(blocks, [x_coord, y_coord](const auto &r) {
                 return r.first.contains(x_coord) and r.second.contains(y_coord);

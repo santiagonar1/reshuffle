@@ -26,7 +26,6 @@ namespace reshuffle {
                          const BlockCyclic &data_distribution, rank_id rank) -> ColoringReturn;
 
     auto create_coloring(const std::vector<rank_id> &global_coloring,
-                         const Dimension<2> &global_dimensions,
                          const std::array<BlockCyclic, 2> &data_distributions,
                          rank_id rank) -> ColoringReturn;
 
