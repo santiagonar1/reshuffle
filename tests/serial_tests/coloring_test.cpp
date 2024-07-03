@@ -51,7 +51,7 @@ TEST(CreateColoring, ABlockWiseWithOneBlockIndicatesNoDivision) {
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 0, 1, 1}));
 }
 
-TEST(CreateColoring, ThrowsIfGlobalColoringSizeDoesNotMatchGlobalDimension) {
+TEST(CreateColoring, ThrowsIfSizeGlobalColoringDoesNotMatchDimensionsDataDistribution) {
     constexpr int num_rows = 4;
     constexpr int num_columns = num_rows;
     const auto global_dimensions = reshuffle::Dimension<2>{{num_rows, num_columns}};
