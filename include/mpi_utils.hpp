@@ -215,9 +215,7 @@ namespace reshuffle::internal {
                 scatter_from_root(serialize(values), comm, mpi_datatype, coloring, true));
     }
 
-    auto in_mpi_comm(const MPI_Comm &comm) {
-        return comm != MPI_COMM_NULL;
-    }
+    auto in_mpi_comm(const MPI_Comm &comm) { return comm != MPI_COMM_NULL; }
 }// namespace reshuffle::internal
 
 #endif//RESHUFFLE_MPI_UTILS_HPP
