@@ -201,3 +201,20 @@ TEST_F(Shuffle, CanSplit2DContainersBasedOnNewAndOldDistribution) {
     EXPECT_THAT(m.size(), Eq(num_values_y));
     EXPECT_THAT(m[0].size(), Eq(num_values_x / 2));
 }
+
+TEST_F(Shuffle, CanSplit2DContainersBasedOnNewAndOldDistributionWithDifferentCommunicators) {
+    using Matrix = std::vector<std::vector<int>>;
+    constexpr int num_values_x = 4;
+    constexpr int num_values_y = 10;
+
+    auto m = is_root() ? Matrix(num_values_y, std::vector(num_values_x, 0)) : Matrix();
+    const auto old_distribution = std::array{reshuffle::make_block_wise(num_values_x, 1),
+                                             reshuffle::make_block_wise(num_values_y, 1)};
+    const auto new_distribution = std::array{reshuffle::make_block_wise(num_values_x, 2),
+                                             reshuffle::make_block_wise(num_values_y, 1)};
+
+    m = reshuffle::shuffle(m, _comm_rank_0, MPI_COMM_WORLD, old_distribution, new_distribution);
+
+    EXPECT_THAT(m.size(), Eq(num_values_y));
+    EXPECT_THAT(m[0].size(), Eq(num_values_x / 2));
+}

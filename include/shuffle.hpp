@@ -110,6 +110,34 @@ namespace reshuffle {
 
         return internal::to_matrix(buffer, subdomain_dimensions);
     }
+
+    template<concepts::Matrix2D M>
+    auto shuffle(const M &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
+                 const std::array<BlockCyclic, 2> &old_distribution,
+                 const std::array<BlockCyclic, 2> &new_distribution) {
+        using T = M::value_type::value_type;
+
+        const auto old_global_coloring = get_global_coloring(old_distribution);
+
+        const auto rank =
+                internal::in_mpi_comm(destiny_comm) ? internal::get_rank_id(destiny_comm) : -1;
+
+        const auto local_coloring =
+                internal::in_mpi_comm(destiny_comm)
+                        ? create_coloring(old_global_coloring, new_distribution, rank)
+                                  .local_coloring
+                        : std::vector<rank_id>{};
+
+        const auto subdomain_dimensions = internal::in_mpi_comm(destiny_comm)
+                                                  ? get_block_dimension(new_distribution, rank)
+                                                  : Dimension<2>{0, 0};
+
+        auto buffer = std::vector<T>(std::ranges::join_view(values).begin(),
+                                     std::ranges::join_view(values).end());
+        buffer = shuffle(buffer, origin_comm, destiny_comm, local_coloring);
+
+        return internal::to_matrix(buffer, subdomain_dimensions);
+    }
 }// namespace reshuffle
 
 #endif//RESHUFFLE_SHUFFLE_HPP
