@@ -13,11 +13,6 @@
 
 
 namespace reshuffle {
-    namespace internal {
-        auto get_dimension_from_distribution(const std::array<BlockCyclic, 2> &distribution)
-                -> Dimension<2>;
-    }
-
     struct ColoringReturn {
         std::vector<rank_id> global_coloring;
         std::vector<rank_id> local_coloring;
