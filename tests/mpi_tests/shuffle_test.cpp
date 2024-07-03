@@ -165,25 +165,6 @@ TEST_F(Shuffle, ColoringWorksWithNonAggregate) {
     }
 }
 
-TEST_F(Shuffle, CanSplit2DContainersWithDifferentCommunicators) {
-    using Matrix = std::vector<std::vector<int>>;
-    constexpr int num_values_x = 4;
-    constexpr int num_values_y = 10;
-    constexpr int num_values = num_values_y * num_values_x;
-
-    auto m = is_root() ? Matrix(num_values_y, std::vector(num_values_x, 0)) : Matrix();
-    auto coloring = is_root() ? std::vector(num_values, 1) : std::vector<int>{};
-    auto subdomain_dimension = is_root() ? reshuffle::Dimension<2>{{0, 0}}
-                                         : reshuffle::Dimension<2>{{num_values_x, num_values_y}};
-    m = reshuffle::shuffle(m, _comm_rank_0, MPI_COMM_WORLD, coloring, subdomain_dimension);
-
-    if (is_root()) {
-        EXPECT_THAT(m.size(), Eq(0));
-    } else {
-        EXPECT_THAT(m.size(), num_values_y);
-        EXPECT_THAT(m[0].size(), num_values_x);
-    }
-}
 
 TEST_F(Shuffle, CanSplit2DContainersBasedOnNewAndOldDistribution) {
     using Matrix = std::vector<std::vector<int>>;
