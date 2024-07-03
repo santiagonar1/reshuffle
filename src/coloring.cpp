@@ -20,6 +20,11 @@ namespace reshuffle {
         auto throw_if_different(int val1, int val2, const std::string &error_msg) {
             if (val1 != val2) { throw std::invalid_argument(error_msg); }
         }
+
+        auto get_dimension_from_distribution(const std::array<BlockCyclic, 2> &distribution)
+                -> Dimension<2> {
+            return Dimension<2>{distribution[0].get_num_values(), distribution[1].get_num_values()};
+        }
     }// namespace internal
 
     auto create_coloring(const std::vector<rank_id> &global_coloring,
