@@ -36,19 +36,15 @@ int main() {
     auto matrix = is_root() ? Matrix(num_rows, std::vector<int>(num_columns, 3)) : Matrix{};
     const auto initial_global_coloring = std::vector<reshuffle::rank_id>(num_values, 0);
     const std::vector<DataDistribution2D> distributions = {
+            {reshuffle::make_block_wise(num_columns, 1), reshuffle::make_block_wise(num_rows, 1)},
             {reshuffle::make_block_wise(num_columns, 4), reshuffle::make_block_wise(num_rows, 1)},
             {reshuffle::make_block_wise(num_columns, 2), reshuffle::make_block_wise(num_rows, 2)},
             {reshuffle::make_block_wise(num_columns, 1), reshuffle::make_block_wise(num_rows, 4)}};
 
 
-    auto global_coloring = initial_global_coloring;
-    auto local_coloring = std::vector<reshuffle::rank_id>{};
-    for (const auto &distribution: distributions) {
-        std::tie(global_coloring, local_coloring) =
-                reshuffle::create_coloring(global_coloring, distribution, rank)
-                        .as_tuple();
-        const auto block_dimension = reshuffle::get_block_dimension(distribution, rank);
-        matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, local_coloring, block_dimension);
+    for (int i = 1; i < distributions.size(); ++i) {
+        const auto block_dimension = reshuffle::get_block_dimension(distributions[i], rank);
+        matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, distributions[i-1], distributions[i]);
         if (is_root()) {
             print(matrix);
             std::cout << "\n";

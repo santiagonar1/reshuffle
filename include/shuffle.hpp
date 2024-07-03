@@ -79,18 +79,6 @@ namespace reshuffle {
     }
 
     template<concepts::Matrix2D M>
-    auto shuffle(const M &values, const MPI_Comm &comm, const std::vector<rank_id> &coloring,
-                 const Dimension<2> &subdomain_dimension) {
-        using T = M::value_type::value_type;
-
-        auto buffer = std::vector<T>(std::ranges::join_view(values).begin(),
-                                     std::ranges::join_view(values).end());
-        buffer = shuffle(buffer, comm, coloring);
-
-        return internal::to_matrix(buffer, subdomain_dimension);
-    }
-
-    template<concepts::Matrix2D M>
     auto shuffle(const M &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
                  const std::vector<rank_id> &coloring, const Dimension<2> &subdomain_dimension) {
         using T = M::value_type::value_type;
