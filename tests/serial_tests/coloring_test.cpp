@@ -92,6 +92,16 @@ TEST(CreateColoring, NumberOfValuesSecondElementOfDistributionMustBeEqualToNumbe
                  std::invalid_argument);
 }
 
+TEST(GetGlobalColoring, ReturnsGlobalColoring) {
+    constexpr int num_values_y = 2;
+    constexpr int num_values_x = 2;
+    const auto data_distributions = std::array{reshuffle::make_block_wise(num_values_x, 1),
+                                               reshuffle::make_block_wise(num_values_y, 2)};
+
+    const auto global_coloring = reshuffle::get_global_coloring(data_distributions);
+    EXPECT_THAT(global_coloring, Eq(std::vector<reshuffle::rank_id>{0, 0, 1, 1}));
+}
+
 
 TEST(GetBlockDimensions, In1DReturnsTheNumberOfValues) {
     constexpr int num_values = 5;
