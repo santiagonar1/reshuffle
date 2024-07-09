@@ -17,7 +17,10 @@ namespace reshuffle::internal {
         return rank;
     }
 
-    auto is_root(const MPI_Comm &comm) { return get_rank_id(comm) == 0; }
+    auto in_mpi_comm(const MPI_Comm &comm) { return comm != MPI_COMM_NULL; }
+
+
+    auto is_root(const MPI_Comm &comm) { return in_mpi_comm(comm) and get_rank_id(comm) == 0; }
 
     auto calc_num_values_per_rank(int total_num_values, int num_ranks,
                                   const std::vector<rank_id> &coloring = {}) {
@@ -214,8 +217,6 @@ namespace reshuffle::internal {
         return deserialize<T>(
                 scatter_from_root(serialize(values), comm, mpi_datatype, coloring, true));
     }
-
-    auto in_mpi_comm(const MPI_Comm &comm) { return comm != MPI_COMM_NULL; }
 }// namespace reshuffle::internal
 
 #endif//RESHUFFLE_MPI_UTILS_HPP
