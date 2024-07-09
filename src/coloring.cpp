@@ -74,6 +74,15 @@ namespace reshuffle {
         return ColoringReturn{new_global_coloring, local_coloring};
     }
 
+    auto get_global_coloring(const BlockCyclic &data_distribution) -> std::vector<rank_id> {
+        const auto num_values = data_distribution.get_num_values();
+        const auto dummy_global_coloring = std::vector<rank_id>(num_values);
+        const rank_id dummy_rank = 0;
+        const auto [global_coloring, _] =
+                create_coloring(dummy_global_coloring, data_distribution, dummy_rank);
+        return global_coloring;
+    }
+
     auto get_global_coloring(const std::array<BlockCyclic, 2> &data_distributions)
             -> std::vector<rank_id> {
         const auto dimensions = internal::get_dimension_from_distribution(data_distributions);
