@@ -28,6 +28,24 @@ namespace reshuffle {
                                                   comm, all_coloring);
     }
 
+    //TODO: Handle exceptions (compare sizes distributions and values).
+    template<concepts::ContiguousContainer C>
+        requires concepts::Serializable<typename C::value_type>
+    auto shuffle(const C &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
+                 const BlockCyclic &new_distribution) {
+        const auto rank = internal::get_rank_id(comm);
+        const auto old_global_coloring = get_global_coloring(old_distribution);
+
+        const auto new_global_coloring =
+                internal::is_root(MPI_COMM_WORLD)
+                        ? create_coloring(old_global_coloring, new_distribution, rank)
+                                  .global_coloring
+                        : std::vector<rank_id>{};
+
+        return internal::scatter_values_from_root(internal::gather_values_in_root(values, comm),
+                                                  comm, new_global_coloring);
+    }
+
     template<concepts::ContiguousContainer C>
         requires concepts::Serializable<typename C::value_type>
     auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
@@ -57,6 +75,36 @@ namespace reshuffle {
                 internal::in_mpi_comm(destiny_comm)
                         ? internal::scatter_values_from_root(all_values, destiny_comm, all_coloring)
                         : std::vector<T>{};
+
+        return my_values;
+    }
+
+    template<concepts::ContiguousContainer C>
+        requires concepts::Serializable<typename C::value_type>
+    auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
+                 const BlockCyclic &old_distribution, const BlockCyclic &new_distribution) {
+        using T = C::value_type;
+
+        const auto old_global_coloring = get_global_coloring(old_distribution);
+
+        const auto rank =
+                internal::in_mpi_comm(destiny_comm) ? internal::get_rank_id(destiny_comm) : -1;
+
+        const auto new_global_coloring =
+                internal::is_root(destiny_comm)
+                        ? create_coloring(old_global_coloring, new_distribution, rank)
+                                  .global_coloring
+                        : std::vector<rank_id>{};
+
+        const auto all_values = internal::in_mpi_comm(origin_comm)
+                                        ? internal::gather_values_in_root(values, origin_comm)
+                                        : std::vector<T>{};
+
+
+        const auto my_values = internal::in_mpi_comm(destiny_comm)
+                                       ? internal::scatter_values_from_root(
+                                                 all_values, destiny_comm, new_global_coloring)
+                                       : std::vector<T>{};
 
         return my_values;
     }

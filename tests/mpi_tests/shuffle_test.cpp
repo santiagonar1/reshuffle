@@ -59,6 +59,36 @@ TEST_F(Shuffle, SplitsDataEquallyAmongRanks) {
     EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, _value)));
 }
 
+TEST_F(Shuffle, CanBePassedADistribution) {
+    const int num_values = static_cast<int>(_values.size()) * _num_ranks;
+    const auto old_distribution = reshuffle::make_block_wise(num_values, _num_ranks);
+    const auto new_distribution = reshuffle::make_block_wise(num_values, 1);
+
+    const auto new_values =
+            reshuffle::shuffle(_values, MPI_COMM_WORLD, old_distribution, new_distribution);
+
+    if (is_root()) {
+        EXPECT_THAT(new_values, Eq(_values_only_in_root));
+    } else {
+        EXPECT_TRUE(new_values.empty());
+    }
+}
+
+TEST_F(Shuffle, CanBePassedADistributionWithDifferentCommunicators) {
+    const int num_values = static_cast<int>(_values.size()) * _num_ranks;
+    const auto old_distribution = reshuffle::make_block_wise(num_values, _num_ranks);
+    const auto new_distribution = reshuffle::make_block_wise(num_values, 1);
+
+    const auto new_values = reshuffle::shuffle(_values, MPI_COMM_WORLD, _comm_rank_0,
+                                               old_distribution, new_distribution);
+
+    if (is_root()) {
+        EXPECT_THAT(new_values, Eq(_values_only_in_root));
+    } else {
+        EXPECT_TRUE(new_values.empty());
+    }
+}
+
 TEST_F(Shuffle, WorksForDifferentDatatypes) {
     const std::vector<double> values(_values.begin(), _values.end());
 
