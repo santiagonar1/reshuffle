@@ -20,8 +20,8 @@ protected:
     int _num_ranks{};
     static constexpr int _min_elements_per_rank{10};
     static constexpr int _value{42};
-    MPI_Comm _comm_rank_0{};
-    MPI_Comm _comm_rank_1{};
+    MPI_Comm _comm_rank_0{MPI_COMM_NULL};
+    MPI_Comm _comm_rank_1{MPI_COMM_NULL};
     const std::vector<int> _values{};
     std::vector<int> _values_only_in_root{};
 
@@ -33,18 +33,20 @@ protected:
         MPI_Comm_group(MPI_COMM_WORLD, &world_group);
 
         auto ranks = std::vector<int>{0};
-        MPI_Group group_rank_0;
-        MPI_Group_incl(world_group, 1, ranks.data(), &group_rank_0);
 
-        MPI_Comm_create(MPI_COMM_WORLD, group_rank_0, &_comm_rank_0);
+        if (is_root()) {
+            MPI_Group group_rank_0;
+            MPI_Group_incl(world_group, 1, ranks.data(), &group_rank_0);
 
-        MPI_Group group_rank_1;
-        ranks[0] = 1;
-        MPI_Group_incl(world_group, 1, ranks.data(), &group_rank_1);
-        MPI_Comm_create(MPI_COMM_WORLD, group_rank_1, &_comm_rank_1);
+            MPI_Comm_create(MPI_COMM_WORLD, group_rank_0, &_comm_rank_0);
 
-        _values_only_in_root = is_root() ? std::vector(_num_ranks * _min_elements_per_rank, _value)
-                                         : std::vector<int>{};
+            _values_only_in_root = std::vector(_num_ranks * _min_elements_per_rank, _value);
+        } else {
+            MPI_Group group_rank_1;
+            ranks[0] = 1;
+            MPI_Group_incl(world_group, 1, ranks.data(), &group_rank_1);
+            MPI_Comm_create(MPI_COMM_WORLD, group_rank_1, &_comm_rank_1);
+        }
     }
 
     [[nodiscard]] bool is_root() const { return _rank == 0; }
