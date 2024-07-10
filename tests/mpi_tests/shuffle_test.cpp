@@ -20,6 +20,7 @@ protected:
     int _num_ranks{};
     static constexpr int _min_elements_per_rank{10};
     static constexpr int _value{42};
+    int _total_num_values{};
     MPI_Comm _comm_rank_0{MPI_COMM_NULL};
     MPI_Comm _comm_rank_1{MPI_COMM_NULL};
     const std::vector<int> _values{};
@@ -28,6 +29,7 @@ protected:
     Shuffle() : _values(_min_elements_per_rank, _value) {
         MPI_Comm_rank(MPI_COMM_WORLD, &_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &_num_ranks);
+        _total_num_values = _min_elements_per_rank * _num_ranks;
 
         MPI_Group world_group;
         MPI_Comm_group(MPI_COMM_WORLD, &world_group);
@@ -40,7 +42,7 @@ protected:
 
             MPI_Comm_create(MPI_COMM_WORLD, group_rank_0, &_comm_rank_0);
 
-            _values_only_in_root = std::vector(_num_ranks * _min_elements_per_rank, _value);
+            _values_only_in_root = std::vector(_total_num_values, _value);
         } else {
             MPI_Group group_rank_1;
             ranks[0] = 1;
@@ -60,9 +62,8 @@ TEST_F(Shuffle, SplitsDataEquallyAmongRanks) {
 }
 
 TEST_F(Shuffle, CanBePassedADistribution) {
-    const int num_values = static_cast<int>(_values.size()) * _num_ranks;
-    const auto old_distribution = reshuffle::make_block_wise(num_values, _num_ranks);
-    const auto new_distribution = reshuffle::make_block_wise(num_values, 1);
+    const auto old_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
+    const auto new_distribution = reshuffle::make_block_wise(_total_num_values, 1);
 
     const auto new_values =
             reshuffle::shuffle(_values, MPI_COMM_WORLD, old_distribution, new_distribution);
@@ -75,9 +76,8 @@ TEST_F(Shuffle, CanBePassedADistribution) {
 }
 
 TEST_F(Shuffle, CanBePassedADistributionWithDifferentCommunicators) {
-    const int num_values = static_cast<int>(_values.size()) * _num_ranks;
-    const auto old_distribution = reshuffle::make_block_wise(num_values, _num_ranks);
-    const auto new_distribution = reshuffle::make_block_wise(num_values, 1);
+    const auto old_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
+    const auto new_distribution = reshuffle::make_block_wise(_total_num_values, 1);
 
     const auto new_values = reshuffle::shuffle(_values, MPI_COMM_WORLD, _comm_rank_0,
                                                old_distribution, new_distribution);
