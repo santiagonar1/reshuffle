@@ -123,7 +123,7 @@ namespace reshuffle::internal {
 
     template<concepts::ContiguousContainer C>
     auto scatter_from_root(const C &values, const MPI_Comm &comm, const MPI_Datatype &mpi_datatype,
-                           const std::vector<rank_id> &coloring,
+                           const std::vector<rank_id> &coloring = std::vector<rank_id>{},
                            bool values_are_serialized = false) {
         using T = C::value_type;
         int num_ranks{};
@@ -194,7 +194,7 @@ namespace reshuffle::internal {
     template<concepts::ContiguousContainer C>
         requires concepts::FundamentalType<typename C::value_type>
     auto scatter_values_from_root(const C &values, const MPI_Comm &comm,
-                                  const std::vector<rank_id> &coloring) {
+                                  const std::vector<rank_id> &coloring = std::vector<rank_id>{}) {
         using T = C::value_type;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
 
