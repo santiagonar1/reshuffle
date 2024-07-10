@@ -19,8 +19,13 @@ namespace reshuffle::internal {
 
     auto in_mpi_comm(const MPI_Comm &comm) { return comm != MPI_COMM_NULL; }
 
-
     auto is_root(const MPI_Comm &comm) { return in_mpi_comm(comm) and get_rank_id(comm) == 0; }
+
+    auto num_ranks(const MPI_Comm &comm) {
+        int num_ranks{};
+        MPI_Comm_size(comm, &num_ranks);
+        return num_ranks;
+    }
 
     auto calc_num_values_per_rank(int total_num_values, int num_ranks,
                                   const std::vector<rank_id> &coloring = {}) {
