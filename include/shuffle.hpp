@@ -14,18 +14,90 @@
 #include "utils.hpp"
 
 namespace reshuffle {
-    template<concepts::ContiguousContainer C>
-        requires concepts::Serializable<typename C::value_type>
-    auto shuffle(const C &values, const MPI_Comm &comm, const std::vector<rank_id> &coloring = {}) {
-        const auto using_coloring = not coloring.empty();
-        if (using_coloring and coloring.size() != std::ranges::size(values)) {
-            throw std::invalid_argument(
-                    "Coloring being used, but size of coloring vector does not match size of data");
+    namespace internal {
+        template<concepts::ContiguousContainer C>
+            requires concepts::Serializable<typename C::value_type>
+        auto shuffle_with_coloring(const C &values, const MPI_Comm &comm,
+                                   const std::vector<rank_id> &local_coloring = {}) {
+            const auto using_coloring = not local_coloring.empty();
+            if (using_coloring and local_coloring.size() != std::ranges::size(values)) {
+                throw std::invalid_argument(
+                        "Coloring being used, but size of local_coloring vector does "
+                        "not match size of data");
+            }
+
+            auto all_coloring = internal::gather_values_in_root(local_coloring, comm);
+            const auto all_values = internal::gather_values_in_root(values, comm);
+
+            // We need an additional variable in case rank 0 had no values to start with, but others
+            // did, and those provided coloring.
+            const auto coloring_provided = not all_coloring.empty();
+            if (internal::is_root(comm) and not coloring_provided) {
+                const int num_values = static_cast<int>(all_values.size());
+                const int rank{0};
+                const auto num_ranks = internal::num_ranks(comm);
+                const auto old_global_coloring = std::vector<rank_id>(num_values, 0);
+                const auto new_distribution = make_block_wise(num_values, num_ranks);
+                all_coloring = create_coloring(old_global_coloring, new_distribution, rank)
+                                       .global_coloring;
+            }
+
+            return internal::scatter_values_from_root(all_values, comm, all_coloring);
         }
 
-        const auto all_coloring = internal::gather_values_in_root(coloring, comm);
-        return internal::scatter_values_from_root(internal::gather_values_in_root(values, comm),
-                                                  comm, all_coloring);
+        template<concepts::ContiguousContainer C>
+            requires concepts::Serializable<typename C::value_type>
+        auto
+        shuffle_with_coloring(const C &values, const MPI_Comm &origin_comm,
+                              const MPI_Comm &destiny_comm,
+                              const std::vector<rank_id> &local_coloring = std::vector<rank_id>{}) {
+            using T = C::value_type;
+
+            // TODO: Find way to check if root belongs to both communicators (or change algorithm)
+            // Right now root is expected to belong to both origin and destiny communicators. We used
+            // to have a check for this, but it was faulty. The largest issue was that it was using
+            // MPI_COMM_WORLD, which did not work with Sessions and PSets.
+
+            const auto using_coloring = not local_coloring.empty();
+            if (using_coloring and local_coloring.size() != std::ranges::size(values)) {
+                throw std::invalid_argument("Coloring being used, but size of local_coloring "
+                                            "vector does not match size of data");
+            }
+
+            auto all_coloring = std::vector<rank_id>{};
+            auto all_values = std::vector<T>{};
+
+            if (internal::in_mpi_comm(origin_comm)) {
+                all_coloring = internal::gather_values_in_root(local_coloring, origin_comm);
+                all_values = internal::gather_values_in_root(values, origin_comm);
+            }
+
+            // We need an additional variable in case rank 0 had no values to start with, but others
+            // did, and those provided coloring.
+            const auto coloring_provided = not all_coloring.empty();
+            if (internal::is_root(destiny_comm) and not coloring_provided) {
+                const int num_values = static_cast<int>(all_values.size());
+                const int rank{0};
+                const auto num_ranks = internal::num_ranks(destiny_comm);
+                const auto old_global_coloring = std::vector<rank_id>(num_values, 0);
+                const auto new_distribution = make_block_wise(num_values, num_ranks);
+                all_coloring = create_coloring(old_global_coloring, new_distribution, rank)
+                                       .global_coloring;
+            }
+
+            const auto my_values = internal::in_mpi_comm(destiny_comm)
+                                           ? internal::scatter_values_from_root(
+                                                     all_values, destiny_comm, all_coloring)
+                                           : std::vector<T>{};
+
+            return my_values;
+        }
+    }// namespace internal
+
+    template<concepts::ContiguousContainer C>
+        requires concepts::Serializable<typename C::value_type>
+    auto shuffle(const C &values, const MPI_Comm &comm) {
+        return internal::shuffle_with_coloring(values, comm);
     }
 
     //TODO: Handle exceptions (compare sizes distributions and values).
@@ -48,35 +120,8 @@ namespace reshuffle {
 
     template<concepts::ContiguousContainer C>
         requires concepts::Serializable<typename C::value_type>
-    auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
-                 const std::vector<rank_id> &coloring = {}) {
-        using T = C::value_type;
-
-        // TODO: Find way to check if root belongs to both communicators (or change algorithm)
-        // Right now root is expected to belong to both origin and destiny communicators. We used
-        // to have a check for this, but it was faulty. The largest issue was that it was using
-        // MPI_COMM_WORLD, which did not work with Sessions and PSets.
-
-        const auto using_coloring = not coloring.empty();
-        if (using_coloring and coloring.size() != std::ranges::size(values)) {
-            throw std::invalid_argument(
-                    "Coloring being used, but size of coloring vector does not match size of data");
-        }
-
-        auto all_coloring = std::vector<rank_id>{};
-        auto all_values = std::vector<T>{};
-
-        if (internal::in_mpi_comm(origin_comm)) {
-            all_coloring = internal::gather_values_in_root(coloring, origin_comm);
-            all_values = internal::gather_values_in_root(values, origin_comm);
-        }
-
-        const auto my_values =
-                internal::in_mpi_comm(destiny_comm)
-                        ? internal::scatter_values_from_root(all_values, destiny_comm, all_coloring)
-                        : std::vector<T>{};
-
-        return my_values;
+    auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
+        return internal::shuffle_with_coloring(values, origin_comm, destiny_comm);
     }
 
     template<concepts::ContiguousContainer C>
@@ -161,7 +206,7 @@ namespace reshuffle {
 
         auto buffer = std::vector<T>(std::ranges::join_view(values).begin(),
                                      std::ranges::join_view(values).end());
-        buffer = shuffle(buffer, comm, local_coloring);
+        buffer = internal::shuffle_with_coloring(buffer, comm, local_coloring);
 
         return internal::to_matrix(buffer, subdomain_dimensions);
     }
@@ -189,7 +234,7 @@ namespace reshuffle {
 
         auto buffer = std::vector<T>(std::ranges::join_view(values).begin(),
                                      std::ranges::join_view(values).end());
-        buffer = shuffle(buffer, origin_comm, destiny_comm, local_coloring);
+        buffer = internal::shuffle_with_coloring(buffer, origin_comm, destiny_comm, local_coloring);
 
         return internal::to_matrix(buffer, subdomain_dimensions);
     }
