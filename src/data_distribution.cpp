@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
 
 namespace reshuffle {
     namespace internal {
@@ -38,6 +39,7 @@ namespace reshuffle {
     auto BlockCyclic::get_num_values() const -> int { return _num_values; }
 
     auto make_block_wise(int num_values, int num_blocks) -> BlockCyclic {
+        if (num_blocks == 0) { throw std::invalid_argument("num_blocks cannot be zero"); }
         const int block_size = std::ceil(static_cast<double>(num_values) / num_blocks);
         return BlockCyclic(block_size, num_values, num_blocks);
     }

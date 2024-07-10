@@ -61,3 +61,9 @@ TEST(MakeBlockWise, MakesLastBlocksSmallerIfNotDivisible) {
 
     EXPECT_THAT(blocks, Eq(std::vector{reshuffle::Block{0, 6}, reshuffle::Block{6, 11}}));
 }
+
+TEST(MakeBlockWise, ThrowsIfZeroNumBlocksPassed) {
+    constexpr int num_values = 11;
+    EXPECT_THROW(const auto data_distribution = reshuffle::make_block_wise(num_values, 0),
+                 std::invalid_argument);
+}
