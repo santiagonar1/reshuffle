@@ -40,22 +40,19 @@ namespace reshuffle {
             requires concepts::Serializable<typename C::value_type>
         auto shuffle_with_coloring(const C &values, const MPI_Comm &comm,
                                    const std::vector<rank_id> &local_coloring = {}) {
-            const auto using_coloring = not local_coloring.empty();
+            auto all_coloring = internal::gather_values_in_root(local_coloring, comm);
+            auto using_coloring = not all_coloring.empty();
+            MPI_Bcast(&using_coloring, 1, MPI_CXX_BOOL, 0, comm);
+
             if (using_coloring and local_coloring.size() != std::ranges::size(values)) {
                 throw std::invalid_argument(
                         "Coloring being used, but size of local_coloring vector does "
                         "not match size of data");
             }
 
-            auto all_coloring = internal::gather_values_in_root(local_coloring, comm);
             const auto all_values = internal::gather_values_in_root(values, comm);
 
-            // We need an additional variable in case rank 0 had no values to start with, but others
-            // did, and those provided coloring.
-            auto coloring_provided = not all_coloring.empty();
-            MPI_Bcast(&coloring_provided, 1, MPI_CXX_BOOL, 0, comm);
-
-            if (not coloring_provided) { return internal::split_equally(all_values, comm); }
+            if (not using_coloring) { return internal::split_equally(all_values, comm); }
 
             return internal::scatter_values_from_root(all_values, comm, all_coloring);
         }
