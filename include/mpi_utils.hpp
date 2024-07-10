@@ -61,7 +61,7 @@ namespace reshuffle::internal {
         int total_num_values =
                 std::accumulate(num_values_per_rank.cbegin(), num_values_per_rank.cend(), 0);
 
-        auto all_values = std::vector<T>(total_num_values);
+        auto all_values = is_root(comm) ? std::vector<T>(total_num_values) : std::vector<T>{};
         auto displacements = calc_displacements(num_values_per_rank);
 
         MPI_Gatherv(std::ranges::data(values), num_values, mpi_datatype, all_values.data(),
