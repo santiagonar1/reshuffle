@@ -17,6 +17,27 @@ namespace reshuffle {
     namespace internal {
         template<concepts::ContiguousContainer C>
             requires concepts::Serializable<typename C::value_type>
+        auto split_equally(const C &values, const MPI_Comm &comm) {
+            if (not is_root(comm) and not std::ranges::empty(values)) {
+                throw std::invalid_argument("Only the root should have values!");
+            }
+
+            const int num_values = static_cast<int>(values.size());
+            const int rank{0};
+            const auto num_ranks = internal::num_ranks(comm);
+            const auto new_distribution = make_block_wise(num_values, num_ranks);
+            const auto old_global_coloring =
+                    is_root(comm) ? std::vector<rank_id>(num_values, 0) : std::vector<rank_id>{};
+            const auto new_global_coloring =
+                    is_root(comm) ? create_coloring(old_global_coloring, new_distribution, rank)
+                                            .global_coloring
+                                  : std::vector<rank_id>{};
+
+            return internal::scatter_values_from_root(values, comm, new_global_coloring);
+        }
+
+        template<concepts::ContiguousContainer C>
+            requires concepts::Serializable<typename C::value_type>
         auto shuffle_with_coloring(const C &values, const MPI_Comm &comm,
                                    const std::vector<rank_id> &local_coloring = {}) {
             const auto using_coloring = not local_coloring.empty();
@@ -31,16 +52,10 @@ namespace reshuffle {
 
             // We need an additional variable in case rank 0 had no values to start with, but others
             // did, and those provided coloring.
-            const auto coloring_provided = not all_coloring.empty();
-            if (internal::is_root(comm) and not coloring_provided) {
-                const int num_values = static_cast<int>(all_values.size());
-                const int rank{0};
-                const auto num_ranks = internal::num_ranks(comm);
-                const auto old_global_coloring = std::vector<rank_id>(num_values, 0);
-                const auto new_distribution = make_block_wise(num_values, num_ranks);
-                all_coloring = create_coloring(old_global_coloring, new_distribution, rank)
-                                       .global_coloring;
-            }
+            auto coloring_provided = not all_coloring.empty();
+            MPI_Bcast(&coloring_provided, 1, MPI_CXX_BOOL, 0, comm);
+
+            if (not coloring_provided) { return internal::split_equally(all_values, comm); }
 
             return internal::scatter_values_from_root(all_values, comm, all_coloring);
         }
@@ -76,16 +91,10 @@ namespace reshuffle {
 
             // We need an additional variable in case rank 0 had no values to start with, but others
             // did, and those provided coloring.
-            const auto coloring_provided = not all_coloring.empty();
-            if (internal::is_root(destiny_comm) and not coloring_provided) {
-                const int num_values = static_cast<int>(all_values.size());
-                const int rank{0};
-                const auto num_ranks = internal::num_ranks(destiny_comm);
-                const auto old_global_coloring = std::vector<rank_id>(num_values, 0);
-                const auto new_distribution = make_block_wise(num_values, num_ranks);
-                all_coloring = create_coloring(old_global_coloring, new_distribution, rank)
-                                       .global_coloring;
-            }
+            auto coloring_provided = not all_coloring.empty();
+            MPI_Bcast(&coloring_provided, 1, MPI_CXX_BOOL, 0, destiny_comm);
+
+            if (not coloring_provided) { return internal::split_equally(all_values, destiny_comm); }
 
             return internal::scatter_values_from_root(all_values, destiny_comm, all_coloring);
         }
