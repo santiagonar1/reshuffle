@@ -72,6 +72,8 @@ namespace reshuffle {
                 all_values = internal::gather_values_in_root(values, origin_comm);
             }
 
+            if (not internal::in_mpi_comm(destiny_comm)) { return std::vector<T>{}; }
+
             // We need an additional variable in case rank 0 had no values to start with, but others
             // did, and those provided coloring.
             const auto coloring_provided = not all_coloring.empty();
@@ -85,12 +87,7 @@ namespace reshuffle {
                                        .global_coloring;
             }
 
-            const auto my_values = internal::in_mpi_comm(destiny_comm)
-                                           ? internal::scatter_values_from_root(
-                                                     all_values, destiny_comm, all_coloring)
-                                           : std::vector<T>{};
-
-            return my_values;
+            return internal::scatter_values_from_root(all_values, destiny_comm, all_coloring);
         }
     }// namespace internal
 
