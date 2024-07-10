@@ -15,9 +15,12 @@ namespace reshuffle {
                 blocks.emplace_back(starting_index, last_index);
             }
 
-            Block last_block{blocks.back().get_left_bound(), num_values};
-            blocks.pop_back();
-            blocks.push_back(last_block);
+            if (not blocks.empty()) {
+                Block last_block{blocks.back().get_left_bound(), num_values};
+                blocks.pop_back();
+                blocks.push_back(last_block);
+            }
+
             return blocks;
         }
     }// namespace internal
