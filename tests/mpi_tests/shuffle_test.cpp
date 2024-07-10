@@ -89,6 +89,26 @@ TEST_F(Shuffle, CanBePassedADistributionWithDifferentCommunicators) {
     }
 }
 
+TEST_F(Shuffle, WorksWithAnyIterableContainerWhilePassingADataDistribution) {
+    const auto values = std::list(_values_only_in_root.begin(), _values_only_in_root.end());
+    const auto old_distribution = reshuffle::make_block_wise(_total_num_values, 1);
+    const auto new_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
+
+    const auto new_values =
+            reshuffle::shuffle(values, MPI_COMM_WORLD, old_distribution, new_distribution);
+    EXPECT_THAT(new_values, Eq(_values));
+}
+
+TEST_F(Shuffle, WorksWithAnyIterableContainerWhilePassingADataDistributionAndDifferentContainers) {
+    const auto values = std::list(_values_only_in_root.begin(), _values_only_in_root.end());
+    const auto old_distribution = reshuffle::make_block_wise(_total_num_values, 1);
+    const auto new_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
+
+    const auto new_values = reshuffle::shuffle(values, _comm_rank_0, MPI_COMM_WORLD,
+                                               old_distribution, new_distribution);
+    EXPECT_THAT(new_values, Eq(_values));
+}
+
 TEST_F(Shuffle, WorksForDifferentDatatypes) {
     const std::vector<double> values(_values.begin(), _values.end());
 

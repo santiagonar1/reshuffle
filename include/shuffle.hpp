@@ -119,11 +119,29 @@ namespace reshuffle {
 
     template<concepts::Iterable I>
         requires concepts::Serializable<typename I::value_type>
+    auto shuffle(const I &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
+                 const BlockCyclic &new_distribution) {
+        using T = I::value_type;
+        const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
+        return shuffle(v_values, comm, old_distribution, new_distribution);
+    }
+
+    template<concepts::Iterable I>
+        requires concepts::Serializable<typename I::value_type>
     auto shuffle(const I &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
                  const std::vector<rank_id> &coloring = {}) {
         using T = I::value_type;
         const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
         return shuffle(v_values, origin_comm, destiny_comm, coloring);
+    }
+
+    template<concepts::Iterable I>
+        requires concepts::Serializable<typename I::value_type>
+    auto shuffle(const I &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
+                 const BlockCyclic &old_distribution, const BlockCyclic &new_distribution) {
+        using T = I::value_type;
+        const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
+        return shuffle(v_values, origin_comm, destiny_comm, old_distribution, new_distribution);
     }
 
     template<concepts::Matrix2D M>
