@@ -27,18 +27,10 @@ namespace reshuffle::internal {
         return num_ranks;
     }
 
-    auto calc_num_values_per_rank(int total_num_values, int num_ranks,
-                                  const std::vector<rank_id> &coloring = {}) {
+    auto calc_num_values_per_rank(int num_ranks, const std::vector<rank_id> &coloring) {
         std::vector<int> values_per_rank(num_ranks);
 
         for (auto rank: coloring) { values_per_rank[rank]++; }
-
-        const auto using_coloring = not coloring.empty();
-        if (not using_coloring) {
-            const int min_num_values_per_rank = total_num_values / num_ranks;
-            std::ranges::fill(values_per_rank, min_num_values_per_rank);
-            values_per_rank.back() += total_num_values % num_ranks;
-        }
 
         return values_per_rank;
     }
@@ -128,7 +120,7 @@ namespace reshuffle::internal {
 
     template<concepts::ContiguousContainer C>
     auto scatter_from_root(const C &values, const MPI_Comm &comm, const MPI_Datatype &mpi_datatype,
-                           const std::vector<rank_id> &coloring = std::vector<rank_id>{},
+                           const std::vector<rank_id> &coloring,
                            bool values_are_serialized = false) {
         using T = C::value_type;
         int num_ranks{};
@@ -155,9 +147,8 @@ namespace reshuffle::internal {
         MPI_Comm_rank(comm, &rank);
 
         auto new_num_values_per_rank =
-                is_root(comm)
-                        ? internal::calc_num_values_per_rank(total_num_values, num_ranks, coloring)
-                        : std::vector<int>(num_ranks);
+                is_root(comm) ? internal::calc_num_values_per_rank(num_ranks, coloring)
+                              : std::vector<int>(num_ranks);
 
         MPI_Bcast(new_num_values_per_rank.data(), static_cast<int>(new_num_values_per_rank.size()),
                   MPI_INT, 0, comm);
@@ -199,7 +190,7 @@ namespace reshuffle::internal {
     template<concepts::ContiguousContainer C>
         requires concepts::FundamentalType<typename C::value_type>
     auto scatter_values_from_root(const C &values, const MPI_Comm &comm,
-                                  const std::vector<rank_id> &coloring = std::vector<rank_id>{}) {
+                                  const std::vector<rank_id> &coloring) {
         using T = C::value_type;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
 
