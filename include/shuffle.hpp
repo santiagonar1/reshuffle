@@ -110,11 +110,12 @@ namespace reshuffle {
     }
 
     template<concepts::Iterable I>
-        requires concepts::Serializable<typename I::value_type>
-    auto shuffle(const I &values, const MPI_Comm &comm, const std::vector<rank_id> &coloring = {}) {
+        requires concepts::Serializable<typename I::value_type> and
+                 (not concepts::ContiguousContainer<I>)
+    auto shuffle(const I &values, const MPI_Comm &comm) {
         using T = I::value_type;
         const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
-        return shuffle(v_values, comm, coloring);
+        return shuffle(v_values, comm);
     }
 
     template<concepts::Iterable I>
@@ -127,12 +128,12 @@ namespace reshuffle {
     }
 
     template<concepts::Iterable I>
-        requires concepts::Serializable<typename I::value_type>
-    auto shuffle(const I &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
-                 const std::vector<rank_id> &coloring = {}) {
+        requires concepts::Serializable<typename I::value_type> and
+                 (not concepts::ContiguousContainer<I>)
+    auto shuffle(const I &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
         using T = I::value_type;
         const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
-        return shuffle(v_values, origin_comm, destiny_comm, coloring);
+        return shuffle(v_values, origin_comm, destiny_comm);
     }
 
     template<concepts::Iterable I>
