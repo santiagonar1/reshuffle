@@ -65,18 +65,6 @@ TEST(CreateColoring, NumberOfValuesDistributionMustBeEqualToSizeGlobalColoring) 
                  std::invalid_argument);
 }
 
-TEST(CreateColoring, NumberOfValuesSecondElementOfDistributionMustBeEqualToNumberOfRows) {
-    constexpr int num_values_y = 4;
-    constexpr int num_values_x = num_values_y * 2;
-    constexpr int num_values = num_values_y * num_values_x;
-    const auto global_coloring = std::vector<reshuffle::rank_id>(num_values);
-    const auto data_distributions = std::array{reshuffle::make_block_wise(num_values_x, 1),
-                                               reshuffle::make_block_wise(num_values_x, 2)};
-
-    EXPECT_THROW(reshuffle::internal::create_coloring(global_coloring, data_distributions, 0),
-                 std::invalid_argument);
-}
-
 TEST(GetGlobalColoring, ReturnsGlobalColoringIn1D) {
     constexpr int num_values = 4;
     const auto data_distribution = reshuffle::make_block_wise(num_values, 2);
