@@ -25,8 +25,9 @@ namespace reshuffle::internal {
         return Dimension<2>{distribution[0].get_num_values(), distribution[1].get_num_values()};
     }
 
-    auto create_coloring(const std::vector<rank_id> &global_coloring,
-                         const BlockCyclic &data_distribution, rank_id rank) -> ColoringReturn {
+    auto get_global_and_local_coloring(const std::vector<rank_id> &global_coloring,
+                                       const BlockCyclic &data_distribution,
+                                       rank_id rank) -> ColoringReturn {
 
         throw_if_different(static_cast<int>(global_coloring.size()),
                            data_distribution.get_num_values(),
@@ -43,9 +44,9 @@ namespace reshuffle::internal {
         return ColoringReturn{new_global_coloring, local_coloring};
     }
 
-    auto create_coloring(const std::vector<rank_id> &global_coloring,
-                         const std::array<BlockCyclic, 2> &data_distributions,
-                         rank_id rank) -> ColoringReturn {
+    auto get_global_and_local_coloring(const std::vector<rank_id> &global_coloring,
+                                       const std::array<BlockCyclic, 2> &data_distributions,
+                                       rank_id rank) -> ColoringReturn {
 
         const auto global_dimensions = Dimension<2>{data_distributions[0].get_num_values(),
                                                     data_distributions[1].get_num_values()};
@@ -77,7 +78,7 @@ namespace reshuffle::internal {
         const auto dummy_global_coloring = std::vector<rank_id>(num_values);
         const rank_id dummy_rank = 0;
         const auto [global_coloring, _] =
-                create_coloring(dummy_global_coloring, data_distribution, dummy_rank);
+                get_global_and_local_coloring(dummy_global_coloring, data_distribution, dummy_rank);
         return global_coloring;
     }
 
@@ -87,8 +88,8 @@ namespace reshuffle::internal {
         const auto num_values = calc_total_num_values(dimensions);
         const auto dummy_global_coloring = std::vector<rank_id>(num_values);
         const rank_id dummy_rank = 0;
-        const auto [global_coloring, _] =
-                create_coloring(dummy_global_coloring, data_distributions, dummy_rank);
+        const auto [global_coloring, _] = get_global_and_local_coloring(
+                dummy_global_coloring, data_distributions, dummy_rank);
         return global_coloring;
     }
 

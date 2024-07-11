@@ -213,7 +213,7 @@ namespace reshuffle {
         const auto old_global_coloring = internal::get_global_coloring(old_distribution);
 
         const auto local_coloring =
-                internal::create_coloring(old_global_coloring, new_distribution, rank)
+                internal::get_global_and_local_coloring(old_global_coloring, new_distribution, rank)
                         .local_coloring;
 
         const auto subdomain_dimensions = internal::get_block_dimension(new_distribution, rank);
@@ -240,11 +240,11 @@ namespace reshuffle {
         const auto rank =
                 internal::in_mpi_comm(destiny_comm) ? internal::get_rank_id(destiny_comm) : -1;
 
-        const auto local_coloring =
-                internal::in_mpi_comm(destiny_comm)
-                        ? internal::create_coloring(old_global_coloring, new_distribution, rank)
-                                  .local_coloring
-                        : std::vector<rank_id>{};
+        const auto local_coloring = internal::in_mpi_comm(destiny_comm)
+                                            ? internal::get_global_and_local_coloring(
+                                                      old_global_coloring, new_distribution, rank)
+                                                      .local_coloring
+                                            : std::vector<rank_id>{};
 
         const auto subdomain_dimensions =
                 internal::in_mpi_comm(destiny_comm)
