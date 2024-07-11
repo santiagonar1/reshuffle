@@ -23,15 +23,10 @@ namespace reshuffle {
             }
 
             const int num_values = static_cast<int>(values.size());
-            const int rank{0};
             const auto num_ranks = internal::num_ranks(comm);
             const auto new_distribution = make_block_wise(num_values, num_ranks);
-            const auto old_global_coloring =
-                    is_root(comm) ? std::vector<rank_id>(num_values, 0) : std::vector<rank_id>{};
             const auto new_global_coloring =
-                    is_root(comm) ? create_coloring(old_global_coloring, new_distribution, rank)
-                                            .global_coloring
-                                  : std::vector<rank_id>{};
+                    is_root(comm) ? get_global_coloring(new_distribution) : std::vector<rank_id>{};
 
             return internal::scatter_values_from_root(values, comm, new_global_coloring);
         }
@@ -125,14 +120,9 @@ namespace reshuffle {
                     "The old and new distributions have different number of values");
         }
 
-        const auto rank = internal::get_rank_id(comm);
-        const auto old_global_coloring = internal::get_global_coloring(old_distribution);
-
-        const auto new_global_coloring =
-                internal::is_root(MPI_COMM_WORLD)
-                        ? internal::create_coloring(old_global_coloring, new_distribution, rank)
-                                  .global_coloring
-                        : std::vector<rank_id>{};
+        const auto new_global_coloring = internal::is_root(MPI_COMM_WORLD)
+                                                 ? internal::get_global_coloring(new_distribution)
+                                                 : std::vector<rank_id>{};
 
         return internal::scatter_values_from_root(internal::gather_values_in_root(values, comm),
                                                   comm, new_global_coloring);
@@ -155,15 +145,9 @@ namespace reshuffle {
                     "The old and new distributions have different number of values");
         }
 
-        const auto old_global_coloring = internal::get_global_coloring(old_distribution);
-        const auto rank =
-                internal::in_mpi_comm(destiny_comm) ? internal::get_rank_id(destiny_comm) : -1;
-
-        const auto new_global_coloring =
-                internal::is_root(destiny_comm)
-                        ? internal::create_coloring(old_global_coloring, new_distribution, rank)
-                                  .global_coloring
-                        : std::vector<rank_id>{};
+        const auto new_global_coloring = internal::is_root(destiny_comm)
+                                                 ? internal::get_global_coloring(new_distribution)
+                                                 : std::vector<rank_id>{};
 
         const auto all_values = internal::in_mpi_comm(origin_comm)
                                         ? internal::gather_values_in_root(values, origin_comm)
