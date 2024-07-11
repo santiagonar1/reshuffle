@@ -96,6 +96,16 @@ namespace reshuffle {
 
             return internal::scatter_values_from_root(all_values, destiny_comm, all_coloring);
         }
+
+        auto have_same_num_values(const BlockCyclic &first, const BlockCyclic &second) -> bool {
+            return first.get_num_values() == second.get_num_values();
+        }
+
+        auto have_same_num_values(const std::array<BlockCyclic, 2> &first,
+                                  const std::array<BlockCyclic, 2> &second) -> bool {
+            return have_same_num_values(first[0], second[0]) and
+                   have_same_num_values(first[1], second[1]);
+        }
     }// namespace internal
 
     template<concepts::ContiguousContainer C>
@@ -109,6 +119,12 @@ namespace reshuffle {
         requires concepts::Serializable<typename C::value_type>
     auto shuffle(const C &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
                  const BlockCyclic &new_distribution) {
+
+        if (not internal::have_same_num_values(old_distribution, new_distribution)) {
+            throw std::invalid_argument(
+                    "The old and new distributions have different number of values");
+        }
+
         const auto rank = internal::get_rank_id(comm);
         const auto old_global_coloring = internal::get_global_coloring(old_distribution);
 
@@ -134,8 +150,12 @@ namespace reshuffle {
                  const BlockCyclic &old_distribution, const BlockCyclic &new_distribution) {
         using T = C::value_type;
 
-        const auto old_global_coloring = internal::get_global_coloring(old_distribution);
+        if (not internal::have_same_num_values(old_distribution, new_distribution)) {
+            throw std::invalid_argument(
+                    "The old and new distributions have different number of values");
+        }
 
+        const auto old_global_coloring = internal::get_global_coloring(old_distribution);
         const auto rank =
                 internal::in_mpi_comm(destiny_comm) ? internal::get_rank_id(destiny_comm) : -1;
 
@@ -200,6 +220,11 @@ namespace reshuffle {
                  const std::array<BlockCyclic, 2> &new_distribution) {
         using T = M::value_type::value_type;
 
+        if (not internal::have_same_num_values(old_distribution, new_distribution)) {
+            throw std::invalid_argument(
+                    "The old and new distributions have different number of values");
+        }
+
         const auto rank = internal::get_rank_id(comm);
         const auto old_global_coloring = internal::get_global_coloring(old_distribution);
 
@@ -222,8 +247,12 @@ namespace reshuffle {
                  const std::array<BlockCyclic, 2> &new_distribution) {
         using T = M::value_type::value_type;
 
-        const auto old_global_coloring = internal::get_global_coloring(old_distribution);
+        if (not internal::have_same_num_values(old_distribution, new_distribution)) {
+            throw std::invalid_argument(
+                    "The old and new distributions have different number of values");
+        }
 
+        const auto old_global_coloring = internal::get_global_coloring(old_distribution);
         const auto rank =
                 internal::in_mpi_comm(destiny_comm) ? internal::get_rank_id(destiny_comm) : -1;
 

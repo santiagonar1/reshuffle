@@ -92,6 +92,16 @@ TEST_F(Shuffle, CanBePassedADataDistribution) {
     }
 }
 
+TEST_F(Shuffle, ThrowsIfDataDistributionsDoNotHaveSameNumberOfValues) {
+    const auto old_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
+    const auto new_distribution =
+            reshuffle::make_block_wise(old_distribution.get_num_values() + 1, 1);
+
+    EXPECT_THROW(auto new_values = reshuffle::shuffle(_values, MPI_COMM_WORLD, old_distribution,
+                                                      new_distribution),
+                 std::invalid_argument);
+}
+
 TEST_F(Shuffle, WorksIn2DButDataDistributionMustBeUsed) {
     using Matrix = std::vector<std::vector<int>>;
     constexpr int num_values_x = 4;
@@ -107,6 +117,21 @@ TEST_F(Shuffle, WorksIn2DButDataDistributionMustBeUsed) {
 
     EXPECT_THAT(m.size(), Eq(num_values_y));
     EXPECT_THAT(m[0].size(), Eq(num_values_x / 2));
+}
+
+TEST_F(Shuffle, ThrowsIn2DIfDataDistributionsDoNotHaveSameNumberOfValuesOnEachDimension) {
+    using Matrix = std::vector<std::vector<int>>;
+    constexpr int num_values_x = 4;
+    constexpr int num_values_y = 10;
+
+    auto m = is_root() ? Matrix(num_values_y, std::vector(num_values_x, 0)) : Matrix();
+    const auto old_distribution = std::array{reshuffle::make_block_wise(num_values_x, 1),
+                                             reshuffle::make_block_wise(num_values_y, 1)};
+    const auto new_distribution = std::array{reshuffle::make_block_wise(num_values_x + 1, 2),
+                                             reshuffle::make_block_wise(num_values_y, 1)};
+
+    EXPECT_THROW(m = reshuffle::shuffle(m, MPI_COMM_WORLD, old_distribution, new_distribution),
+                 std::invalid_argument);
 }
 
 TEST_F(Shuffle, CanBePassedDifferentCommunicators) {
@@ -192,4 +217,32 @@ TEST_F(Shuffle, NonAggregateNotDefaultConstructibleMustBeSerializableAndHaveCrea
 TEST_F(Shuffle, WorksIfEachRankHasData) {
     const auto new_values = reshuffle::shuffle(_values, MPI_COMM_WORLD);
     EXPECT_THAT(new_values, Eq(_values));
+}
+
+TEST_F(Shuffle, ThrowsIfDataDistributionsDoNotHaveSameNumberOfValuesDifferentCommunicators) {
+    const auto old_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
+    const auto new_distribution =
+            reshuffle::make_block_wise(old_distribution.get_num_values() + 1, 1);
+
+    EXPECT_THROW(auto new_values =
+                         reshuffle::shuffle(_values_only_in_root, _comm_rank_0, MPI_COMM_WORLD,
+                                            old_distribution, new_distribution),
+                 std::invalid_argument);
+}
+
+TEST_F(Shuffle,
+       ThrowsIn2DIfDataDistributionsDoNotHaveSameNumberOfValuesOnEachDimensionDifferentCommunicators) {
+    using Matrix = std::vector<std::vector<int>>;
+    constexpr int num_values_x = 4;
+    constexpr int num_values_y = 10;
+
+    auto m = is_root() ? Matrix(num_values_y, std::vector(num_values_x, 0)) : Matrix();
+    const auto old_distribution = std::array{reshuffle::make_block_wise(num_values_x, 1),
+                                             reshuffle::make_block_wise(num_values_y, 1)};
+    const auto new_distribution = std::array{reshuffle::make_block_wise(num_values_x + 1, 2),
+                                             reshuffle::make_block_wise(num_values_y, 1)};
+
+    EXPECT_THROW(m = reshuffle::shuffle(m, _comm_rank_0, MPI_COMM_WORLD, old_distribution,
+                                        new_distribution),
+                 std::invalid_argument);
 }
