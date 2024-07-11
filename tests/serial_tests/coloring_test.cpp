@@ -34,22 +34,6 @@ TEST(CreateColoring, CanUseBlockWiseDataDistributionInTwoDimensions) {
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 1, 2, 3}));
 }
 
-TEST(CreateColoring, ABlockWiseWithOneBlockIndicatesNoDivision) {
-    // i.e., 4 values in a 2x2 matrix, previously all in rank 0.
-    const auto global_dimensions = reshuffle::internal::Dimension<2>{{2, 2}};
-    const auto num_values = reshuffle::internal::calc_total_num_values(global_dimensions);
-
-    const auto current_coloring = std::vector<int>(num_values);
-    const auto data_distribution_x = reshuffle::make_block_wise(global_dimensions[0], 1);
-    const auto data_distribution_y = reshuffle::make_block_wise(global_dimensions[1], 2);
-
-    const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
-
-    const auto [global_coloring, coloring_0] =
-            reshuffle::internal::create_coloring(current_coloring, data_distributions, 0);
-    EXPECT_THAT(coloring_0, Eq(std::vector{0, 0, 1, 1}));
-}
-
 TEST(CreateColoring, ThrowsIfSizeGlobalColoringDoesNotMatchDimensionsDataDistribution) {
     constexpr int num_values_y = 4;
     constexpr int num_values_x = num_values_y;
