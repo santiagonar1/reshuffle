@@ -43,7 +43,6 @@ int main() {
 
 
     for (int i = 1; i < distributions.size(); ++i) {
-        const auto block_dimension = reshuffle::get_block_dimension(distributions[i], rank);
         matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, distributions[i-1], distributions[i]);
         if (is_root()) {
             print(matrix);
