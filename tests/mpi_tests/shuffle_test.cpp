@@ -56,12 +56,29 @@ protected:
     [[nodiscard]] bool is_last() const { return _rank == _num_ranks - 1; }
 };
 
-TEST_F(Shuffle, SplitsDataEquallyAmongRanks) {
-    const auto new_values = reshuffle::shuffle(_values_only_in_root, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, _value)));
+TEST_F(Shuffle, In1DWorksWithAnyIterableContainer) {
+    const auto values = std::list(_values_only_in_root.begin(), _values_only_in_root.end());
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(_values));
 }
 
-TEST_F(Shuffle, CanBePassedADistribution) {
+TEST_F(Shuffle, In1DSplitsDataEquallyAmongRanksByDefault) {
+    const auto new_values = reshuffle::shuffle(_values_only_in_root, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(_values));
+}
+
+TEST_F(Shuffle, IfNumValuesNoDivisibleGivesAdditionalDataToInitialRanks) {
+    if (is_root()) { _values_only_in_root.push_back(_value); }
+
+    const auto new_values = reshuffle::shuffle(_values_only_in_root, MPI_COMM_WORLD);
+    if (is_last()) {
+        EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, _value)));
+    } else {
+        EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank + 1, _value)));
+    }
+}
+
+TEST_F(Shuffle, CanBePassedADataDistribution) {
     const auto old_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
     const auto new_distribution = reshuffle::make_block_wise(_total_num_values, 1);
 
@@ -75,112 +92,7 @@ TEST_F(Shuffle, CanBePassedADistribution) {
     }
 }
 
-TEST_F(Shuffle, CanBePassedADistributionWithDifferentCommunicators) {
-    const auto old_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
-    const auto new_distribution = reshuffle::make_block_wise(_total_num_values, 1);
-
-    const auto new_values = reshuffle::shuffle(_values, MPI_COMM_WORLD, _comm_rank_0,
-                                               old_distribution, new_distribution);
-
-    if (is_root()) {
-        EXPECT_THAT(new_values, Eq(_values_only_in_root));
-    } else {
-        EXPECT_TRUE(new_values.empty());
-    }
-}
-
-TEST_F(Shuffle, WorksWithAnyIterableContainerWhilePassingADataDistribution) {
-    const auto values = std::list(_values_only_in_root.begin(), _values_only_in_root.end());
-    const auto old_distribution = reshuffle::make_block_wise(_total_num_values, 1);
-    const auto new_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
-
-    const auto new_values =
-            reshuffle::shuffle(values, MPI_COMM_WORLD, old_distribution, new_distribution);
-    EXPECT_THAT(new_values, Eq(_values));
-}
-
-TEST_F(Shuffle, WorksWithAnyIterableContainerWhilePassingADataDistributionAndDifferentContainers) {
-    const auto values = std::list(_values_only_in_root.begin(), _values_only_in_root.end());
-    const auto old_distribution = reshuffle::make_block_wise(_total_num_values, 1);
-    const auto new_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
-
-    const auto new_values = reshuffle::shuffle(values, _comm_rank_0, MPI_COMM_WORLD,
-                                               old_distribution, new_distribution);
-    EXPECT_THAT(new_values, Eq(_values));
-}
-
-TEST_F(Shuffle, WorksForDifferentDatatypes) {
-    const std::vector<double> values(_values.begin(), _values.end());
-
-    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, static_cast<double>(_value))));
-}
-
-TEST_F(Shuffle, IfNoDivisibleGivesAdditionalDataToInitialRanks) {
-    if (is_root()) { _values_only_in_root.push_back(_value); }
-
-    const auto new_values = reshuffle::shuffle(_values_only_in_root, MPI_COMM_WORLD);
-    if (is_last()) {
-        EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, _value)));
-    } else {
-        EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank + 1, _value)));
-    }
-}
-
-TEST_F(Shuffle, WorksIfEachRankHasData) {
-    const auto new_values = reshuffle::shuffle(_values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(_values));
-}
-
-
-TEST_F(Shuffle, WorksIfSourceAndDestinyCommunicatorsAreDifferent) {
-    const auto new_values = reshuffle::shuffle(_values_only_in_root, _comm_rank_0, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, _value)));
-}
-
-TEST_F(Shuffle, WorksWithContiguousContainers) {
-    auto values = std::array<int, _min_elements_per_rank>{};
-    values.fill(_value);
-
-    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, _value)));
-}
-
-TEST_F(Shuffle, WorksWithAnyIterableContainer) {
-    auto values = std::list(_values.begin(), _values.end());
-
-    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, _value)));
-}
-
-TEST_F(Shuffle, WorksWithAggregateDatatype) {
-    const auto values = is_root() ? std::vector<MyPOD>(_min_elements_per_rank * _num_ranks)
-                                  : std::vector<MyPOD>{};
-
-    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, MyPOD{})));
-}
-
-TEST_F(Shuffle, WorksWithNonAggregateDatatypeIfSerializableAndCreateMethodPresent) {
-    const auto values = is_root() ? std::vector<NonAggregate>(_min_elements_per_rank * _num_ranks,
-                                                              NonAggregate(12))
-                                  : std::vector<NonAggregate>{};
-
-    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, NonAggregate(12))));
-}
-
-TEST_F(Shuffle, NonAggregateDefaultConstructibleDoesNotRequireCreate) {
-    const auto values = is_root() ? std::vector<NonAggregateDefaultConstructible>(
-                                            _min_elements_per_rank * _num_ranks)
-                                  : std::vector<NonAggregateDefaultConstructible>{};
-
-    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values,
-                Eq(std::vector(_min_elements_per_rank, NonAggregateDefaultConstructible())));
-}
-
-TEST_F(Shuffle, CanSplit2DContainersBasedOnNewAndOldDistribution) {
+TEST_F(Shuffle, WorksIn2DButDataDistributionMustBeUsed) {
     using Matrix = std::vector<std::vector<int>>;
     constexpr int num_values_x = 4;
     constexpr int num_values_y = 10;
@@ -197,7 +109,12 @@ TEST_F(Shuffle, CanSplit2DContainersBasedOnNewAndOldDistribution) {
     EXPECT_THAT(m[0].size(), Eq(num_values_x / 2));
 }
 
-TEST_F(Shuffle, CanSplit2DContainersBasedOnNewAndOldDistributionWithDifferentCommunicators) {
+TEST_F(Shuffle, CanBePassedDifferentCommunicators) {
+    const auto new_values = reshuffle::shuffle(_values_only_in_root, _comm_rank_0, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(_values));
+}
+
+TEST_F(Shuffle, WorksIn2DWithDifferentCommunicators) {
     using Matrix = std::vector<std::vector<int>>;
     constexpr int num_values_x = 4;
     constexpr int num_values_y = 10;
@@ -212,4 +129,67 @@ TEST_F(Shuffle, CanSplit2DContainersBasedOnNewAndOldDistributionWithDifferentCom
 
     EXPECT_THAT(m.size(), Eq(num_values_y));
     EXPECT_THAT(m[0].size(), Eq(num_values_x / 2));
+}
+
+TEST_F(Shuffle, CanBePassedADataDistributionAndDifferentCommunicators) {
+    const auto old_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
+    const auto new_distribution = reshuffle::make_block_wise(_total_num_values, 1);
+
+    const auto new_values = reshuffle::shuffle(_values, MPI_COMM_WORLD, _comm_rank_0,
+                                               old_distribution, new_distribution);
+
+    if (is_root()) {
+        EXPECT_THAT(new_values, Eq(_values_only_in_root));
+    } else {
+        EXPECT_TRUE(new_values.empty());
+    }
+}
+
+TEST_F(Shuffle, WorksWithAnyIterableContainerAndDataDistribution) {
+    const auto values = std::list(_values_only_in_root.begin(), _values_only_in_root.end());
+    const auto old_distribution = reshuffle::make_block_wise(_total_num_values, 1);
+    const auto new_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
+
+    const auto new_values =
+            reshuffle::shuffle(values, MPI_COMM_WORLD, old_distribution, new_distribution);
+    EXPECT_THAT(new_values, Eq(_values));
+}
+
+TEST_F(Shuffle, WorksWithAnyIterableContainerAndDataDistributionAndDifferentCommunicators) {
+    const auto values = std::list(_values_only_in_root.begin(), _values_only_in_root.end());
+    const auto old_distribution = reshuffle::make_block_wise(_total_num_values, 1);
+    const auto new_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
+
+    const auto new_values = reshuffle::shuffle(values, _comm_rank_0, MPI_COMM_WORLD,
+                                               old_distribution, new_distribution);
+    EXPECT_THAT(new_values, Eq(_values));
+}
+
+TEST_F(Shuffle, CanBePassedAnyAggregateDatatype) {
+    const auto values = is_root() ? std::vector<MyPOD>(_total_num_values) : std::vector<MyPOD>{};
+
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, MyPOD{})));
+}
+
+TEST_F(Shuffle, NonAggregateDefaultConstructibleMustBeSerializable) {
+    const auto values = is_root() ? std::vector<NonAggregateDefaultConstructible>(_total_num_values)
+                                  : std::vector<NonAggregateDefaultConstructible>{};
+
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values,
+                Eq(std::vector(_min_elements_per_rank, NonAggregateDefaultConstructible())));
+}
+
+TEST_F(Shuffle, NonAggregateNotDefaultConstructibleMustBeSerializableAndHaveCreateMethod) {
+    const auto values = is_root() ? std::vector<NonAggregate>(_total_num_values, NonAggregate(12))
+                                  : std::vector<NonAggregate>{};
+
+    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, NonAggregate(12))));
+}
+
+TEST_F(Shuffle, WorksIfEachRankHasData) {
+    const auto new_values = reshuffle::shuffle(_values, MPI_COMM_WORLD);
+    EXPECT_THAT(new_values, Eq(_values));
 }
