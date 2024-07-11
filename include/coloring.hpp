@@ -16,10 +16,6 @@ namespace reshuffle::internal {
     struct ColoringReturn {
         std::vector<rank_id> global_coloring;
         std::vector<rank_id> local_coloring;
-
-        [[nodiscard]] auto as_tuple() const {
-            return std::make_tuple(global_coloring, local_coloring);
-        }
     };
 
     auto create_coloring(const std::vector<rank_id> &global_coloring,
