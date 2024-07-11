@@ -16,8 +16,7 @@ void print(const Matrix &matrix);
 int main() {
     constexpr int num_rows = 20;
     constexpr int num_columns = 20;
-    const reshuffle::Dimension<2> global_dimension{{num_rows, num_columns}};
-    const int num_values = reshuffle::calc_total_num_values(global_dimension);
+    constexpr int num_values = num_rows * num_columns;
 
     MPI_Init(nullptr, nullptr);
 
