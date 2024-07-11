@@ -72,30 +72,29 @@ Currently, supports 1D and 2D buffers. Below you see an example of partitioning 
 ```c++
 constexpr int num_values_x = 20;
 constexpr int num_valuex_y = 20;
-constexpr int num_elements = num_rows * num_columns;
-constexpr auto global_dimension = reshuffle::Dimension<2>{{num_values_x, num_values_y}};
+constexpr int num_values = num_rows * num_columns;
 
-const auto data_distributions = std::array{reshuffle::make_block_wise(num_columns, 4),
-                                           reshuffle::make_block_wise(num_rows, 1)};
-auto global_coloring = std::vector<reshuffle::rank_id>(num_elements, 0);
-auto local_coloring = std::vector<reshuffle::rank_id>{};
+// Let's assume that all values are in rank 0
+const auto old_distribution = std::array{reshuffle::make_block_wise(num_values_x, 1),
+                                         reshuffle::make_block_wise(num_valuex_y, 1)};
 
-std::tie(global_coloring, local_coloring) = reshuffle::create_coloring(global_coloring,
-                                                                       global_dimension,
-                                                                       data_distributions, rank)
-                                                    .as_tuple();
-const auto block_dimension =
-        reshuffle::get_block_dimension(data_distributions, global_dimension, rank);
-matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, local_coloring, block_dimension);
+const auto new_distribution = std::array{reshuffle::make_block_wise(num_values_x, 4),
+                                         reshuffle::make_block_wise(num_valuex_y, 1)};
+
+matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, old_distribution, new_distribution);
 ```
 
 You can also move the data from a set of ranks specified in a `MPI_Comm` to a set of ranks in a different
-communicator. The only current restriction is that rank 0 has to be present in both. The example below splits a 1D
-buffer from a communicator that only includes rank 0, to MPI_WORLD (i.e., it is effectively a scatter):
+communicator. The only current restriction is that rank 0 has to be present in both. For example, we could
+redistribute data to a subset of ranks with:
 
 ```c++
-const auto new_values = reshuffle::shuffle(values_only_in_root, comm_rank_0, MPI_COMM_WORLD);
+// Asume comm_subsert is an MPI_Comm with a subset of ranks
+const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD, comm_subset);
 ```
+
+Since the project is still under heaver development, the easiest way to see how the library can be used is to
+check our [demos](demos) and the [shuffle tests](tests/mpi_tests/shuffle_test.cpp).
 
 ### Basics
 
@@ -109,80 +108,31 @@ following line will take the data stored in `buffer` on each rank, merge it, and
 buffer = reshuffle::shuffle(buffer, MPI_COMM_WORLD)
 ```
 
-One can also explicitly indicate to which rank a value should be stored via *coloring*, as seen below:
+It is possible to partition a domain in different ways specifying a data distribution. For example, the line below
+goes from a block wise distribution with 2 blocks, to 4 blocks.
 
 ```c++
-// coloring is relative to the data contained in each rank
-buffer = reshuffle::shuffle(buffer, MPI_COMM_WORLD, coloring)
+const auto old_distribution = reshuffle::make_block_wise(num_values, 2);
+const auto new_distribution = reshuffle::make_block_wise(num_values, 4);
+
+buffer = reshuffle::shuffle(buffer, MPI_COMM_WORLD, old_distribution, new_distribution)
 ```
 
-Right now, for 1D, the library works for both consecutive (e.g., `std::vector`) and non-consecutive (e.g., `std::list`)
-containers. It works also out of the box if the values stored in the container are fundamental datatypes (e.g., `int`,
-`double`, etc.), or aggregate types. For more complex types, _Reshuffle_ requires the use of
-[zpp_bits](https://github.com/eyalz800/zpp_bits) library for their serialization (note that this library is also used
-under the hood to automatically serialize aggregate types).
+`Suffle` should work out of the box with any iterable container (even non-consecutive, as `std::list`) and with any
+fundamental datatype supported by MPI (e.g., `int`), as well as any aggregate datatype. For more complex types,
+the user needs to use [zpp_bits](https://github.com/eyalz800/zpp_bits) to serialize the type.
 
 ### 2D Datatypes
 
-We are working on supporting multidimensional datatypes, but for now only 2D (e.g., `std::vector<std::vector<>>) are
-supported. If you work with a 2D type, you must indicate the coloring (which is optional in 1D). The reason for this is
-that, unlike 1D, there is not a clear default of how to partition the domain. You also have to additionally indicate
-the expected block size after the shuffling has occurred (check the *Coloring* section to see how to obtain this):
+We are working on supporting multidimensional datatypes, but for now only 2D types (e.g., `std::vector<std::vector<>>`)
+are supported. If you work in 2D, you must include the old and new data distributions. The reason for this
+is that, unlike in 1D, there is not a clear default of how to partition the domain.
 
-```c++
-m = reshuffle::shuffle(m, MPI_COMM_WORLD, coloring, block_dimension);
-```
+### Data Distributions
 
-### Coloring
-
-We provide two helper functions for coloring:
-
-1. `create_coloring`.
-2. `get_block_dimension`
-
-The first one, `create_coloring`, can be used to get the required coloring to split either a 1D or 2D domain according
-to a data distribution.
-
-The following example returns the global and local coloring for rank 0 in order to partition the buffer in two blocks:
-
-```c++
-const auto data_distribution = reshuffle::make_block_wise(num_values, 2);// i.e., split the domain in two blocks
-const auto [global_coloring, coloring_rank_0] =
-        reshuffle::create_coloring(current_coloring, data_distribution, 0)
-```
-
-The following example partitions a 2D matrix of size 20x20 in 2x2 blocks (i.e., 4 ranks):
-
-```c++
-const auto data_distribution_x = reshuffle::make_block_wise(num_values_x, 2);
-const auto data_distribution_y = reshuffle::make_block_wise(num_values_y, 2);
-
-const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
-const auto global_dimensions = reshuffle::Dimension<2>{{20, 20}};
-
-const auto [global_coloring, coloring_0] =
-        reshuffle::create_coloring(current_coloring, global_dimensions, data_distributions, 0);
-```
-
-The second function, `get_block_dimension`, is used to get the dimension of the block assigned to a specific
-rank.
-
-```c++
-const auto data_distribution_x = reshuffle::make_block_wise(num_values_x, 2);
-const auto data_distribution_y = reshuffle::make_block_wise(num_values_y, 1);
-
-const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
-const auto global_dimensions = reshuffle::Dimension<2>{{20, 20}};
-
-const auto dimensions_0 = reshuffle::get_block_dimension(data_distributions, global_dimensions, 0);
-```
-
-So, the expected workflow is:
-
-1. Get local and global coloring from `create_coloring`.
-2. For 2D: Get the block size via `get_block_dimension`.
-3. Use the local coloring and, if partitioning 2D, the block size to shuffle data.
-4. Use the global coloring to split the domain again, if needed.
+We provide a `BlockCyclic` data distribution which, as the name indicates, takes a certain number of values, number of
+blocks, and block size, and use it to split a domain in blocks, assigning them in a round robin fashion to each rank in
+increasing rank id order. We provide the `make_block_wise` function to make a BlockWise division.
 
 ### Using different communicators
 
