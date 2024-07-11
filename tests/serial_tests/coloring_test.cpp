@@ -45,7 +45,7 @@ TEST(CreateColoring, ThrowsIfSizeGlobalColoringDoesNotMatchDimensionsDataDistrib
                  std::invalid_argument);
 }
 
-TEST(CreateColoring, In1DNumberOfValuesDistributionMustBeTheSameAsSizeGlobalColoring) {
+TEST(CreateColoring, ThrowsIfNumberOfValuesDataDistributionNotTheSameAsSizeGlobalColoring) {
     constexpr int num_values = 10;
     const auto global_coloring = std::vector<reshuffle::rank_id>{};
     const auto data_distribution = reshuffle::make_block_wise(num_values, 1);
@@ -54,7 +54,7 @@ TEST(CreateColoring, In1DNumberOfValuesDistributionMustBeTheSameAsSizeGlobalColo
                  std::invalid_argument);
 }
 
-TEST(CreateColoring, NumberOfValuesDistributionMustBeEqualToSizeGlobalColoring) {
+TEST(CreateColoring, ThrowsIn2DIfDimensionsDataDistributionNotEqualToSizeGlobalColoring) {
     constexpr int num_values_y = 4;
     constexpr int num_values_x = num_values_y;
     const auto global_coloring = std::vector<reshuffle::rank_id>{};
