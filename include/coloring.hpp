@@ -19,11 +19,11 @@ namespace reshuffle::internal {
     };
 
     auto get_global_and_local_coloring(const std::vector<rank_id> &global_coloring,
-                                       const BlockCyclic &data_distribution,
+                                       const BlockCyclic &new_distribution,
                                        rank_id rank) -> ColoringReturn;
 
     auto get_global_and_local_coloring(const std::vector<rank_id> &global_coloring,
-                                       const std::array<BlockCyclic, 2> &data_distributions,
+                                       const std::array<BlockCyclic, 2> &new_distributions,
                                        rank_id rank) -> ColoringReturn;
 
     auto get_global_coloring(const BlockCyclic &data_distribution) -> std::vector<rank_id>;

@@ -26,18 +26,18 @@ namespace reshuffle::internal {
     }
 
     auto get_global_and_local_coloring(const std::vector<rank_id> &global_coloring,
-                                       const BlockCyclic &data_distribution,
+                                       const BlockCyclic &new_distribution,
                                        rank_id rank) -> ColoringReturn {
 
         throw_if_different(static_cast<int>(global_coloring.size()),
-                           data_distribution.get_num_values(),
+                           new_distribution.get_num_values(),
                            std::string{"Mismatch between size of global_coloring and "
-                                       "number of values data_distribution"});
+                                       "number of values new_distribution"});
 
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
         auto local_coloring = std::vector<rank_id>{};
         for (int i = 0; i < global_coloring.size(); ++i) {
-            new_global_coloring[i] = data_distribution.get_rank_id(i);
+            new_global_coloring[i] = new_distribution.get_rank_id(i);
             if (rank == global_coloring[i]) { local_coloring.push_back(new_global_coloring[i]); }
         }
 
@@ -45,18 +45,18 @@ namespace reshuffle::internal {
     }
 
     auto get_global_and_local_coloring(const std::vector<rank_id> &global_coloring,
-                                       const std::array<BlockCyclic, 2> &data_distributions,
+                                       const std::array<BlockCyclic, 2> &new_distributions,
                                        rank_id rank) -> ColoringReturn {
 
-        const auto global_dimensions = Dimension<2>{data_distributions[0].get_num_values(),
-                                                    data_distributions[1].get_num_values()};
+        const auto global_dimensions = Dimension<2>{new_distributions[0].get_num_values(),
+                                                    new_distributions[1].get_num_values()};
 
         throw_if_different(static_cast<int>(global_coloring.size()),
                            calc_total_num_values(global_dimensions),
                            std::string{"Mismatch between size of global_coloring and "
                                        "number of elements global_dimensions"});
 
-        const auto blocks = get_blocks_2D(data_distributions);
+        const auto blocks = get_blocks_2D(new_distributions);
 
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
         auto local_coloring = std::vector<rank_id>{};
