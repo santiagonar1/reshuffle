@@ -70,6 +70,7 @@ namespace reshuffle {
             // to have a check for this, but it was faulty. The largest issue was that it was using
             // MPI_COMM_WORLD, which did not work with Sessions and PSets.
 
+            // TODO: What happens if both origin and destiny have data?
             const auto using_coloring = not local_coloring.empty();
             if (using_coloring and local_coloring.size() != std::ranges::size(values)) {
                 throw std::invalid_argument("Coloring being used, but size of local_coloring "
@@ -109,11 +110,11 @@ namespace reshuffle {
     auto shuffle(const C &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
                  const BlockCyclic &new_distribution) {
         const auto rank = internal::get_rank_id(comm);
-        const auto old_global_coloring = get_global_coloring(old_distribution);
+        const auto old_global_coloring = internal::get_global_coloring(old_distribution);
 
         const auto new_global_coloring =
                 internal::is_root(MPI_COMM_WORLD)
-                        ? create_coloring(old_global_coloring, new_distribution, rank)
+                        ? internal::create_coloring(old_global_coloring, new_distribution, rank)
                                   .global_coloring
                         : std::vector<rank_id>{};
 
@@ -133,14 +134,14 @@ namespace reshuffle {
                  const BlockCyclic &old_distribution, const BlockCyclic &new_distribution) {
         using T = C::value_type;
 
-        const auto old_global_coloring = get_global_coloring(old_distribution);
+        const auto old_global_coloring = internal::get_global_coloring(old_distribution);
 
         const auto rank =
                 internal::in_mpi_comm(destiny_comm) ? internal::get_rank_id(destiny_comm) : -1;
 
         const auto new_global_coloring =
                 internal::is_root(destiny_comm)
-                        ? create_coloring(old_global_coloring, new_distribution, rank)
+                        ? internal::create_coloring(old_global_coloring, new_distribution, rank)
                                   .global_coloring
                         : std::vector<rank_id>{};
 
@@ -200,12 +201,13 @@ namespace reshuffle {
         using T = M::value_type::value_type;
 
         const auto rank = internal::get_rank_id(comm);
-        const auto old_global_coloring = get_global_coloring(old_distribution);
+        const auto old_global_coloring = internal::get_global_coloring(old_distribution);
 
         const auto local_coloring =
-                create_coloring(old_global_coloring, new_distribution, rank).local_coloring;
+                internal::create_coloring(old_global_coloring, new_distribution, rank)
+                        .local_coloring;
 
-        const auto subdomain_dimensions = get_block_dimension(new_distribution, rank);
+        const auto subdomain_dimensions = internal::get_block_dimension(new_distribution, rank);
 
         auto buffer = std::vector<T>(std::ranges::join_view(values).begin(),
                                      std::ranges::join_view(values).end());
@@ -220,20 +222,21 @@ namespace reshuffle {
                  const std::array<BlockCyclic, 2> &new_distribution) {
         using T = M::value_type::value_type;
 
-        const auto old_global_coloring = get_global_coloring(old_distribution);
+        const auto old_global_coloring = internal::get_global_coloring(old_distribution);
 
         const auto rank =
                 internal::in_mpi_comm(destiny_comm) ? internal::get_rank_id(destiny_comm) : -1;
 
         const auto local_coloring =
                 internal::in_mpi_comm(destiny_comm)
-                        ? create_coloring(old_global_coloring, new_distribution, rank)
+                        ? internal::create_coloring(old_global_coloring, new_distribution, rank)
                                   .local_coloring
                         : std::vector<rank_id>{};
 
-        const auto subdomain_dimensions = internal::in_mpi_comm(destiny_comm)
-                                                  ? get_block_dimension(new_distribution, rank)
-                                                  : Dimension<2>{0, 0};
+        const auto subdomain_dimensions =
+                internal::in_mpi_comm(destiny_comm)
+                        ? internal::get_block_dimension(new_distribution, rank)
+                        : Dimension<2>{0, 0};
 
         auto buffer = std::vector<T>(std::ranges::join_view(values).begin(),
                                      std::ranges::join_view(values).end());

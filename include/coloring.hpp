@@ -12,7 +12,7 @@
 #include <vector>
 
 
-namespace reshuffle {
+namespace reshuffle::internal {
     struct ColoringReturn {
         std::vector<rank_id> global_coloring;
         std::vector<rank_id> local_coloring;

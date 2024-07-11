@@ -12,8 +12,9 @@ TEST(CreateColoring, ReturnsColoringPerRankAndGlobalColoring) {
     const auto data_distribution = reshuffle::make_block_wise(num_values, 2);
 
     const auto [global_coloring, coloring_0] =
-            reshuffle::create_coloring(current_coloring, data_distribution, 0);
-    const auto [_, coloring_1] = reshuffle::create_coloring(current_coloring, data_distribution, 1);
+            reshuffle::internal::create_coloring(current_coloring, data_distribution, 0);
+    const auto [_, coloring_1] =
+            reshuffle::internal::create_coloring(current_coloring, data_distribution, 1);
 
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 1, 1}));
     EXPECT_THAT(coloring_1, Eq(std::vector{0, 0}));
@@ -29,7 +30,7 @@ TEST(CreateColoring, CanUseBlockWiseDataDistributionInTwoDimensions) {
     const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
 
     const auto [global_coloring, coloring_0] =
-            reshuffle::create_coloring(current_coloring, data_distributions, 0);
+            reshuffle::internal::create_coloring(current_coloring, data_distributions, 0);
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 1, 2, 3}));
 }
 
@@ -45,7 +46,7 @@ TEST(CreateColoring, ABlockWiseWithOneBlockIndicatesNoDivision) {
     const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
 
     const auto [global_coloring, coloring_0] =
-            reshuffle::create_coloring(current_coloring, data_distributions, 0);
+            reshuffle::internal::create_coloring(current_coloring, data_distributions, 0);
     EXPECT_THAT(coloring_0, Eq(std::vector{0, 0, 1, 1}));
 }
 
@@ -56,7 +57,7 @@ TEST(CreateColoring, ThrowsIfSizeGlobalColoringDoesNotMatchDimensionsDataDistrib
     const auto data_distributions = std::array{reshuffle::make_block_wise(num_values_x, 1),
                                                reshuffle::make_block_wise(num_values_y, 2)};
 
-    EXPECT_THROW(reshuffle::create_coloring(global_coloring, data_distributions, 0),
+    EXPECT_THROW(reshuffle::internal::create_coloring(global_coloring, data_distributions, 0),
                  std::invalid_argument);
 }
 
@@ -65,7 +66,7 @@ TEST(CreateColoring, In1DNumberOfValuesDistributionMustBeTheSameAsSizeGlobalColo
     const auto global_coloring = std::vector<reshuffle::rank_id>{};
     const auto data_distribution = reshuffle::make_block_wise(num_values, 1);
 
-    EXPECT_THROW(reshuffle::create_coloring(global_coloring, data_distribution, 0),
+    EXPECT_THROW(reshuffle::internal::create_coloring(global_coloring, data_distribution, 0),
                  std::invalid_argument);
 }
 
@@ -76,7 +77,7 @@ TEST(CreateColoring, NumberOfValuesDistributionMustBeEqualToSizeGlobalColoring) 
     const auto data_distributions = std::array{reshuffle::make_block_wise(num_values_x, 1),
                                                reshuffle::make_block_wise(num_values_y, 2)};
 
-    EXPECT_THROW(reshuffle::create_coloring(global_coloring, data_distributions, 0),
+    EXPECT_THROW(reshuffle::internal::create_coloring(global_coloring, data_distributions, 0),
                  std::invalid_argument);
 }
 
@@ -88,7 +89,7 @@ TEST(CreateColoring, NumberOfValuesSecondElementOfDistributionMustBeEqualToNumbe
     const auto data_distributions = std::array{reshuffle::make_block_wise(num_values_x, 1),
                                                reshuffle::make_block_wise(num_values_x, 2)};
 
-    EXPECT_THROW(reshuffle::create_coloring(global_coloring, data_distributions, 0),
+    EXPECT_THROW(reshuffle::internal::create_coloring(global_coloring, data_distributions, 0),
                  std::invalid_argument);
 }
 
@@ -96,7 +97,7 @@ TEST(GetGlobalColoring, ReturnsGlobalColoringIn1D) {
     constexpr int num_values = 4;
     const auto data_distribution = reshuffle::make_block_wise(num_values, 2);
 
-    const auto global_coloring = reshuffle::get_global_coloring(data_distribution);
+    const auto global_coloring = reshuffle::internal::get_global_coloring(data_distribution);
     EXPECT_THAT(global_coloring, Eq(std::vector<reshuffle::rank_id>{0, 0, 1, 1}));
 }
 
@@ -106,7 +107,7 @@ TEST(GetGlobalColoring, ReturnsGlobalColoringIn2D) {
     const auto data_distributions = std::array{reshuffle::make_block_wise(num_values_x, 1),
                                                reshuffle::make_block_wise(num_values_y, 2)};
 
-    const auto global_coloring = reshuffle::get_global_coloring(data_distributions);
+    const auto global_coloring = reshuffle::internal::get_global_coloring(data_distributions);
     EXPECT_THAT(global_coloring, Eq(std::vector<reshuffle::rank_id>{0, 0, 1, 1}));
 }
 
@@ -115,9 +116,9 @@ TEST(GetBlockDimensions, In1DReturnsTheNumberOfValues) {
     constexpr int num_values = 5;
     const auto data_distribution = reshuffle::make_block_wise(num_values, 2);
 
-    const auto num_values_0 = reshuffle::get_block_dimension(data_distribution, 0);
-    const auto num_values_1 = reshuffle::get_block_dimension(data_distribution, 1);
-    const auto num_values_2 = reshuffle::get_block_dimension(data_distribution, 2);
+    const auto num_values_0 = reshuffle::internal::get_block_dimension(data_distribution, 0);
+    const auto num_values_1 = reshuffle::internal::get_block_dimension(data_distribution, 1);
+    const auto num_values_2 = reshuffle::internal::get_block_dimension(data_distribution, 2);
 
     EXPECT_THAT(num_values_0, Eq(3));
     EXPECT_THAT(num_values_1, Eq(2));
@@ -134,7 +135,7 @@ TEST(GetBlockDimensions, In2DReturnsTheBlockDimension) {
     const auto data_distributions = std::array{data_distribution_x, data_distribution_y};
 
 
-    const auto dimensions_0 = reshuffle::get_block_dimension(data_distributions, 0);
+    const auto dimensions_0 = reshuffle::internal::get_block_dimension(data_distributions, 0);
 
     EXPECT_THAT(dimensions_0[0], Eq(10));
     EXPECT_THAT(dimensions_0[1], Eq(20));
