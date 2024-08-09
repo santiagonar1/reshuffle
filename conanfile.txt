@@ -2,7 +2,7 @@
 CMakeDeps
 
 [requires]
-gtest/1.14.0
+gtest/1.15.0
 zpp_bits/4.4.20
 abseil/20240116.2
 benchmark/1.8.4
