@@ -21,16 +21,16 @@ file(GLOB SOURCES
         src/*.cpp
 )
 
-add_library(reshuffle STATIC)
+add_library(${PROJECT_NAME} STATIC)
 
-target_sources(reshuffle
+target_sources(${PROJECT_NAME}
         PRIVATE ${SOURCES})
 
-target_link_libraries(reshuffle
+target_link_libraries(${PROJECT_NAME}
         MPI::MPI_CXX
         zpp_bits::zpp_bits)
 
-target_include_directories(reshuffle
+target_include_directories(${PROJECT_NAME}
         PUBLIC "${reshuffle_SOURCE_DIR}/include")
 
 add_subdirectory(benchmarks)
