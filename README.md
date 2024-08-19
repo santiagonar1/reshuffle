@@ -35,7 +35,9 @@ want to use it with an external project, you will need to "install reshuffle". W
 ```shell
 bash install.sh
 ```
-This should create an `install` directory. Let's assume this is created in `/path/to/reshuffle/install`. 
+This should create an `install` directory. Let's assume this is created in `/path/to/reshuffle/install`. Keep in mind
+that certain things, such as the path to MPI, might need to be modified. So take a look at the script before running
+it.
 
 Then, in the  client code (i.e., the external project where you want to use `reshuffle`) you will need to first find
 and link `reshuffle`. For this, in your `CMakeList.txt` add:
