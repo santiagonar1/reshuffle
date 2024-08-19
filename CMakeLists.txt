@@ -21,6 +21,10 @@ file(GLOB SOURCES
         src/*.cpp
 )
 
+file(GLOB MY_PUBLIC_HEADERS
+        include/*.hpp
+)
+
 add_library(${PROJECT_NAME})
 
 target_sources(${PROJECT_NAME}
@@ -60,7 +64,14 @@ else ()
             "CMAKE_INSTALL_PREFIX was already set\n"
             "Current value: ${CMAKE_INSTALL_PREFIX}"
     )
-endif()
+endif ()
+
+# without it public headers won't get installed
+set(public_headers
+        ${MY_PUBLIC_HEADERS}
+)
+# note that ${public_headers} has to be in quotes
+set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${public_headers}")
 
 add_subdirectory(benchmarks)
 add_subdirectory(demos)
