@@ -30,8 +30,17 @@ target_link_libraries(${PROJECT_NAME}
         MPI::MPI_CXX
         zpp_bits::zpp_bits)
 
+# See: https://decovar.dev/blog/2021/03/08/cmake-cpp-library/#include-directories
 target_include_directories(${PROJECT_NAME}
-        PUBLIC "${reshuffle_SOURCE_DIR}/include")
+        PRIVATE
+        # where the library itself will look for its internal headers
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        PUBLIC
+        # where top-level project will look for the library's public headers
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        # where external projects will look for the library's public headers
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 
 add_subdirectory(benchmarks)
 add_subdirectory(demos)
