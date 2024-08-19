@@ -26,6 +26,40 @@ If `cmake` fails to detect the location of your MPI library, use instead:
 cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DCMAKE_CXX_COMPILER:FILEPATH=/path/to/mpicxx -DCMAKE_C_COMPILER:FILEPATH=/path/to/mpicc ..
 ```
 
+### Install
+
+The previous steps are enough to play with the demos and check that dependencies of the library are satisfied. If you
+want to use it with an external project, you will need to "install reshuffle". We provide an installation script
+`install.sh`, which should be run directly from the root directory of the library:
+
+```shell
+bash install.sh
+```
+This should create an `install` directory. Let's assume this is created in `/path/to/reshuffle/install`. 
+
+Then, in the  client code (i.e., the external project where you want to use `reshuffle`) you will need to first find
+and link `reshuffle`. For this, in your `CMakeList.txt` add:
+
+```cmake
+find_package(reshuffle CONFIG REQUIRED)
+target_link_libraries(exec.out PRIVATE reshuffle::reshuffle)
+```
+
+Also, please include in your `conanfile.txt` `zpp_bits/4.4.20` as requirement. This is a temporal limitation that we
+hope to remove in future versions.
+
+Finally, when you configure your external application do not forget to include the path to `reshuffle`:
+
+```shell
+cmake -DCMAKE_PREFIX_PATH="/path/to/reshuffle/install"
+```
+
+At last, you should be able to include and use `reshuffle` in your project as:
+
+```c++
+#include <reshuffle/reshuffle.hpp>
+```
+
 ### Docker
 
 You can use the `Dockerfile` provided by us to create an image in which to build and run the code. So first, build
