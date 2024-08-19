@@ -31,6 +31,7 @@ target_sources(${PROJECT_NAME}
         PRIVATE ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
+        PUBLIC
         MPI::MPI_CXX
         zpp_bits::zpp_bits)
 
