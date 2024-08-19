@@ -21,8 +21,10 @@ file(GLOB SOURCES
         src/*.cpp
 )
 
-add_library(reshuffle
-        ${SOURCES})
+add_library(reshuffle STATIC)
+
+target_sources(reshuffle
+        PRIVATE ${SOURCES})
 
 target_link_libraries(reshuffle
         MPI::MPI_CXX
