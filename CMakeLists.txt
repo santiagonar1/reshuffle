@@ -21,7 +21,7 @@ file(GLOB SOURCES
         src/*.cpp
 )
 
-add_library(${PROJECT_NAME} STATIC)
+add_library(${PROJECT_NAME})
 
 target_sources(${PROJECT_NAME}
         PRIVATE ${SOURCES})
