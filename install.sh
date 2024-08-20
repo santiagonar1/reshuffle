@@ -39,3 +39,5 @@ cd ${BUILD_DIR}
 cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DCMAKE_CXX_COMPILER:FILEPATH=${MPI_CXX_COMPILER} \
       -DCMAKE_C_COMPILER:FILEPATH=${MPI_CC_COMPILER} -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . --target install
+cd ..
+rm -rf ${BUILD_DIR}
