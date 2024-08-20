@@ -14,6 +14,7 @@ find_package(zpp_bits REQUIRED)
 message(STATUS "Found MPI_CXX_COMPILER: ${MPI_CXX_COMPILER}")
 
 option(BUILD_DYN_PROC_DEMOS "Turn on compilation Dyn Proc Demos. Requires special OpenMPI" OFF)
+option(BUILD_TESTING "Build tests" ON)
 
 enable_testing()
 
@@ -47,9 +48,14 @@ target_include_directories(${PROJECT_NAME}
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-add_subdirectory(benchmarks)
 add_subdirectory(demos)
-add_subdirectory(tests)
+
+if (BUILD_TESTING)
+    add_subdirectory(tests)
+    add_subdirectory(benchmarks)
+else ()
+    message(STATUS "Tests and benchmarks will not be compiled")
+endif ()
 
 # where to find our CMake modules
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
