@@ -8,11 +8,13 @@ means that we still need to improve the performance of the library.
 
 [TOC]
 
-## Build
+## Build and Install
+
+### Build
 
 We use [conan](https://conan.io/) as package manager. Thus, in order to correctly install all the dependencies
 required by the library, you need to specify a `conan_provider.cmake` file. We include one in our project, so
-the following two lines should be enough to compile the library and its examples.
+the following lines should be enough to compile the library and its examples.
 
 ```shell
 mkdir build && cd build
@@ -26,20 +28,29 @@ If `cmake` fails to detect the location of your MPI library, use instead:
 cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DCMAKE_CXX_COMPILER:FILEPATH=/path/to/mpicxx -DCMAKE_C_COMPILER:FILEPATH=/path/to/mpicc ..
 ```
 
+There are additional options to, for example, disable the compilation of the test files. Check those directly in the
+cmake configuration.
+
 ### Install
 
-The previous steps are enough to play with the demos and check that dependencies of the library are satisfied. If you
-want to use it with an external project, you will need to "install reshuffle". We provide an installation script
+The previous steps are enough to play with the demos and check that dependencies of the library are satisfied. But If you
+want to use `reshuffle` with an external project, you will need to install it. We provide an installation script
 `install.sh`, which should be run directly from the root directory of the library:
 
 ```shell
 bash install.sh
 ```
-This should create an `install` directory. Let's assume this is created in `/path/to/reshuffle/install`. Keep in mind
-that certain things, such as the path to MPI, might need to be modified. So take a look at the script before running
-it.
+This should create an `install` directory inside the main directory (i.e., `/path/to/reshuffle/install`). You can use
+the variable [CMAKE_INSTALL_PREFIX](https://cmake.org/cmake/help/latest/variable/CMAKE_INSTALL_PREFIX.html) to change
+this behaviour.
 
-Then, in the  client code (i.e., the external project where you want to use `reshuffle`) you will need to first find
+Keep in mind that certain things, such as the path to MPI, might need to be modified. So take a look at the script before 
+running  it. You are encouraged to take a look at the scripts to check the steps required to install the library, which
+then you could adapt to your needs.
+
+#### Using reshuffle in external project
+
+In the  client code (i.e., the external project where you want to use `reshuffle`) you will need to first find
 and link `reshuffle`. For this, in your `CMakeList.txt` add:
 
 ```cmake
@@ -61,6 +72,8 @@ At last, you should be able to include and use `reshuffle` in your project as:
 ```c++
 #include <reshuffle/reshuffle.hpp>
 ```
+
+You can find an example of how this is done in [our demo](https://gitlab.lrz.de/reshuffle/demo).
 
 ### Docker
 
