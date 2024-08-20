@@ -10,7 +10,6 @@ endif ()
 
 find_package(MPI REQUIRED)
 find_package(zpp_bits REQUIRED)
-find_package(benchmark REQUIRED)
 
 message(STATUS "Found MPI_CXX_COMPILER: ${MPI_CXX_COMPILER}")
 
