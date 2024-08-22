@@ -33,24 +33,26 @@ cmake configuration.
 
 ### Install
 
-The previous steps are enough to play with the demos and check that dependencies of the library are satisfied. But If you
-want to use `reshuffle` with an external project, you will need to install it. We provide an installation script
-`install.sh`, which should be run directly from the root directory of the library:
+The previous steps are enough to play with the demos and check that dependencies of the library are satisfied. But If
+you want to use `reshuffle` with an external project, you will need to install it. We provide
+an [installation script](install.sh), which should be run directly from the root directory of the library:
 
 ```shell
 bash install.sh
 ```
+
 This should create an `install` directory inside the main directory (i.e., `/path/to/reshuffle/install`). You can use
 the variable [CMAKE_INSTALL_PREFIX](https://cmake.org/cmake/help/latest/variable/CMAKE_INSTALL_PREFIX.html) to change
 this behaviour.
 
-Keep in mind that certain things, such as the path to MPI, might need to be modified. So take a look at the script before 
-running  it. You are encouraged to take a look at the scripts to check the steps required to install the library, which
+Keep in mind that certain things, such as the path to MPI, might need to be modified. So take a look at the script
+before
+running it. You are encouraged to take a look at the scripts to check the steps required to install the library, which
 then you could adapt to your needs.
 
 #### Using reshuffle in external project
 
-In the  client code (i.e., the external project where you want to use `reshuffle`) you will need to first find
+In the client code (i.e., the external project where you want to use `reshuffle`) you will need to first find
 and link `reshuffle`. For this, in your `CMakeList.txt` add:
 
 ```cmake
