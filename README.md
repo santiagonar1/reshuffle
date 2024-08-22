@@ -64,7 +64,7 @@ hope to remove in future versions.
 Finally, when you configure your external application do not forget to include the path to `reshuffle`:
 
 ```shell
-cmake -DCMAKE_PREFIX_PATH="/path/to/reshuffle/install"
+cmake -DCMAKE_PREFIX_PATH=/path/to/reshuffle/install
 ```
 
 At last, you should be able to include and use `reshuffle` in your project as:
