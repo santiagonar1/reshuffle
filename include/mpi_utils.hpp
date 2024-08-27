@@ -10,23 +10,25 @@
 #include "utils.hpp"
 
 namespace reshuffle::internal {
-    auto get_rank_id(const MPI_Comm &comm) -> rank_id {
+    inline auto get_rank_id(const MPI_Comm &comm) -> rank_id {
         int rank{};
         MPI_Comm_rank(comm, &rank);
         return rank;
     }
 
-    auto in_mpi_comm(const MPI_Comm &comm) { return comm != MPI_COMM_NULL; }
+    inline auto in_mpi_comm(const MPI_Comm &comm) { return comm != MPI_COMM_NULL; }
 
-    auto is_root(const MPI_Comm &comm) { return in_mpi_comm(comm) and get_rank_id(comm) == 0; }
+    inline auto is_root(const MPI_Comm &comm) {
+        return in_mpi_comm(comm) and get_rank_id(comm) == 0;
+    }
 
-    auto num_ranks(const MPI_Comm &comm) {
+    inline auto num_ranks(const MPI_Comm &comm) {
         int num_ranks{};
         MPI_Comm_size(comm, &num_ranks);
         return num_ranks;
     }
 
-    auto calc_num_values_per_rank(int num_ranks, const std::vector<rank_id> &coloring) {
+    inline auto calc_num_values_per_rank(int num_ranks, const std::vector<rank_id> &coloring) {
         std::vector<int> values_per_rank(num_ranks);
 
         for (auto rank: coloring) { values_per_rank[rank]++; }
@@ -34,7 +36,7 @@ namespace reshuffle::internal {
         return values_per_rank;
     }
 
-    auto calc_displacements(const std::vector<int> &num_values_per_rank) {
+    inline auto calc_displacements(const std::vector<int> &num_values_per_rank) {
         std::vector<int> displacements(num_values_per_rank.size(), 0);
         std::partial_sum(num_values_per_rank.begin(), num_values_per_rank.end() - 1,
                          displacements.begin() + 1);
