@@ -77,7 +77,7 @@ namespace reshuffle::internal {
     auto get_global_coloring(const BlockCyclic &data_distribution) -> std::vector<rank_id> {
         const auto num_values = data_distribution.get_num_values();
         const auto dummy_global_coloring = std::vector<rank_id>(num_values);
-        const rank_id dummy_rank = 0;
+        constexpr rank_id dummy_rank = 0;
         const auto [global_coloring, _] =
                 get_global_and_local_coloring(dummy_global_coloring, data_distribution, dummy_rank);
         return global_coloring;
@@ -88,7 +88,7 @@ namespace reshuffle::internal {
         const auto dimensions = get_dimension_from_distribution(data_distributions);
         const auto num_values = calc_total_num_values(dimensions);
         const auto dummy_global_coloring = std::vector<rank_id>(num_values);
-        const rank_id dummy_rank = 0;
+        constexpr rank_id dummy_rank = 0;
         const auto [global_coloring, _] = get_global_and_local_coloring(
                 dummy_global_coloring, data_distributions, dummy_rank);
         return global_coloring;
