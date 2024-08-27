@@ -1,7 +1,7 @@
 #include "coloring.hpp"
 
-#include "utils.hpp"
 #include "indices.hpp"
+#include "utils.hpp"
 
 #include <algorithm>
 
@@ -27,8 +27,8 @@ namespace reshuffle::internal {
     }
 
     auto get_global_and_local_coloring(const std::vector<rank_id> &global_coloring,
-                                       const BlockCyclic &new_distribution,
-                                       rank_id rank) -> ColoringReturn {
+                                       const BlockCyclic &new_distribution, rank_id rank)
+            -> ColoringReturn {
 
         throw_if_different(static_cast<int>(global_coloring.size()),
                            new_distribution.get_num_values(),
@@ -102,8 +102,8 @@ namespace reshuffle::internal {
         return blocks[rank].get_length();
     }
 
-    auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions,
-                             rank_id rank) -> Dimension<2> {
+    auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions, rank_id rank)
+            -> Dimension<2> {
         const auto block_pairs = get_blocks_2D(data_distributions);
 
         if (rank >= block_pairs.size()) { return Dimension<2>{{0, 0}}; }

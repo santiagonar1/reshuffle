@@ -15,8 +15,8 @@ namespace reshuffle::internal {
     };
 
     auto get_global_and_local_coloring(const std::vector<rank_id> &global_coloring,
-                                       const BlockCyclic &new_distribution,
-                                       rank_id rank) -> ColoringReturn;
+                                       const BlockCyclic &new_distribution, rank_id rank)
+            -> ColoringReturn;
 
     auto get_global_and_local_coloring(const std::vector<rank_id> &global_coloring,
                                        const std::array<BlockCyclic, 2> &new_distributions,
@@ -29,8 +29,8 @@ namespace reshuffle::internal {
 
     auto get_block_dimension(const BlockCyclic &data_distribution, rank_id rank) -> int;
 
-    auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions,
-                             rank_id rank) -> Dimension<2>;
+    auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions, rank_id rank)
+            -> Dimension<2>;
 }// namespace reshuffle::internal
 
 #endif//RESHUFFLE_COLORING_HPP
