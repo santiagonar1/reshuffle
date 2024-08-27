@@ -1,14 +1,10 @@
 #ifndef RESHUFFLE_COLORING_HPP
 #define RESHUFFLE_COLORING_HPP
 
-#include "block.hpp"
 #include "data_distribution.hpp"
 #include "dimensions.hpp"
-#include "indices.hpp"
-#include "left_closed_range.hpp"
 #include "rank_id.hpp"
 #include <array>
-#include <functional>
 #include <vector>
 
 

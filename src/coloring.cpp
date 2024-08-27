@@ -1,8 +1,9 @@
 #include "coloring.hpp"
 
 #include "utils.hpp"
+#include "indices.hpp"
+
 #include <algorithm>
-#include <functional>
 
 namespace reshuffle::internal {
     auto to_2D(int num_columns, int index) -> Indices2D {
