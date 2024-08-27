@@ -3,7 +3,6 @@
 
 #include <mpi.h>
 #include <numeric>
-#include <ranges>
 #include <vector>
 
 #include "concepts.hpp"
