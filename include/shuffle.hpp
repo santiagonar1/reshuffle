@@ -16,7 +16,6 @@
 namespace reshuffle {
     namespace internal {
         template<concepts::ContiguousContainer C>
-            requires concepts::Serializable<typename C::value_type>
         auto split_equally(const C &values, const MPI_Comm &comm) {
             if (not is_root(comm) and not std::ranges::empty(values)) {
                 throw std::invalid_argument("Only the root should have values!");
@@ -32,7 +31,6 @@ namespace reshuffle {
         }
 
         template<concepts::ContiguousContainer C>
-            requires concepts::Serializable<typename C::value_type>
         auto shuffle_with_coloring(const C &values, const MPI_Comm &comm,
                                    const std::vector<rank_id> &local_coloring = {}) {
             auto all_coloring = internal::gather_values_in_root(local_coloring, comm);
@@ -53,7 +51,6 @@ namespace reshuffle {
         }
 
         template<concepts::ContiguousContainer C>
-            requires concepts::Serializable<typename C::value_type>
         auto
         shuffle_with_coloring(const C &values, const MPI_Comm &origin_comm,
                               const MPI_Comm &destiny_comm,
@@ -104,14 +101,12 @@ namespace reshuffle {
     }// namespace internal
 
     template<concepts::ContiguousContainer C>
-        requires concepts::Serializable<typename C::value_type>
     auto shuffle(const C &values, const MPI_Comm &comm) {
         return internal::shuffle_with_coloring(values, comm);
     }
 
     //TODO: Handle exceptions (compare sizes distributions and values).
     template<concepts::ContiguousContainer C>
-        requires concepts::Serializable<typename C::value_type>
     auto shuffle(const C &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
                  const BlockCyclic &new_distribution) {
 
@@ -129,13 +124,11 @@ namespace reshuffle {
     }
 
     template<concepts::ContiguousContainer C>
-        requires concepts::Serializable<typename C::value_type>
     auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
         return internal::shuffle_with_coloring(values, origin_comm, destiny_comm);
     }
 
     template<concepts::ContiguousContainer C>
-        requires concepts::Serializable<typename C::value_type>
     auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
                  const BlockCyclic &old_distribution, const BlockCyclic &new_distribution) {
         using T = C::value_type;
@@ -163,8 +156,7 @@ namespace reshuffle {
     }
 
     template<concepts::Iterable I>
-        requires concepts::Serializable<typename I::value_type> and
-                 (not concepts::ContiguousContainer<I>)
+        requires(not concepts::ContiguousContainer<I>)
     auto shuffle(const I &values, const MPI_Comm &comm) {
         using T = I::value_type;
         const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
@@ -172,7 +164,6 @@ namespace reshuffle {
     }
 
     template<concepts::Iterable I>
-        requires concepts::Serializable<typename I::value_type>
     auto shuffle(const I &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
                  const BlockCyclic &new_distribution) {
         using T = I::value_type;
@@ -181,8 +172,7 @@ namespace reshuffle {
     }
 
     template<concepts::Iterable I>
-        requires concepts::Serializable<typename I::value_type> and
-                 (not concepts::ContiguousContainer<I>)
+        requires(not concepts::ContiguousContainer<I>)
     auto shuffle(const I &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
         using T = I::value_type;
         const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
@@ -190,7 +180,6 @@ namespace reshuffle {
     }
 
     template<concepts::Iterable I>
-        requires concepts::Serializable<typename I::value_type>
     auto shuffle(const I &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
                  const BlockCyclic &old_distribution, const BlockCyclic &new_distribution) {
         using T = I::value_type;

@@ -8,8 +8,6 @@
 #include <list>
 #include <reshuffle.hpp>
 
-#include "my_type.hpp"
-
 using ::testing::Eq;
 
 class Shuffle : public testing::Test {
@@ -188,30 +186,6 @@ TEST_F(Shuffle, WorksWithAnyIterableContainerAndDataDistributionAndDifferentComm
     const auto new_values = reshuffle::shuffle(values, _comm_rank_0, MPI_COMM_WORLD,
                                                old_distribution, new_distribution);
     EXPECT_THAT(new_values, Eq(_values));
-}
-
-TEST_F(Shuffle, CanBePassedAnyAggregateDatatype) {
-    const auto values = is_root() ? std::vector<MyPOD>(_total_num_values) : std::vector<MyPOD>{};
-
-    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, MyPOD{})));
-}
-
-TEST_F(Shuffle, NonAggregateDefaultConstructibleMustBeSerializable) {
-    const auto values = is_root() ? std::vector<NonAggregateDefaultConstructible>(_total_num_values)
-                                  : std::vector<NonAggregateDefaultConstructible>{};
-
-    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values,
-                Eq(std::vector(_min_elements_per_rank, NonAggregateDefaultConstructible())));
-}
-
-TEST_F(Shuffle, NonAggregateNotDefaultConstructibleMustBeSerializableAndHaveCreateMethod) {
-    const auto values = is_root() ? std::vector<NonAggregate>(_total_num_values, NonAggregate(12))
-                                  : std::vector<NonAggregate>{};
-
-    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
-    EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, NonAggregate(12))));
 }
 
 TEST_F(Shuffle, WorksIfEachRankHasData) {

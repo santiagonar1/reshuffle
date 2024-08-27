@@ -9,7 +9,6 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 find_package(MPI REQUIRED)
-find_package(zpp_bits REQUIRED)
 
 message(STATUS "Found MPI_CXX_COMPILER: ${MPI_CXX_COMPILER}")
 
@@ -33,8 +32,7 @@ target_sources(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
-        MPI::MPI_CXX
-        zpp_bits::zpp_bits)
+        MPI::MPI_CXX)
 
 # See: https://decovar.dev/blog/2021/03/08/cmake-cpp-library/#include-directories
 target_include_directories(${PROJECT_NAME}
