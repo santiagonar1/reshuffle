@@ -6,34 +6,34 @@
 #include <algorithm>
 
 namespace reshuffle::internal {
-    auto to_2D(int num_columns, int index) -> Indices2D {
+    auto to_2D(const int num_columns, const int index) -> Indices2D {
         return {index % num_columns, index / num_columns};
     }
 
     auto get_blocks_2D(const std::array<BlockCyclic, 2> &data_distributions)
-            -> std::vector<std::pair<LeftClosedRange, LeftClosedRange>> {
+        -> std::vector<std::pair<LeftClosedRange, LeftClosedRange>> {
         const auto blocks_x = data_distributions[0].get_blocks();
         const auto blocks_y = data_distributions[1].get_blocks();
         return combine(blocks_x, blocks_y);
     }
 
-    auto throw_if_different(int val1, int val2, const std::string &error_msg) {
+    auto throw_if_different(const int val1, const int val2, const std::string &error_msg) {
         if (val1 != val2) { throw std::invalid_argument(error_msg); }
     }
 
     auto get_dimension_from_distribution(const std::array<BlockCyclic, 2> &distribution)
-            -> Dimension<2> {
+        -> Dimension<2> {
         return Dimension<2>{distribution[0].get_num_values(), distribution[1].get_num_values()};
     }
 
     auto get_global_and_local_coloring(const std::vector<rank_id> &global_coloring,
-                                       const BlockCyclic &new_distribution, rank_id rank)
-            -> ColoringReturn {
+                                       const BlockCyclic &new_distribution, const rank_id rank)
+        -> ColoringReturn {
 
         throw_if_different(static_cast<int>(global_coloring.size()),
                            new_distribution.get_num_values(),
                            std::string{"Mismatch between size of global_coloring and "
-                                       "number of values new_distribution"});
+                                   "number of values new_distribution"});
 
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
         auto local_coloring = std::vector<rank_id>{};
@@ -47,7 +47,7 @@ namespace reshuffle::internal {
 
     auto get_global_and_local_coloring(const std::vector<rank_id> &global_coloring,
                                        const std::array<BlockCyclic, 2> &new_distributions,
-                                       rank_id rank) -> ColoringReturn {
+                                       const rank_id rank) -> ColoringReturn {
 
         const auto global_dimensions = Dimension<2>{new_distributions[0].get_num_values(),
                                                     new_distributions[1].get_num_values()};
@@ -55,7 +55,7 @@ namespace reshuffle::internal {
         throw_if_different(static_cast<int>(global_coloring.size()),
                            calc_total_num_values(global_dimensions),
                            std::string{"Mismatch between size of global_coloring and "
-                                       "number of elements global_dimensions"});
+                                   "number of elements global_dimensions"});
 
         const auto blocks = get_blocks_2D(new_distributions);
 
@@ -84,7 +84,7 @@ namespace reshuffle::internal {
     }
 
     auto get_global_coloring(const std::array<BlockCyclic, 2> &data_distributions)
-            -> std::vector<rank_id> {
+        -> std::vector<rank_id> {
         const auto dimensions = get_dimension_from_distribution(data_distributions);
         const auto num_values = calc_total_num_values(dimensions);
         const auto dummy_global_coloring = std::vector<rank_id>(num_values);
@@ -94,7 +94,7 @@ namespace reshuffle::internal {
         return global_coloring;
     }
 
-    auto get_block_dimension(const BlockCyclic &data_distribution, rank_id rank) -> int {
+    auto get_block_dimension(const BlockCyclic &data_distribution, const rank_id rank) -> int {
         const auto blocks = data_distribution.get_blocks();
 
         if (rank >= blocks.size()) { return 0; }
@@ -102,8 +102,9 @@ namespace reshuffle::internal {
         return blocks[rank].get_length();
     }
 
-    auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions, rank_id rank)
-            -> Dimension<2> {
+    auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions,
+                             const rank_id rank)
+        -> Dimension<2> {
         const auto block_pairs = get_blocks_2D(data_distributions);
 
         if (rank >= block_pairs.size()) { return Dimension<2>{{0, 0}}; }

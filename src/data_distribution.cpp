@@ -6,7 +6,7 @@
 
 namespace reshuffle {
     namespace internal {
-        auto get_blocks(int block_size, int num_values) -> std::vector<Block> {
+        auto get_blocks(const int block_size, const int num_values) -> std::vector<Block> {
             std::vector<Block> blocks{};
 
             for (int i = 0; i < num_values; i += block_size) {
@@ -25,7 +25,7 @@ namespace reshuffle {
         }
     }// namespace internal
 
-    BlockCyclic::BlockCyclic(int block_size, int num_values, int num_procs)
+    BlockCyclic::BlockCyclic(const int block_size, const int num_values, const int num_procs)
         : _num_procs(num_procs), _num_values(num_values),
           _blocks(internal::get_blocks(block_size, num_values)) {}
 
@@ -41,7 +41,7 @@ namespace reshuffle {
 
     auto BlockCyclic::get_num_values() const -> int { return _num_values; }
 
-    auto make_block_wise(int num_values, int num_blocks) -> BlockCyclic {
+    auto make_block_wise(const int num_values, const int num_blocks) -> BlockCyclic {
         if (num_blocks == 0) { throw std::invalid_argument("num_blocks cannot be zero"); }
         const int block_size = std::ceil(static_cast<double>(num_values) / num_blocks);
         return BlockCyclic(block_size, num_values, num_blocks);

@@ -38,7 +38,7 @@ int main() {
     return 0;
 }
 
-MPI_Comm simulate_adaptation(int num_active_ranks) {
+MPI_Comm simulate_adaptation(const int num_active_ranks) {
     MPI_Barrier(MPI_COMM_WORLD);
 
     const auto color = is_rank_active(num_active_ranks) ? 1 : MPI_UNDEFINED;
@@ -55,7 +55,7 @@ bool is_root(const MPI_Comm &comm) {
     return rank == 0;
 }
 
-bool is_rank_active(int num_active_ranks) {
+bool is_rank_active(const int num_active_ranks) {
     const auto rank = get_rank();
     return rank < num_active_ranks;
 }

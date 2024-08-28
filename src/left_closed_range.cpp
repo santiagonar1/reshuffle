@@ -7,7 +7,7 @@ namespace reshuffle::internal {
     LeftClosedRange::LeftClosedRange(int left_bound, int right_bound)
         : _interval{left_bound, right_bound} {};
 
-    auto LeftClosedRange::contains(int value) const -> bool {
+    auto LeftClosedRange::contains(const int value) const -> bool {
         return _interval.first <= value and value < _interval.second;
     }
 
