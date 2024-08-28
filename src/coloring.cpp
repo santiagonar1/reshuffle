@@ -109,9 +109,9 @@ namespace reshuffle::internal {
 
         if (rank >= block_pairs.size()) { return Dimension<2>{{0, 0}}; }
 
-        const auto &block_pair = block_pairs[rank];
-        const auto num_values_x = block_pair.first.get_length();
-        const auto num_values_y = block_pair.second.get_length();
+        const auto &[fst, snd] = block_pairs[rank];
+        const auto num_values_x = fst.get_length();
+        const auto num_values_y = snd.get_length();
 
         return Dimension<2>{{num_values_x, num_values_y}};
     }
