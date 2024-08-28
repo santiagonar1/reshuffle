@@ -84,7 +84,7 @@ BENCHMARK(reorder_data)->UseManualTime();
 
 // This reporter does nothing.
 // We can use it to disable output from all but the root process
-class NullReporter : public ::benchmark::BenchmarkReporter {
+class NullReporter final : public ::benchmark::BenchmarkReporter {
 public:
     NullReporter() = default;
     bool ReportContext(const Context &) override { return true; }
