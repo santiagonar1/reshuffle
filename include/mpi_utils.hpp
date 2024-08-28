@@ -46,7 +46,7 @@ namespace reshuffle::internal {
 
     template<concepts::ContiguousContainer C>
     auto gather_in_root(const C &values, const MPI_Comm &comm, const MPI_Datatype &mpi_datatype) {
-        using T = C::value_type;
+        using T = typename C::value_type;
         int num_ranks{};
         int rank{};
 
@@ -71,7 +71,7 @@ namespace reshuffle::internal {
     template<concepts::ContiguousContainer C>
     auto order_by_color(const C &values, const std::vector<rank_id> &coloring,
                         const std::vector<int> &displacements) {
-        using T = C::value_type;
+        using T = typename C::value_type;
         const int num_ranks = static_cast<int>(displacements.size());
 
         if (std::ranges::size(values) != coloring.size()) {
@@ -94,7 +94,7 @@ namespace reshuffle::internal {
     template<concepts::ContiguousContainer C>
     auto scatter_from_root(const C &values, const MPI_Comm &comm, const MPI_Datatype &mpi_datatype,
                            const std::vector<rank_id> &coloring) {
-        using T = C::value_type;
+        using T = typename C::value_type;
         int num_ranks{};
         int rank{};
         const auto using_coloring = not coloring.empty();
@@ -134,7 +134,7 @@ namespace reshuffle::internal {
     template<concepts::ContiguousContainer C>
         requires concepts::FundamentalType<typename C::value_type>
     auto gather_values_in_root(const C &values, const MPI_Comm &comm) {
-        using T = C::value_type;
+        using T = typename C::value_type;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
 
         return gather_in_root(values, comm, mpi_datatype);
@@ -144,7 +144,7 @@ namespace reshuffle::internal {
         requires concepts::FundamentalType<typename C::value_type>
     auto scatter_values_from_root(const C &values, const MPI_Comm &comm,
                                   const std::vector<rank_id> &coloring) {
-        using T = C::value_type;
+        using T = typename C::value_type;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
 
         return scatter_from_root(values, comm, mpi_datatype, coloring);

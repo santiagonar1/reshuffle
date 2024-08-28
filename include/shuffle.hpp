@@ -54,7 +54,7 @@ namespace reshuffle {
         shuffle_with_coloring(const C &values, const MPI_Comm &origin_comm,
                               const MPI_Comm &destiny_comm,
                               const std::vector<rank_id> &local_coloring = std::vector<rank_id>{}) {
-            using T = C::value_type;
+            using T = typename C::value_type;
 
             // TODO: Find way to check if root belongs to both communicators (or change algorithm)
             // Right now root is expected to belong to both origin and destiny communicators. We used
@@ -131,7 +131,7 @@ namespace reshuffle {
     template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
                  const BlockCyclic &old_distribution, const BlockCyclic &new_distribution) {
-        using T = C::value_type;
+        using T = typename C::value_type;
 
         if (not internal::have_same_num_values(old_distribution, new_distribution)) {
             throw std::invalid_argument(
@@ -158,7 +158,7 @@ namespace reshuffle {
     template<concepts::Iterable I>
         requires(not concepts::ContiguousContainer<I>)
     auto shuffle(const I &values, const MPI_Comm &comm) {
-        using T = I::value_type;
+        using T = typename I::value_type;
         const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
         return shuffle(v_values, comm);
     }
@@ -166,7 +166,7 @@ namespace reshuffle {
     template<concepts::Iterable I>
     auto shuffle(const I &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
                  const BlockCyclic &new_distribution) {
-        using T = I::value_type;
+        using T = typename I::value_type;
         const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
         return shuffle(v_values, comm, old_distribution, new_distribution);
     }
@@ -174,7 +174,7 @@ namespace reshuffle {
     template<concepts::Iterable I>
         requires(not concepts::ContiguousContainer<I>)
     auto shuffle(const I &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
-        using T = I::value_type;
+        using T = typename I::value_type;
         const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
         return shuffle(v_values, origin_comm, destiny_comm);
     }
@@ -182,7 +182,7 @@ namespace reshuffle {
     template<concepts::Iterable I>
     auto shuffle(const I &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
                  const BlockCyclic &old_distribution, const BlockCyclic &new_distribution) {
-        using T = I::value_type;
+        using T = typename I::value_type;
         const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
         return shuffle(v_values, origin_comm, destiny_comm, old_distribution, new_distribution);
     }
@@ -191,7 +191,7 @@ namespace reshuffle {
     auto shuffle(const M &values, const MPI_Comm &comm,
                  const std::array<BlockCyclic, 2> &old_distribution,
                  const std::array<BlockCyclic, 2> &new_distribution) {
-        using T = M::value_type::value_type;
+        using T = typename M::value_type::value_type;
 
         if (not internal::have_same_num_values(old_distribution, new_distribution)) {
             throw std::invalid_argument(
@@ -218,7 +218,7 @@ namespace reshuffle {
     auto shuffle(const M &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
                  const std::array<BlockCyclic, 2> &old_distribution,
                  const std::array<BlockCyclic, 2> &new_distribution) {
-        using T = M::value_type::value_type;
+        using T = typename M::value_type::value_type;
 
         if (not internal::have_same_num_values(old_distribution, new_distribution)) {
             throw std::invalid_argument(
