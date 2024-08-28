@@ -3,7 +3,7 @@
 
 #include <data_distribution.hpp>
 
-using ::testing::Eq;
+using testing::Eq;
 
 TEST(BlockCyclic, CreatesBlocksOfGivenSize) {
     constexpr int block_size = 2;

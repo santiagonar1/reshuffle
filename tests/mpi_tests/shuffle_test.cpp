@@ -8,7 +8,7 @@
 #include <list>
 #include <reshuffle.hpp>
 
-using ::testing::Eq;
+using testing::Eq;
 
 class Shuffle : public testing::Test {
 private:

@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <mpi.h>
 
-using ::testing::Ge;
+using testing::Ge;
 
 TEST(DummyMPITest, TestingMPIEnvironmentWorks) {
     int rank{};

@@ -32,7 +32,7 @@ namespace reshuffle {
         template<concepts::ContiguousContainer C>
         auto shuffle_with_coloring(const C &values, const MPI_Comm &comm,
                                    const std::vector<rank_id> &local_coloring = {}) {
-            auto all_coloring = internal::gather_values_in_root(local_coloring, comm);
+            auto all_coloring = gather_values_in_root(local_coloring, comm);
             auto using_coloring = not all_coloring.empty();
             MPI_Bcast(&using_coloring, 1, MPI_CXX_BOOL, 0, comm);
 
@@ -71,12 +71,12 @@ namespace reshuffle {
             auto all_coloring = std::vector<rank_id>{};
             auto all_values = std::vector<T>{};
 
-            if (internal::in_mpi_comm(origin_comm)) {
-                all_coloring = internal::gather_values_in_root(local_coloring, origin_comm);
-                all_values = internal::gather_values_in_root(values, origin_comm);
+            if (in_mpi_comm(origin_comm)) {
+                all_coloring = gather_values_in_root(local_coloring, origin_comm);
+                all_values = gather_values_in_root(values, origin_comm);
             }
 
-            if (not internal::in_mpi_comm(destiny_comm)) { return std::vector<T>{}; }
+            if (not in_mpi_comm(destiny_comm)) { return std::vector<T>{}; }
 
             // We need an additional variable in case rank 0 had no values to start with, but others
             // did, and those provided coloring.

@@ -3,7 +3,7 @@
 
 #include <reshuffle.hpp>
 
-using ::testing::Eq;
+using testing::Eq;
 
 TEST(GetGlobalAndLocalColoring, WorksIn1D) {
     // i.e., rank 0 has elements 1, 3, 4, and rank 1 elements 0, 2.

@@ -36,7 +36,7 @@ namespace reshuffle {
         const auto it = std::ranges::find_if(
                 _blocks, [index](const auto &block) { return block.contains(index); });
         const auto block_id = static_cast<std::size_t>(std::distance(_blocks.begin(), it));
-        return static_cast<reshuffle::rank_id>(block_id % _num_procs);
+        return static_cast<rank_id>(block_id % _num_procs);
     }
 
     auto BlockCyclic::get_num_values() const -> int { return _num_values; }

@@ -3,7 +3,7 @@
 
 #include <dimensions.hpp>
 
-using ::testing::Eq;
+using testing::Eq;
 
 TEST(Dimension, CanBeCreatedFromAListOfIntegers) {
     constexpr auto dimension = reshuffle::internal::Dimension<2>({1, 2});

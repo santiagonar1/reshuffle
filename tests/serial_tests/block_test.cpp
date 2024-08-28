@@ -3,7 +3,7 @@
 
 #include <block.hpp>
 
-using ::testing::Eq;
+using testing::Eq;
 
 TEST(Block, IsALeftClosedInterval) {
     constexpr int left_bound{0};

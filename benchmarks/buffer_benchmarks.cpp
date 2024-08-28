@@ -84,7 +84,7 @@ BENCHMARK(reorder_data)->UseManualTime();
 
 // This reporter does nothing.
 // We can use it to disable output from all but the root process
-class NullReporter final : public ::benchmark::BenchmarkReporter {
+class NullReporter final : public benchmark::BenchmarkReporter {
 public:
     NullReporter() = default;
     bool ReportContext(const Context &) override { return true; }
@@ -98,16 +98,16 @@ int main(int argc, char **argv) {
 
     MPI_Init(&argc, &argv);
 
-    ::benchmark::Initialize(&argc, argv);
+    benchmark::Initialize(&argc, argv);
 
     if (is_root())
     // root process will use a reporter from the usual set provided by
     // ::benchmark
-        ::benchmark::RunSpecifiedBenchmarks();
+        benchmark::RunSpecifiedBenchmarks();
     else {
         // reporting from other processes is disabled by passing a custom reporter
         NullReporter null;
-        ::benchmark::RunSpecifiedBenchmarks(&null);
+        benchmark::RunSpecifiedBenchmarks(&null);
     }
 
     MPI_Finalize();

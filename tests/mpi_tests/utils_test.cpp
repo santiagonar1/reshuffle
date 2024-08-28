@@ -5,7 +5,7 @@
 #include <utils.hpp>
 
 using reshuffle::internal::to_mpi_datatype;
-using ::testing::Eq;
+using testing::Eq;
 
 TEST(ToMPIDatatype, ConvertsDatatypeToMPIDatatype) {
     EXPECT_THAT(to_mpi_datatype<int>(), Eq(MPI_INT));
