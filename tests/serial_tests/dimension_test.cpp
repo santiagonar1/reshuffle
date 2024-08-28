@@ -6,14 +6,14 @@
 using ::testing::Eq;
 
 TEST(Dimension, CanBeCreatedFromAListOfIntegers) {
-    const auto dimension = reshuffle::internal::Dimension<2>({1, 2});
+    constexpr auto dimension = reshuffle::internal::Dimension<2>({1, 2});
 
     EXPECT_THAT(dimension[0], Eq(1));
     EXPECT_THAT(dimension[1], Eq(2));
 }
 
 TEST(Dimension, CanCalculateTheTotalNumberOfValues) {
-    const auto dimension = reshuffle::internal::Dimension<2>({2, 2});
+    constexpr auto dimension = reshuffle::internal::Dimension<2>({2, 2});
 
     EXPECT_THAT(reshuffle::internal::calc_total_num_values(dimension), Eq(4));
 }

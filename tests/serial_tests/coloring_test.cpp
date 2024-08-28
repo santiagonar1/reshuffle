@@ -37,7 +37,7 @@ TEST(GetGlobalAndLocalColoring, WorksIn2D) {
 TEST(GetGlobalAndLocalColoring, ThrowsIfSizeGlobalColoringDoesNotMatchDimensionsDataDistribution) {
     constexpr int num_values_y = 4;
     constexpr int num_values_x = num_values_y;
-    const auto global_coloring = std::vector<reshuffle::rank_id>{};
+    constexpr auto global_coloring = std::vector<reshuffle::rank_id>{};
     const auto data_distributions = std::array{reshuffle::make_block_wise(num_values_x, 1),
                                                reshuffle::make_block_wise(num_values_y, 2)};
 
@@ -49,7 +49,7 @@ TEST(GetGlobalAndLocalColoring, ThrowsIfSizeGlobalColoringDoesNotMatchDimensions
 TEST(GetGlobalAndLocalColoring,
      ThrowsIfNumberOfValuesDataDistributionNotTheSameAsSizeGlobalColoring) {
     constexpr int num_values = 10;
-    const auto global_coloring = std::vector<reshuffle::rank_id>{};
+    constexpr auto global_coloring = std::vector<reshuffle::rank_id>{};
     const auto data_distribution = reshuffle::make_block_wise(num_values, 1);
 
     EXPECT_THROW(reshuffle::internal::get_global_and_local_coloring(global_coloring,
@@ -61,7 +61,7 @@ TEST(GetGlobalAndLocalColoring,
      ThrowsIn2DIfDimensionsDataDistributionNotEqualToSizeGlobalColoring) {
     constexpr int num_values_y = 4;
     constexpr int num_values_x = num_values_y;
-    const auto global_coloring = std::vector<reshuffle::rank_id>{};
+    constexpr auto global_coloring = std::vector<reshuffle::rank_id>{};
     const auto data_distributions = std::array{reshuffle::make_block_wise(num_values_x, 1),
                                                reshuffle::make_block_wise(num_values_y, 2)};
 
