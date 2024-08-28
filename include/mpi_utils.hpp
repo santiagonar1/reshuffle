@@ -133,7 +133,6 @@ namespace reshuffle::internal {
     }
 
     template<concepts::ContiguousContainer C>
-        requires concepts::FundamentalType<typename C::value_type>
     auto gather_values_in_root(const C &values, const MPI_Comm &comm) {
         using T = typename C::value_type;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
@@ -142,7 +141,6 @@ namespace reshuffle::internal {
     }
 
     template<concepts::ContiguousContainer C>
-        requires concepts::FundamentalType<typename C::value_type>
     auto scatter_values_from_root(const C &values, const MPI_Comm &comm,
                                   const std::vector<rank_id> &coloring) {
         using T = typename C::value_type;
