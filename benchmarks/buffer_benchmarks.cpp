@@ -33,7 +33,7 @@ reshuffle::rank_id get_rank();
 constexpr int NUM_ELEMENTS = 2000;
 
 void scatter_buffer_from_root(benchmark::State &state) {
-    auto original_data = is_root() ? std::vector<int>(NUM_ELEMENTS) : std::vector<int>{};
+    const auto original_data = is_root() ? std::vector<int>(NUM_ELEMENTS) : std::vector<int>{};
     const auto initial_global_coloring = std::vector<reshuffle::rank_id>(NUM_ELEMENTS, 0);
 
     double max_elapsed_second{};
@@ -58,7 +58,7 @@ void reorder_data(benchmark::State &state) {
     const auto rank = get_rank();
 
     const auto num_elements_per_rank = get_num_elements_per_rank(NUM_ELEMENTS);
-    auto original_data = std::vector<int>(num_elements_per_rank[rank]);
+    const auto original_data = std::vector<int>(num_elements_per_rank[rank]);
     const auto initial_global_coloring = std::vector<reshuffle::rank_id>(NUM_ELEMENTS, 0);
 
     double max_elapsed_second{};

@@ -64,7 +64,7 @@ namespace reshuffle::internal {
         for (int i = 0; i < global_coloring.size(); ++i) {
             const auto [x_coord, y_coord] = to_2D(global_dimensions[0], i);
 
-            auto it = std::ranges::find_if(blocks, [x_coord, y_coord](const auto &r) {
+            const auto it = std::ranges::find_if(blocks, [x_coord, y_coord](const auto &r) {
                 return r.first.contains(x_coord) and r.second.contains(y_coord);
             });
             new_global_coloring[i] = static_cast<int>(std::distance(blocks.begin(), it));

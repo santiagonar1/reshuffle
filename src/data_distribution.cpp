@@ -16,7 +16,7 @@ namespace reshuffle {
             }
 
             if (not blocks.empty()) {
-                Block last_block{blocks.back().get_left_bound(), num_values};
+                const Block last_block{blocks.back().get_left_bound(), num_values};
                 blocks.pop_back();
                 blocks.push_back(last_block);
             }
@@ -33,7 +33,7 @@ namespace reshuffle {
     auto BlockCyclic::get_blocks() const -> std::vector<Block> { return _blocks; }
 
     auto BlockCyclic::get_rank_id(std::size_t index) const -> rank_id {
-        auto it = std::ranges::find_if(
+        const auto it = std::ranges::find_if(
                 _blocks, [index](const auto &block) { return block.contains(index); });
         const auto block_id = static_cast<std::size_t>(std::distance(_blocks.begin(), it));
         return static_cast<reshuffle::rank_id>(block_id % _num_procs);
