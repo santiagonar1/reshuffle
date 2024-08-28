@@ -45,9 +45,11 @@ namespace reshuffle::internal {
         return displacements;
     }
 
-    template<concepts::ContiguousContainer C>
-    auto gather_in_root(const C &values, const MPI_Comm &comm, const MPI_Datatype &mpi_datatype) {
-        using T = typename C::value_type;
+    template<typename Tc, std::size_t N>
+    auto gather_in_root(const std::span<Tc, N> values, const MPI_Comm &comm,
+                        const MPI_Datatype &mpi_datatype) {
+        using T = std::remove_cv_t<Tc>;
+
         int num_ranks{};
         int rank{};
 
@@ -69,10 +71,10 @@ namespace reshuffle::internal {
         return all_values;
     }
 
-    template<concepts::ContiguousContainer C>
-    auto order_by_color(const C &values, const std::vector<rank_id> &coloring,
+    template<typename Tc, std::size_t N>
+    auto order_by_color(const std::span<Tc, N> values, const std::vector<rank_id> &coloring,
                         const std::vector<int> &displacements) {
-        using T = typename C::value_type;
+        using T = std::remove_cv_t<Tc>;
         const int num_ranks = static_cast<int>(displacements.size());
 
         if (std::ranges::size(values) != coloring.size()) {
@@ -92,10 +94,10 @@ namespace reshuffle::internal {
         return ordered_values;
     }
 
-    template<concepts::ContiguousContainer C>
-    auto scatter_from_root(const C &values, const MPI_Comm &comm, const MPI_Datatype &mpi_datatype,
-                           const std::vector<rank_id> &coloring) {
-        using T = typename C::value_type;
+    template<typename Tc, std::size_t N>
+    auto scatter_from_root(const std::span<Tc, N> values, const MPI_Comm &comm,
+                           const MPI_Datatype &mpi_datatype, const std::vector<rank_id> &coloring) {
+        using T = std::remove_cv_t<Tc>;
         int num_ranks{};
         int rank{};
         const auto using_coloring = not coloring.empty();
@@ -132,18 +134,18 @@ namespace reshuffle::internal {
         return my_values;
     }
 
-    template<concepts::ContiguousContainer C>
-    auto gather_values_in_root(const C &values, const MPI_Comm &comm) {
-        using T = typename C::value_type;
+    template<typename Tc, std::size_t N>
+    auto gather_values_in_root(const std::span<Tc, N> values, const MPI_Comm &comm) {
+        using T = std::remove_cv_t<Tc>;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
 
         return gather_in_root(values, comm, mpi_datatype);
     }
 
-    template<concepts::ContiguousContainer C>
-    auto scatter_values_from_root(const C &values, const MPI_Comm &comm,
+    template<typename Tc, std::size_t N>
+    auto scatter_values_from_root(const std::span<Tc, N> values, const MPI_Comm &comm,
                                   const std::vector<rank_id> &coloring) {
-        using T = typename C::value_type;
+        using T = std::remove_cv_t<Tc>;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
 
         return scatter_from_root(values, comm, mpi_datatype, coloring);

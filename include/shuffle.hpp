@@ -14,8 +14,8 @@
 
 namespace reshuffle {
     namespace internal {
-        template<concepts::ContiguousContainer C>
-        auto split_equally(const C &values, const MPI_Comm &comm) {
+        template<typename Tc, std::size_t N>
+        auto split_equally(const std::span<Tc, N> values, const MPI_Comm &comm) {
             if (not is_root(comm) and not std::ranges::empty(values)) {
                 throw std::invalid_argument("Only the root should have values!");
             }
@@ -29,10 +29,10 @@ namespace reshuffle {
             return internal::scatter_values_from_root(values, comm, new_global_coloring);
         }
 
-        template<concepts::ContiguousContainer C>
-        auto shuffle_with_coloring(const C &values, const MPI_Comm &comm,
+        template<typename Tc, std::size_t N>
+        auto shuffle_with_coloring(const std::span<Tc, N> values, const MPI_Comm &comm,
                                    const std::vector<rank_id> &local_coloring = {}) {
-            auto all_coloring = gather_values_in_root(local_coloring, comm);
+            auto all_coloring = gather_values_in_root(std::span{local_coloring}, comm);
             auto using_coloring = not all_coloring.empty();
             MPI_Bcast(&using_coloring, 1, MPI_CXX_BOOL, 0, comm);
 
@@ -44,17 +44,17 @@ namespace reshuffle {
 
             const auto all_values = internal::gather_values_in_root(values, comm);
 
-            if (not using_coloring) { return internal::split_equally(all_values, comm); }
+            if (not using_coloring) { return internal::split_equally(std::span{all_values}, comm); }
 
-            return internal::scatter_values_from_root(all_values, comm, all_coloring);
+            return internal::scatter_values_from_root(std::span{all_values}, comm, all_coloring);
         }
 
-        template<concepts::ContiguousContainer C>
+        template<typename Tc, std::size_t N>
         auto
-        shuffle_with_coloring(const C &values, const MPI_Comm &origin_comm,
+        shuffle_with_coloring(const std::span<Tc, N> values, const MPI_Comm &origin_comm,
                               const MPI_Comm &destiny_comm,
                               const std::vector<rank_id> &local_coloring = std::vector<rank_id>{}) {
-            using T = typename C::value_type;
+            using T = std::remove_cv_t<Tc>;
 
             // TODO: Find way to check if root belongs to both communicators (or change algorithm)
             // Right now root is expected to belong to both origin and destiny communicators. We used
@@ -72,7 +72,7 @@ namespace reshuffle {
             auto all_values = std::vector<T>{};
 
             if (in_mpi_comm(origin_comm)) {
-                all_coloring = gather_values_in_root(local_coloring, origin_comm);
+                all_coloring = gather_values_in_root(std::span{local_coloring}, origin_comm);
                 all_values = gather_values_in_root(values, origin_comm);
             }
 
@@ -83,9 +83,12 @@ namespace reshuffle {
             auto coloring_provided = not all_coloring.empty();
             MPI_Bcast(&coloring_provided, 1, MPI_CXX_BOOL, 0, destiny_comm);
 
-            if (not coloring_provided) { return internal::split_equally(all_values, destiny_comm); }
+            if (not coloring_provided) {
+                return internal::split_equally(std::span{all_values}, destiny_comm);
+            }
 
-            return internal::scatter_values_from_root(all_values, destiny_comm, all_coloring);
+            return internal::scatter_values_from_root(std::span{all_values}, destiny_comm,
+                                                      all_coloring);
         }
 
         inline auto have_same_num_values(const BlockCyclic &first, const BlockCyclic &second)
@@ -102,7 +105,7 @@ namespace reshuffle {
 
     template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &comm) {
-        return internal::shuffle_with_coloring(values, comm);
+        return internal::shuffle_with_coloring(std::span{values}, comm);
     }
 
     //TODO: Handle exceptions (compare sizes distributions and values).
@@ -119,13 +122,14 @@ namespace reshuffle {
                                                  ? internal::get_global_coloring(new_distribution)
                                                  : std::vector<rank_id>{};
 
-        return internal::scatter_values_from_root(internal::gather_values_in_root(values, comm),
-                                                  comm, new_global_coloring);
+        const auto values_in_root = internal::gather_values_in_root(std::span{values}, comm);
+        return internal::scatter_values_from_root(std::span{values_in_root}, comm,
+                                                  new_global_coloring);
     }
 
     template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
-        return internal::shuffle_with_coloring(values, origin_comm, destiny_comm);
+        return internal::shuffle_with_coloring(std::span{values}, origin_comm, destiny_comm);
     }
 
     template<concepts::ContiguousContainer C>
@@ -142,15 +146,17 @@ namespace reshuffle {
                                                  ? internal::get_global_coloring(new_distribution)
                                                  : std::vector<rank_id>{};
 
-        const auto all_values = internal::in_mpi_comm(origin_comm)
-                                        ? internal::gather_values_in_root(values, origin_comm)
-                                        : std::vector<T>{};
+        const auto all_values =
+                internal::in_mpi_comm(origin_comm)
+                        ? internal::gather_values_in_root(std::span{values}, origin_comm)
+                        : std::vector<T>{};
 
 
-        const auto my_values = internal::in_mpi_comm(destiny_comm)
-                                       ? internal::scatter_values_from_root(
-                                                 all_values, destiny_comm, new_global_coloring)
-                                       : std::vector<T>{};
+        const auto my_values =
+                internal::in_mpi_comm(destiny_comm)
+                        ? internal::scatter_values_from_root(std::span{all_values}, destiny_comm,
+                                                             new_global_coloring)
+                        : std::vector<T>{};
 
         return my_values;
     }
@@ -209,7 +215,7 @@ namespace reshuffle {
 
         auto buffer = std::vector<T>(std::ranges::join_view(values).begin(),
                                      std::ranges::join_view(values).end());
-        buffer = internal::shuffle_with_coloring(buffer, comm, local_coloring);
+        buffer = internal::shuffle_with_coloring(std::span{buffer}, comm, local_coloring);
 
         return internal::to_matrix(buffer, subdomain_dimensions);
     }
@@ -242,7 +248,8 @@ namespace reshuffle {
 
         auto buffer = std::vector<T>(std::ranges::join_view(values).begin(),
                                      std::ranges::join_view(values).end());
-        buffer = internal::shuffle_with_coloring(buffer, origin_comm, destiny_comm, local_coloring);
+        buffer = internal::shuffle_with_coloring(std::span{buffer}, origin_comm, destiny_comm,
+                                                 local_coloring);
 
         return internal::to_matrix(buffer, subdomain_dimensions);
     }
