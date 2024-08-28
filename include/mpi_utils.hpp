@@ -28,10 +28,11 @@ namespace reshuffle::internal {
         return num_ranks;
     }
 
-    inline auto calc_num_values_per_rank(int num_ranks, const std::vector<rank_id> &coloring) {
+    inline auto calc_num_values_per_rank(const int num_ranks,
+                                         const std::vector<rank_id> &coloring) {
         std::vector<int> values_per_rank(num_ranks);
 
-        for (auto rank: coloring) { values_per_rank[rank]++; }
+        for (const auto rank: coloring) { values_per_rank[rank]++; }
 
         return values_per_rank;
     }
@@ -53,14 +54,14 @@ namespace reshuffle::internal {
         MPI_Comm_size(comm, &num_ranks);
         MPI_Comm_rank(comm, &rank);
 
-        int num_values{static_cast<int>(std::ranges::size(values))};
+        const int num_values{static_cast<int>(std::ranges::size(values))};
         std::vector<int> num_values_per_rank(num_ranks);
         MPI_Gather(&num_values, 1, MPI_INT, num_values_per_rank.data(), 1, MPI_INT, 0, comm);
         int total_num_values =
                 std::accumulate(num_values_per_rank.cbegin(), num_values_per_rank.cend(), 0);
 
         auto all_values = is_root(comm) ? std::vector<T>(total_num_values) : std::vector<T>{};
-        auto displacements = calc_displacements(num_values_per_rank);
+        const auto displacements = calc_displacements(num_values_per_rank);
 
         MPI_Gatherv(std::ranges::data(values), num_values, mpi_datatype, all_values.data(),
                     num_values_per_rank.data(), displacements.data(), mpi_datatype, 0, comm);
