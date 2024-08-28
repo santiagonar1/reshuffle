@@ -101,8 +101,8 @@ int main(int argc, char **argv) {
     ::benchmark::Initialize(&argc, argv);
 
     if (is_root())
-        // root process will use a reporter from the usual set provided by
-        // ::benchmark
+    // root process will use a reporter from the usual set provided by
+    // ::benchmark
         ::benchmark::RunSpecifiedBenchmarks();
     else {
         // reporting from other processes is disabled by passing a custom reporter
@@ -131,13 +131,15 @@ std::vector<int> get_num_elements_per_rank(int total_num_elements) {
     const auto rank_id_sum = std::accumulate(seq.begin(), seq.end(), 0);
 
     std::vector<double> weights_per_rank(num_ranks);
-    std::transform(seq.begin(), seq.end(), weights_per_rank.begin(),
-                   [rank_id_sum](auto r) { return static_cast<double>(r) / rank_id_sum; });
+    std::ranges::transform(seq, weights_per_rank.begin(),
+                           [rank_id_sum](auto r) { return static_cast<double>(r) / rank_id_sum; });
 
     std::vector<int> num_elements_per_rank(num_ranks);
-    std::transform(
-            weights_per_rank.begin(), weights_per_rank.end(), num_elements_per_rank.begin(),
-            [total_num_elements](auto w) { return static_cast<int>(total_num_elements * w); });
+    std::ranges::transform(weights_per_rank
+                           , num_elements_per_rank.begin(),
+                           [total_num_elements](auto w) {
+                               return static_cast<int>(total_num_elements * w);
+                           });
 
     const auto num_missing_elements =
             total_num_elements -
