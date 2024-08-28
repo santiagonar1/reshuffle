@@ -75,7 +75,7 @@ namespace reshuffle::internal {
         const int num_ranks = static_cast<int>(displacements.size());
 
         if (std::ranges::size(values) != coloring.size()) {
-            throw std::invalid_argument("Lenght of coloring and values do not match");
+            throw std::invalid_argument("Length of coloring and values do not match");
         }
 
         auto ordered_values = std::vector<T>(std::ranges::size(values));
