@@ -60,9 +60,6 @@ find_package(reshuffle CONFIG REQUIRED)
 target_link_libraries(exec.out PRIVATE reshuffle::reshuffle)
 ```
 
-Also, please include in your `conanfile.txt` `zpp_bits/4.4.20` as requirement. This is a temporal limitation that we
-hope to remove in future versions.
-
 Finally, when you configure your external application do not forget to include the path to `reshuffle`:
 
 ```shell
