@@ -118,13 +118,14 @@ namespace reshuffle {
                     "The old and new distributions have different number of values");
         }
 
-        const auto new_global_coloring = internal::is_root(MPI_COMM_WORLD)
-                                                 ? internal::get_global_coloring(new_distribution)
-                                                 : std::vector<rank_id>{};
+        const auto rank = internal::get_rank_id(comm);
+        const auto old_global_coloring = internal::get_global_coloring(old_distribution);
 
-        const auto values_in_root = internal::gather_values_in_root(std::span{values}, comm);
-        return internal::scatter_values_from_root(std::span{values_in_root}, comm,
-                                                  new_global_coloring);
+        const auto local_coloring =
+                internal::get_global_and_local_coloring(old_global_coloring, new_distribution, rank)
+                        .local_coloring;
+
+        return internal::shuffle_with_coloring(std::span{values}, comm, local_coloring);
     }
 
     template<concepts::ContiguousContainer C>
