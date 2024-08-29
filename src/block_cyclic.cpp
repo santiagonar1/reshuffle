@@ -1,4 +1,4 @@
-#include "data_distribution.hpp"
+#include "block_cyclic.hpp"
 
 #include <algorithm>
 #include <cmath>

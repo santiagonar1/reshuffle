@@ -1,5 +1,5 @@
-#ifndef RESHUFFLE_DATA_DISTRIBUTION_HPP
-#define RESHUFFLE_DATA_DISTRIBUTION_HPP
+#ifndef RESHUFFLE_BLOCK_CYCLIC_HPP
+#define RESHUFFLE_BLOCK_CYCLIC_HPP
 
 #include "block.hpp"
 #include "rank_id.hpp"
@@ -24,4 +24,4 @@ namespace reshuffle {
 }// namespace reshuffle
 
 
-#endif//RESHUFFLE_DATA_DISTRIBUTION_HPP
+#endif//RESHUFFLE_BLOCK_CYCLIC_HPP

@@ -1,7 +1,7 @@
 #ifndef RESHUFFLE_COLORING_HPP
 #define RESHUFFLE_COLORING_HPP
 
-#include "data_distribution.hpp"
+#include "block_cyclic.hpp"
 #include "dimensions.hpp"
 #include "rank_id.hpp"
 #include <array>

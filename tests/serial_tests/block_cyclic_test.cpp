@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <data_distribution.hpp>
+#include <block_cyclic.hpp>
 
 using testing::Eq;
 
