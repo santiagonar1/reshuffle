@@ -31,7 +31,8 @@ namespace reshuffle {
 
         template<typename Tc, std::size_t N>
         auto shuffle_with_coloring(const std::span<Tc, N> values, const MPI_Comm &comm,
-                                   const std::vector<rank_id> &local_coloring = {}) {
+                                   const std::vector<rank_id> &local_coloring = {},
+                                   const std::vector<rank_id> &old_global_coloring = {}) {
             auto all_coloring = gather_values_in_root(std::span{local_coloring}, comm);
             auto using_coloring = not all_coloring.empty();
             MPI_Bcast(&using_coloring, 1, MPI_CXX_BOOL, 0, comm);
@@ -42,7 +43,8 @@ namespace reshuffle {
                         "not match size of data");
             }
 
-            const auto all_values = internal::gather_values_in_root(values, comm);
+            const auto all_values =
+                    internal::gather_values_in_root(values, comm, old_global_coloring);
 
             if (not using_coloring) { return internal::split_equally(std::span{all_values}, comm); }
 
@@ -53,7 +55,8 @@ namespace reshuffle {
         auto
         shuffle_with_coloring(const std::span<Tc, N> values, const MPI_Comm &origin_comm,
                               const MPI_Comm &destiny_comm,
-                              const std::vector<rank_id> &local_coloring = std::vector<rank_id>{}) {
+                              const std::vector<rank_id> &local_coloring = std::vector<rank_id>{},
+                              const std::vector<rank_id> &old_global_coloring = {}) {
             using T = std::remove_cv_t<Tc>;
 
             // TODO: Find way to check if root belongs to both communicators (or change algorithm)
@@ -73,7 +76,7 @@ namespace reshuffle {
 
             if (in_mpi_comm(origin_comm)) {
                 all_coloring = gather_values_in_root(std::span{local_coloring}, origin_comm);
-                all_values = gather_values_in_root(values, origin_comm);
+                all_values = gather_values_in_root(values, origin_comm, old_global_coloring);
             }
 
             if (not in_mpi_comm(destiny_comm)) { return std::vector<T>{}; }
@@ -125,7 +128,8 @@ namespace reshuffle {
                 internal::get_global_and_local_coloring(old_global_coloring, new_distribution, rank)
                         .local_coloring;
 
-        return internal::shuffle_with_coloring(std::span{values}, comm, local_coloring);
+        return internal::shuffle_with_coloring(std::span{values}, comm, local_coloring,
+                                               old_global_coloring);
     }
 
     template<concepts::ContiguousContainer C>
@@ -147,9 +151,11 @@ namespace reshuffle {
                                                  ? internal::get_global_coloring(new_distribution)
                                                  : std::vector<rank_id>{};
 
+        const auto old_global_coloring = internal::get_global_coloring(old_distribution);
         const auto all_values =
                 internal::in_mpi_comm(origin_comm)
-                        ? internal::gather_values_in_root(std::span{values}, origin_comm)
+                        ? internal::gather_values_in_root(std::span{values}, origin_comm,
+                                                          old_global_coloring)
                         : std::vector<T>{};
 
 
@@ -216,7 +222,8 @@ namespace reshuffle {
 
         auto buffer = std::vector<T>(std::ranges::join_view(values).begin(),
                                      std::ranges::join_view(values).end());
-        buffer = internal::shuffle_with_coloring(std::span{buffer}, comm, local_coloring);
+        buffer = internal::shuffle_with_coloring(std::span{buffer}, comm, local_coloring,
+                                                 old_global_coloring);
 
         return internal::to_matrix(buffer, subdomain_dimensions);
     }
@@ -250,7 +257,7 @@ namespace reshuffle {
         auto buffer = std::vector<T>(std::ranges::join_view(values).begin(),
                                      std::ranges::join_view(values).end());
         buffer = internal::shuffle_with_coloring(std::span{buffer}, origin_comm, destiny_comm,
-                                                 local_coloring);
+                                                 local_coloring, old_global_coloring);
 
         return internal::to_matrix(buffer, subdomain_dimensions);
     }

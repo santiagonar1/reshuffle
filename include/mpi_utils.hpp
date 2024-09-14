@@ -1,6 +1,7 @@
 #ifndef RESHUFFLE_MPI_UTILS_HPP
 #define RESHUFFLE_MPI_UTILS_HPP
 
+#include <algorithm>
 #include <mpi.h>
 #include <numeric>
 #include <vector>
@@ -45,13 +46,44 @@ namespace reshuffle::internal {
         return displacements;
     }
 
+    inline auto get_global_index_by_rank(const std::vector<rank_id> &coloring, const int num_ranks)
+            -> std::vector<int> {
+        auto indices_per_rank = std::vector<std::vector<int>>(num_ranks);
+
+        for (int i = 0; i < coloring.size(); i++) {
+            const auto rank_id = coloring[i];
+            indices_per_rank[rank_id].push_back(i);
+        }
+
+        auto indices_flat_view = indices_per_rank | std::views::join;
+        return {indices_flat_view.begin(), indices_flat_view.end()};
+    }
+
+    template<typename T>
+    auto reorder_values(std::vector<T> &values, std::vector<int> indices) -> void {
+        if (values.size() != indices.size()) {
+            throw std::invalid_argument("values.size() != indices.size()");
+        }
+
+        for (int i = 0; i < values.size(); i++) {
+            auto destiny = indices[i];
+            while (destiny != i) {
+                std::swap(values[i], values[destiny]);
+                std::swap(indices[i], indices[destiny]);
+                destiny = indices[i];
+            }
+        }
+    }
+
     template<typename Tc, std::size_t N>
     auto gather_in_root(const std::span<Tc, N> values, const MPI_Comm &comm,
-                        const MPI_Datatype &mpi_datatype) {
+                        const MPI_Datatype &mpi_datatype,
+                        const std::vector<rank_id> &global_coloring) {
         using T = std::remove_cv_t<Tc>;
 
         int num_ranks{};
         int rank{};
+        const auto using_coloring = not global_coloring.empty();
 
         MPI_Comm_size(comm, &num_ranks);
         MPI_Comm_rank(comm, &rank);
@@ -67,6 +99,11 @@ namespace reshuffle::internal {
 
         MPI_Gatherv(std::ranges::data(values), num_values, mpi_datatype, all_values.data(),
                     num_values_per_rank.data(), displacements.data(), mpi_datatype, 0, comm);
+
+        if (using_coloring and is_root(comm)) {
+            const auto indices = get_global_index_by_rank(global_coloring, num_ranks);
+            reorder_values(all_values, indices);
+        }
 
         return all_values;
     }
@@ -123,9 +160,8 @@ namespace reshuffle::internal {
         const auto displacements = internal::calc_displacements(new_num_values_per_rank);
         const int new_num_values = new_num_values_per_rank[rank];
 
-        auto values_to_scatter = using_coloring ? order_by_color(values, coloring, displacements)
-                                                : std::vector<T>(std::ranges::begin(values),
-                                                                 std::ranges::end(values));
+        auto values_to_scatter =
+                std::vector<T>(std::ranges::begin(values), std::ranges::end(values));
 
         auto my_values = std::vector<T>(new_num_values);
         MPI_Scatterv(values_to_scatter.data(), new_num_values_per_rank.data(), displacements.data(),
@@ -135,11 +171,12 @@ namespace reshuffle::internal {
     }
 
     template<typename Tc, std::size_t N>
-    auto gather_values_in_root(const std::span<Tc, N> values, const MPI_Comm &comm) {
+    auto gather_values_in_root(const std::span<Tc, N> values, const MPI_Comm &comm,
+                               const std::vector<rank_id> &global_coloring = {}) {
         using T = std::remove_cv_t<Tc>;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
 
-        return gather_in_root(values, comm, mpi_datatype);
+        return gather_in_root(values, comm, mpi_datatype, global_coloring);
     }
 
     template<typename Tc, std::size_t N>
