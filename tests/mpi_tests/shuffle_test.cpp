@@ -221,7 +221,7 @@ TEST_F(Shuffle,
                  std::invalid_argument);
 }
 
-TEST_F(Shuffle, WorksIn2DVerticalSplitting) {
+TEST_F(Shuffle, WorksMerginAfter2DVerticalSplitting) {
     using Matrix = std::vector<std::vector<int>>;
     using DataDistribution2D = std::array<reshuffle::BlockCyclic, 2>;
 
