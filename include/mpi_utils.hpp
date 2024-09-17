@@ -6,7 +6,6 @@
 #include <numeric>
 #include <vector>
 
-#include "concepts.hpp"
 #include "rank_id.hpp"
 #include "utils.hpp"
 
