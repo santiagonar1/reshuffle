@@ -33,7 +33,8 @@ namespace reshuffle {
         auto shuffle_with_coloring(const std::span<Tc, N> values, const MPI_Comm &comm,
                                    const std::vector<rank_id> &local_coloring = {},
                                    const std::vector<rank_id> &old_global_coloring = {}) {
-            auto all_coloring = gather_values_in_root(std::span{local_coloring}, comm);
+            auto all_coloring =
+                    gather_values_in_root(std::span{local_coloring}, comm, old_global_coloring);
             auto using_coloring = not all_coloring.empty();
             MPI_Bcast(&using_coloring, 1, MPI_CXX_BOOL, 0, comm);
 

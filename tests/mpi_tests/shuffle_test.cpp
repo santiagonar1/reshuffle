@@ -261,3 +261,23 @@ TEST_F(Shuffle, Works2DVerticalSplitting) {
 
     if (is_root()) EXPECT_THAT(matrix, Eq(Matrix{{0}, {2}}));
 }
+
+TEST_F(Shuffle, Works2DFromVerticalToHorizontalSplitting) {
+    using Matrix = std::vector<std::vector<int>>;
+    using DataDistribution2D = std::array<reshuffle::BlockCyclic, 2>;
+
+    constexpr int num_rows = 2;
+    constexpr int num_columns = 2;
+
+    const auto original_matrix = is_root() ? Matrix{{0}, {2}} : Matrix{{1}, {3}};
+    const std::vector<DataDistribution2D> distributions = {
+            {reshuffle::make_block_wise(num_columns, 2), reshuffle::make_block_wise(num_rows, 1)},
+            {reshuffle::make_block_wise(num_columns, 1), reshuffle::make_block_wise(num_rows, 2)}};
+
+    auto matrix = original_matrix;
+    for (int i = 1; i < distributions.size(); ++i) {
+        matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, distributions[i - 1], distributions[i]);
+    }
+
+    if (is_root()) EXPECT_THAT(matrix, Eq(Matrix{{0, 1}}));
+}

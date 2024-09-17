@@ -160,8 +160,9 @@ namespace reshuffle::internal {
         const auto displacements = internal::calc_displacements(new_num_values_per_rank);
         const int new_num_values = new_num_values_per_rank[rank];
 
-        auto values_to_scatter =
-                std::vector<T>(std::ranges::begin(values), std::ranges::end(values));
+        auto values_to_scatter = using_coloring ? order_by_color(values, coloring, displacements)
+                                                : std::vector<T>(std::ranges::begin(values),
+                                                                 std::ranges::end(values));
 
         auto my_values = std::vector<T>(new_num_values);
         MPI_Scatterv(values_to_scatter.data(), new_num_values_per_rank.data(), displacements.data(),
