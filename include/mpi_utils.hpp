@@ -22,7 +22,7 @@ namespace reshuffle::internal {
         return in_mpi_comm(comm) and get_rank_id(comm) == 0;
     }
 
-    inline auto num_ranks(const MPI_Comm &comm) {
+    inline auto get_num_ranks(const MPI_Comm &comm) {
         int num_ranks{};
         MPI_Comm_size(comm, &num_ranks);
         return num_ranks;

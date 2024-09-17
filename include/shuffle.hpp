@@ -21,7 +21,7 @@ namespace reshuffle {
             }
 
             const int num_values = static_cast<int>(values.size());
-            const auto num_ranks = internal::num_ranks(comm);
+            const auto num_ranks = internal::get_num_ranks(comm);
             const auto new_distribution = make_block_wise(num_values, num_ranks);
             const auto new_global_coloring =
                     is_root(comm) ? get_global_coloring(new_distribution) : std::vector<rank_id>{};
