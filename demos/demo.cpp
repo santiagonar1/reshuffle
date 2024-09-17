@@ -13,6 +13,20 @@ bool is_root();
 
 void print(const Matrix &matrix);
 
+Matrix init_matrix(const int num_rows, const int num_columns) {
+    auto matrix = Matrix(num_rows, std::vector<int>(num_columns));
+
+    int counter{};
+    for (auto &row: matrix) {
+        for (auto &value: row) {
+            value = counter;
+            counter++;
+        }
+    }
+
+    return matrix;
+}
+
 int main() {
     constexpr int num_rows = 20;
     constexpr int num_columns = 20;
@@ -32,7 +46,7 @@ int main() {
         throw std::invalid_argument(error_msg);
     }
 
-    auto matrix = is_root() ? Matrix(num_rows, std::vector<int>(num_columns, 3)) : Matrix{};
+    auto matrix = is_root() ? init_matrix(num_rows, num_columns) : Matrix{};
     const auto initial_global_coloring = std::vector<reshuffle::rank_id>(num_values, 0);
     const std::vector<DataDistribution2D> distributions = {
             {reshuffle::make_block_wise(num_columns, 1), reshuffle::make_block_wise(num_rows, 1)},
