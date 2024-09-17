@@ -21,12 +21,12 @@ namespace reshuffle {
             }
 
             const int num_values = static_cast<int>(values.size());
-            const auto num_ranks = internal::get_num_ranks(comm);
+            const auto num_ranks = get_num_ranks(comm);
             const auto new_distribution = make_block_wise(num_values, num_ranks);
             const auto new_global_coloring =
                     is_root(comm) ? get_global_coloring(new_distribution) : std::vector<rank_id>{};
 
-            return internal::scatter_values_from_root(values, comm, new_global_coloring);
+            return scatter_values_from_root(values, comm, new_global_coloring);
         }
 
         template<typename Tc, std::size_t N>
@@ -44,12 +44,11 @@ namespace reshuffle {
                         "not match size of data");
             }
 
-            const auto all_values =
-                    internal::gather_values_in_root(values, comm, old_global_coloring);
+            const auto all_values = gather_values_in_root(values, comm, old_global_coloring);
 
-            if (not using_coloring) { return internal::split_equally(std::span{all_values}, comm); }
+            if (not using_coloring) { return split_equally(std::span{all_values}, comm); }
 
-            return internal::scatter_values_from_root(std::span{all_values}, comm, all_coloring);
+            return scatter_values_from_root(std::span{all_values}, comm, all_coloring);
         }
 
         template<typename Tc, std::size_t N>
@@ -88,11 +87,10 @@ namespace reshuffle {
             MPI_Bcast(&coloring_provided, 1, MPI_CXX_BOOL, 0, destiny_comm);
 
             if (not coloring_provided) {
-                return internal::split_equally(std::span{all_values}, destiny_comm);
+                return split_equally(std::span{all_values}, destiny_comm);
             }
 
-            return internal::scatter_values_from_root(std::span{all_values}, destiny_comm,
-                                                      all_coloring);
+            return scatter_values_from_root(std::span{all_values}, destiny_comm, all_coloring);
         }
 
         inline auto have_same_num_values(const BlockCyclic &first, const BlockCyclic &second)
@@ -141,6 +139,7 @@ namespace reshuffle {
     template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
                  const BlockCyclic &old_distribution, const BlockCyclic &new_distribution) {
+        //TODO: Try to use shuffle_with_coloring here
         using T = typename C::value_type;
 
         if (not internal::have_same_num_values(old_distribution, new_distribution)) {
