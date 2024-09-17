@@ -13,19 +13,7 @@ bool is_root();
 
 void print(const Matrix &matrix);
 
-Matrix init_matrix(const int num_rows, const int num_columns) {
-    auto matrix = Matrix(num_rows, std::vector<int>(num_columns));
-
-    int counter{};
-    for (auto &row: matrix) {
-        for (auto &value: row) {
-            value = counter;
-            counter++;
-        }
-    }
-
-    return matrix;
-}
+Matrix init_matrix(int num_rows, int num_columns);
 
 int main() {
     constexpr int num_rows = 20;
@@ -78,4 +66,18 @@ void print(const Matrix &matrix) {
         for (const auto &value: row) { std::cout << value << " "; }
         std::cout << std::endl;
     }
+}
+
+Matrix init_matrix(const int num_rows, const int num_columns) {
+    auto matrix = Matrix(num_rows, std::vector<int>(num_columns));
+
+    int counter{};
+    for (auto &row: matrix) {
+        for (auto &value: row) {
+            value = counter;
+            counter++;
+        }
+    }
+
+    return matrix;
 }
