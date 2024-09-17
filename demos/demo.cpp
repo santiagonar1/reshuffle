@@ -56,7 +56,7 @@ int main() {
 
 
     for (int i = 1; i < distributions.size(); ++i) {
-        matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, distributions[i-1], distributions[i]);
+        matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, distributions[i - 1], distributions[i]);
         if (is_root()) {
             print(matrix);
             std::cout << "\n";
