@@ -81,7 +81,6 @@ namespace reshuffle::internal {
         using T = std::remove_cv_t<Tc>;
 
         const auto num_ranks = get_num_ranks(comm);
-        const auto rank = get_rank_id(comm);
         const auto using_coloring = not global_coloring.empty();
 
         const int num_values{static_cast<int>(std::ranges::size(values))};
