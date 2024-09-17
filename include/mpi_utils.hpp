@@ -80,12 +80,9 @@ namespace reshuffle::internal {
                         const std::vector<rank_id> &global_coloring) {
         using T = std::remove_cv_t<Tc>;
 
-        int num_ranks{};
-        int rank{};
+        const auto num_ranks = get_num_ranks(comm);
+        const auto rank = get_rank_id(comm);
         const auto using_coloring = not global_coloring.empty();
-
-        MPI_Comm_size(comm, &num_ranks);
-        MPI_Comm_rank(comm, &rank);
 
         const int num_values{static_cast<int>(std::ranges::size(values))};
         std::vector<int> num_values_per_rank(num_ranks);
