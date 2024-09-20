@@ -37,7 +37,7 @@ TEST(GetGlobalAndLocalColoring, WorksIn2D) {
 TEST(GetGlobalAndLocalColoring, ThrowsIfSizeGlobalColoringDoesNotMatchDimensionsDataDistribution) {
     constexpr int num_values_y = 4;
     constexpr int num_values_x = num_values_y;
-    constexpr auto global_coloring = std::vector<reshuffle::rank_id>{};
+    const auto global_coloring = std::vector<reshuffle::rank_id>{};
     const auto data_distributions = std::array{reshuffle::make_block_wise(num_values_x, 1),
                                                reshuffle::make_block_wise(num_values_y, 2)};
 
