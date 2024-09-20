@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <mpi.h>
 #include <ranges>
+#include <span>
 #include <vector>
 
 #include "concepts.hpp"

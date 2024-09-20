@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <mpi.h>
 #include <numeric>
+#include <span>
 #include <vector>
 
 #include "rank_id.hpp"
