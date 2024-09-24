@@ -63,6 +63,14 @@ TEST(MakeBlockWise, CanBeUsedToGetABlockWiseFromBlockCyclic) {
     EXPECT_THAT(blocks, Eq(std::vector{reshuffle::Block{0, 5}, reshuffle::Block{5, 10}}));
 }
 
+TEST(MakeBlockWise, AssignsOneBlockPerProcessor) {
+    constexpr int num_values = 10;
+    constexpr int num_blocks = 2;
+    const auto data_distribution = reshuffle::make_block_wise(num_values, num_blocks);
+
+    EXPECT_THAT(num_blocks, Eq(data_distribution.get_num_ranks()));
+}
+
 TEST(MakeBlockWise, MakesLastBlocksSmallerIfNotDivisible) {
     constexpr int num_values = 11;
     constexpr int num_blocks = 2;
