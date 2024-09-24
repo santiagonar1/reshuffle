@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <numeric>
+#include <ranges>
 #include <stdexcept>
 
 namespace reshuffle {
@@ -23,6 +25,18 @@ namespace reshuffle {
 
             return blocks;
         }
+
+        auto generate_integers(int start, int end_before, int step) -> std::vector<int> {
+            auto range =
+                    std::views::iota(0) |
+                    std::views::transform([start, step](int i) { return start + i * step; }) |
+                    std::views::take_while([end_before](int value) { return value < end_before; });
+
+            std::vector<int> result{};
+            std::ranges::copy(range, std::back_inserter(result));
+
+            return result;
+        }
     }// namespace internal
 
     BlockCyclic::BlockCyclic(const int block_size, const int num_values, const int num_procs)
@@ -40,6 +54,18 @@ namespace reshuffle {
     }
 
     auto BlockCyclic::get_num_values() const -> int { return _num_values; }
+
+    auto BlockCyclic::get_num_values(const int rank_id) const -> int {
+        const auto block_ids =
+                internal::generate_integers(rank_id, static_cast<int>(_blocks.size()), _num_procs);
+
+        const int num_values = std::accumulate(block_ids.begin(), block_ids.end(), 0,
+                                               [this](const int value, const int block_id) {
+                                                   return value + _blocks[block_id].get_length();
+                                               });
+
+        return num_values;
+    }
 
     auto make_block_wise(const int num_values, const int num_blocks) -> BlockCyclic {
         if (num_blocks == 0) { throw std::invalid_argument("num_blocks cannot be zero"); }
