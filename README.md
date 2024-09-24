@@ -10,6 +10,11 @@ means that we still need to improve the performance of the library.
 
 ## Build and Install
 
+### Requirements
+
+- GCC 12 or newer.
+- Conan 2.
+
 ### Build
 
 We use [conan](https://conan.io/) as package manager. Thus, in order to correctly install all the dependencies
