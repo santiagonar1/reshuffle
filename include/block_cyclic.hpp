@@ -14,6 +14,7 @@ namespace reshuffle {
         [[nodiscard]] auto get_num_values() const -> int;
         [[nodiscard]] auto get_num_values(int rank_id) const -> int;
         [[nodiscard]] auto get_rank_id(std::size_t index) const -> rank_id;
+        [[nodiscard]] auto get_num_ranks() const -> int;
 
     private:
         const int _num_procs;

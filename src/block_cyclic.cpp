@@ -53,6 +53,8 @@ namespace reshuffle {
         return static_cast<rank_id>(block_id % _num_procs);
     }
 
+    auto BlockCyclic::get_num_ranks() const -> int { return _num_procs; }
+
     auto BlockCyclic::get_num_values() const -> int { return _num_values; }
 
     auto BlockCyclic::get_num_values(const int rank_id) const -> int {
