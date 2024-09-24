@@ -43,7 +43,6 @@ namespace reshuffle {
         : _num_ranks(num_ranks), _num_values(num_values),
           _blocks(internal::get_blocks(block_size, num_values)) {}
 
-    // TODO: Do we really need to expose this to our users?
     auto BlockCyclic::get_blocks() const -> std::vector<Block> { return _blocks; }
 
     auto BlockCyclic::get_rank_id(std::size_t index) const -> rank_id {
