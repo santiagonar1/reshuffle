@@ -11,9 +11,6 @@
 using testing::Eq;
 
 class Shuffle : public testing::Test {
-private:
-    int _rank{};
-
 protected:
     int _num_ranks{};
     static constexpr int _min_elements_per_rank{10};
@@ -52,6 +49,9 @@ protected:
     [[nodiscard]] bool is_root() const { return _rank == 0; }
 
     [[nodiscard]] bool is_last() const { return _rank == _num_ranks - 1; }
+
+private:
+    int _rank{};
 };
 
 TEST_F(Shuffle, In1DWorksWithAnyIterableContainer) {

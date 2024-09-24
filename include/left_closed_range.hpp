@@ -5,9 +5,6 @@
 
 namespace reshuffle::internal {
     class LeftClosedRange {
-    private:
-        const std::pair<int, int> _interval;
-
     public:
         LeftClosedRange();
         LeftClosedRange(int left_bound, int right_bound);
@@ -18,6 +15,9 @@ namespace reshuffle::internal {
         [[nodiscard]] auto get_length() const -> int;
 
         auto operator==(const LeftClosedRange &other) const -> bool;
+
+    private:
+        const std::pair<int, int> _interval;
     };
 }// namespace reshuffle::internal
 
