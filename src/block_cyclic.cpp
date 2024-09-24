@@ -39,8 +39,8 @@ namespace reshuffle {
         }
     }// namespace internal
 
-    BlockCyclic::BlockCyclic(const int block_size, const int num_values, const int num_procs)
-        : _num_procs(num_procs), _num_values(num_values),
+    BlockCyclic::BlockCyclic(const int block_size, const int num_values, const int num_ranks)
+        : _num_ranks(num_ranks), _num_values(num_values),
           _blocks(internal::get_blocks(block_size, num_values)) {}
 
     // TODO: Do we really need to expose this to our users?
@@ -50,16 +50,16 @@ namespace reshuffle {
         const auto it = std::ranges::find_if(
                 _blocks, [index](const auto &block) { return block.contains(index); });
         const auto block_id = static_cast<std::size_t>(std::distance(_blocks.begin(), it));
-        return static_cast<rank_id>(block_id % _num_procs);
+        return static_cast<rank_id>(block_id % _num_ranks);
     }
 
-    auto BlockCyclic::get_num_ranks() const -> int { return _num_procs; }
+    auto BlockCyclic::get_num_ranks() const -> int { return _num_ranks; }
 
     auto BlockCyclic::get_num_values() const -> int { return _num_values; }
 
     auto BlockCyclic::get_num_values(const int rank_id) const -> int {
         const auto block_ids =
-                internal::generate_integers(rank_id, static_cast<int>(_blocks.size()), _num_procs);
+                internal::generate_integers(rank_id, static_cast<int>(_blocks.size()), _num_ranks);
 
         const int num_values = std::accumulate(block_ids.begin(), block_ids.end(), 0,
                                                [this](const int value, const int block_id) {

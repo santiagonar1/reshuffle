@@ -8,7 +8,7 @@
 namespace reshuffle {
     class BlockCyclic {
     public:
-        explicit BlockCyclic(int block_size, int num_values, int num_procs);
+        explicit BlockCyclic(int block_size, int num_values, int num_ranks);
 
         [[nodiscard]] auto get_blocks() const -> std::vector<Block>;
         [[nodiscard]] auto get_num_values() const -> int;
@@ -17,7 +17,7 @@ namespace reshuffle {
         [[nodiscard]] auto get_num_ranks() const -> int;
 
     private:
-        const int _num_procs;
+        const int _num_ranks;
         const int _num_values;
         const std::vector<Block> _blocks;
     };
