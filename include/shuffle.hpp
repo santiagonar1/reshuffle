@@ -217,7 +217,7 @@ namespace reshuffle {
         const auto rank = internal::get_rank_id(comm);
         const auto num_values = internal::num_elements(values);
 
-        if (num_values != internal::number_of_values_in_rank(old_distribution, rank)) {
+        if (num_values != internal::num_values_in_rank(old_distribution, rank)) {
             throw std::invalid_argument(
                     "Number of values provided not consistent with current distribution");
         }
@@ -253,7 +253,7 @@ namespace reshuffle {
             const auto rank = internal::get_rank_id(origin_comm);
             const auto num_values = internal::num_elements(values);
 
-            if (num_values != internal::number_of_values_in_rank(old_distribution, rank)) {
+            if (num_values != internal::num_values_in_rank(old_distribution, rank)) {
                 throw std::invalid_argument(
                         "Number of values provided not consistent with current distribution");
             }

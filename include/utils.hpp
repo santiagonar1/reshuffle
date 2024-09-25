@@ -50,10 +50,10 @@ namespace reshuffle::internal {
     [[nodiscard]] auto have_same_num_values(const std::array<BlockCyclic, 2> &first,
                                             const std::array<BlockCyclic, 2> &second) -> bool;
 
-    [[nodiscard]] auto number_of_values_in_rank(const std::array<BlockCyclic, 2> &distribution,
-                                                rank_id rank) -> int;
+    [[nodiscard]] auto num_values_in_rank(const std::array<BlockCyclic, 2> &distribution,
+                                          rank_id rank) -> int;
 
-    [[nodiscard]] auto number_of_ranks(const std::array<BlockCyclic, 2> &distribution) -> int;
+    [[nodiscard]] auto num_ranks(const std::array<BlockCyclic, 2> &distribution) -> int;
 }// namespace reshuffle::internal
 
 #endif//RESHUFFLE_UTILS_HPP

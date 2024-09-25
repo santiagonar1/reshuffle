@@ -13,7 +13,7 @@ namespace reshuffle::internal {
                have_same_num_values(first[1], second[1]);
     }
 
-    auto number_of_ranks(const std::array<BlockCyclic, 2> &distribution) -> int {
+    auto num_ranks(const std::array<BlockCyclic, 2> &distribution) -> int {
         auto num_ranks_per_dimension =
                 distribution |
                 std::views::transform([](const BlockCyclic &d) { return d.get_num_ranks(); });
@@ -21,12 +21,12 @@ namespace reshuffle::internal {
                            std::multiplies());
     }
 
-    auto number_of_values_in_rank(const std::array<BlockCyclic, 2> &distribution,
-                                  const rank_id rank) -> int {
+    auto num_values_in_rank(const std::array<BlockCyclic, 2> &distribution, const rank_id rank)
+            -> int {
 
         if (rank < 0) { throw std::invalid_argument("rank cannot be negative"); }
 
-        if (rank >= number_of_ranks(distribution)) { return 0; }
+        if (rank >= num_ranks(distribution)) { return 0; }
 
         auto values_per_dimension =
                 distribution | std::views::transform([rank](const BlockCyclic &d) {

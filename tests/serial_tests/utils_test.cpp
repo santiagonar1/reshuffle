@@ -59,15 +59,15 @@ TEST(HaveSameNumValues, WorksFor2DArrays) {
     EXPECT_FALSE(have_same_num_values(d1, d3));
 }
 
-TEST(NumberOfValuesInRank, ReturnsTheNumberOfValuesInARankFor2DDistribution) {
+TEST(NumValuesInRank, ReturnsTheNumberOfValuesInARankFor2DDistribution) {
     constexpr auto num_columns = 2;
     constexpr auto num_rows = 2;
 
     const auto distribution = std::array{reshuffle::make_block_wise(num_columns, 2),
                                          reshuffle::make_block_wise(num_rows, 1)};
 
-    EXPECT_THAT(number_of_values_in_rank(distribution, 0), Eq(2));
-    EXPECT_THAT(number_of_values_in_rank(distribution, 1), Eq(2));
+    EXPECT_THAT(num_values_in_rank(distribution, 0), Eq(2));
+    EXPECT_THAT(num_values_in_rank(distribution, 1), Eq(2));
 }
 
 TEST(NumberOfValuesInRank, Returns0ForOutOfScopeRank) {
@@ -77,20 +77,20 @@ TEST(NumberOfValuesInRank, Returns0ForOutOfScopeRank) {
     const auto distribution = std::array{reshuffle::make_block_wise(num_columns, 2),
                                          reshuffle::make_block_wise(num_rows, 1)};
 
-    EXPECT_THAT(number_of_values_in_rank(distribution, 100), Eq(0));
+    EXPECT_THAT(num_values_in_rank(distribution, 100), Eq(0));
 }
 
-TEST(NumberOfValuesInRank, ThrowsIfNegativeRankIsPassed) {
+TEST(NumValuesInRank, ThrowsIfNegativeRankIsPassed) {
     constexpr auto num_columns = 2;
     constexpr auto num_rows = 2;
 
     const auto distribution = std::array{reshuffle::make_block_wise(num_columns, 2),
                                          reshuffle::make_block_wise(num_rows, 1)};
 
-    EXPECT_THROW(auto _ = number_of_values_in_rank(distribution, -1), std::invalid_argument);
+    EXPECT_THROW(auto _ = num_values_in_rank(distribution, -1), std::invalid_argument);
 }
 
-TEST(NumberOfRanks, ReturnsTheTotalNumberOfRanksIn2DDistribution) {
+TEST(NumRanks, ReturnsTheTotalNumberOfRanksIn2DDistribution) {
     constexpr auto num_ranks_x = 2;
     constexpr auto num_ranks_y = 3;
     constexpr auto num_columns = 6;
@@ -99,7 +99,7 @@ TEST(NumberOfRanks, ReturnsTheTotalNumberOfRanksIn2DDistribution) {
     const auto distribution = std::array{reshuffle::make_block_wise(num_columns, num_ranks_x),
                                          reshuffle::make_block_wise(num_rows, num_ranks_y)};
 
-    EXPECT_THAT(number_of_ranks(distribution), Eq(num_ranks_x * num_ranks_y));
+    EXPECT_THAT(num_ranks(distribution), Eq(num_ranks_x * num_ranks_y));
 }
 
 TEST(NumElements, ReturnsTheNumberOfElementsOfA2DMatrix) {
