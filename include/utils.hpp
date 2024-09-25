@@ -33,10 +33,11 @@ namespace reshuffle::internal {
         return matrix;
     }
 
-    auto have_same_num_values(const BlockCyclic &first, const BlockCyclic &second) -> bool;
+    [[nodiscard]] auto have_same_num_values(const BlockCyclic &first, const BlockCyclic &second)
+            -> bool;
 
-    auto have_same_num_values(const std::array<BlockCyclic, 2> &first,
-                              const std::array<BlockCyclic, 2> &second) -> bool;
+    [[nodiscard]] auto have_same_num_values(const std::array<BlockCyclic, 2> &first,
+                                            const std::array<BlockCyclic, 2> &second) -> bool;
 }// namespace reshuffle::internal
 
 #endif//RESHUFFLE_UTILS_HPP
