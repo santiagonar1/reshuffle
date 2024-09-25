@@ -246,21 +246,19 @@ TEST_F(Shuffle,
 
 TEST_F(Shuffle, WorksMerginAfter2DVerticalSplitting) {
     using Matrix = std::vector<std::vector<int>>;
-    using DataDistribution2D = std::array<reshuffle::BlockCyclic, 2>;
 
     constexpr int num_rows = 2;
     constexpr int num_columns = 2;
 
     const auto original_matrix = is_root() ? Matrix{{0}, {2}} : Matrix{{1}, {3}};
-    const std::vector<DataDistribution2D> distributions = {
-            {reshuffle::make_block_wise(num_columns, 2), reshuffle::make_block_wise(num_rows, 1)},
-            {reshuffle::make_block_wise(num_columns, 1), reshuffle::make_block_wise(num_rows, 1)}};
 
+    const auto old_distribution = std::array{reshuffle::make_block_wise(num_columns, 2),
+                                             reshuffle::make_block_wise(num_rows, 1)};
+    const auto new_distribution = std::array{reshuffle::make_block_wise(num_columns, 1),
+                                             reshuffle::make_block_wise(num_rows, 1)};
 
-    auto matrix = original_matrix;
-    for (int i = 1; i < distributions.size(); ++i) {
-        matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, distributions[i - 1], distributions[i]);
-    }
+    const auto matrix =
+            reshuffle::shuffle(original_matrix, MPI_COMM_WORLD, old_distribution, new_distribution);
 
     if (is_root()) EXPECT_THAT(matrix, Eq(Matrix{{0, 1}, {2, 3}}));
 }
