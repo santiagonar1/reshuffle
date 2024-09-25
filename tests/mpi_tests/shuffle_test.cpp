@@ -124,6 +124,31 @@ TEST_F(Shuffle, ThrowsIfNumberOfValuesPassedInconsistentWithCurrentDistribution)
                         "Number of values provided not consistent with current distribution"));
 }
 
+TEST_F(Shuffle, ThrowsIfRankOnlyInDestinyContainsData) {
+    const auto old_distribution = reshuffle::make_block_wise(_total_num_values, 1);
+    const auto new_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
+
+    const auto shuffle_different_comm = [this] {
+        auto _ = reshuffle::shuffle(std::vector{1}, _comm_rank_1, MPI_COMM_WORLD);
+    };
+
+    const auto shuffle_different_comm_with_distributions = [old_distribution, new_distribution,
+                                                            this] {
+        auto _ = reshuffle::shuffle(std::vector{1}, _comm_rank_1, MPI_COMM_WORLD, old_distribution,
+                                    new_distribution);
+    };
+
+    if (is_root()) {
+        EXPECT_THAT(shuffle_different_comm,
+                    ThrowsMessage<std::invalid_argument>(
+                            "A rank only in destiny communicator contains data"));
+
+        EXPECT_THAT(shuffle_different_comm_with_distributions,
+                    ThrowsMessage<std::invalid_argument>(
+                            "A rank only in destiny communicator contains data"));
+    }
+}
+
 TEST_F(Shuffle, WorksIn2DButDataDistributionMustBeUsed) {
     using Matrix = std::vector<std::vector<int>>;
     constexpr int num_values_x = 4;
@@ -184,6 +209,29 @@ TEST_F(Shuffle, ThrowsIn2DIfNumberOfValuesPassedInconsistentWithCurrentDistribut
         EXPECT_THAT(shuffle_different_comm,
                     ThrowsMessage<std::invalid_argument>(
                             "Number of values provided not consistent with current distribution"));
+    }
+}
+
+TEST_F(Shuffle, ThrowsIn2DIfRankOnlyInDestinyContainsData) {
+    using Matrix = std::vector<std::vector<int>>;
+    constexpr int num_values_x = 4;
+    constexpr int num_values_y = 10;
+
+    const auto old_distribution = std::array{reshuffle::make_block_wise(num_values_x, 1),
+                                             reshuffle::make_block_wise(num_values_y, 1)};
+    const auto new_distribution = std::array{reshuffle::make_block_wise(num_values_x, 2),
+                                             reshuffle::make_block_wise(num_values_y, 1)};
+
+    const auto shuffle_different_comm_with_distributions = [old_distribution, new_distribution,
+                                                            this] {
+        auto _ = reshuffle::shuffle(Matrix{{1}}, _comm_rank_1, MPI_COMM_WORLD, old_distribution,
+                                    new_distribution);
+    };
+
+    if (is_root()) {
+        EXPECT_THAT(shuffle_different_comm_with_distributions,
+                    ThrowsMessage<std::invalid_argument>(
+                            "A rank only in destiny communicator contains data"));
     }
 }
 

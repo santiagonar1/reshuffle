@@ -65,7 +65,6 @@ namespace reshuffle {
             // to have a check for this, but it was faulty. The largest issue was that it was using
             // MPI_COMM_WORLD, which did not work with Sessions and PSets.
 
-            // TODO: What happens if both origin and destiny have data?
             const auto using_coloring = not local_coloring.empty();
             if (using_coloring and local_coloring.size() != std::ranges::size(values)) {
                 throw std::invalid_argument("Coloring being used, but size of local_coloring "
@@ -128,6 +127,13 @@ namespace reshuffle {
 
     template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
+        const auto is_rank_only_in_destiny_comm =
+                internal::in_mpi_comm(destiny_comm) and not internal::in_mpi_comm(origin_comm);
+
+        if (is_rank_only_in_destiny_comm and not std::ranges::empty(values)) {
+            throw std::invalid_argument("A rank only in destiny communicator contains data");
+        }
+
         return internal::shuffle_with_coloring(std::span{values}, origin_comm, destiny_comm);
     }
 
@@ -140,6 +146,13 @@ namespace reshuffle {
         if (not internal::have_same_num_values(old_distribution, new_distribution)) {
             throw std::invalid_argument(
                     "The old and new distributions have different number of values");
+        }
+
+        const auto is_rank_only_in_destiny_comm =
+                internal::in_mpi_comm(destiny_comm) and not internal::in_mpi_comm(origin_comm);
+
+        if (is_rank_only_in_destiny_comm and not std::ranges::empty(values)) {
+            throw std::invalid_argument("A rank only in destiny communicator contains data");
         }
 
         if (internal::in_mpi_comm(origin_comm)) {
@@ -247,6 +260,13 @@ namespace reshuffle {
         if (not internal::have_same_num_values(old_distribution, new_distribution)) {
             throw std::invalid_argument(
                     "The old and new distributions have different number of values");
+        }
+
+        const auto is_rank_only_in_destiny_comm =
+                internal::in_mpi_comm(destiny_comm) and not internal::in_mpi_comm(origin_comm);
+
+        if (is_rank_only_in_destiny_comm and not std::ranges::empty(values)) {
+            throw std::invalid_argument("A rank only in destiny communicator contains data");
         }
 
         if (internal::in_mpi_comm(origin_comm)) {
