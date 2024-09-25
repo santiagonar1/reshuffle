@@ -5,7 +5,8 @@
 
 namespace reshuffle::internal {
     template<typename T>
-    auto combine(const std::vector<T> &first, const std::vector<T> &second) {
+    auto combine(const std::vector<T> &first, const std::vector<T> &second)
+            -> std::vector<std::pair<T, T>> {
         std::vector<std::pair<T, T>> combination{};
         for (const auto &v2: second) {
             for (const auto &v1: first) { combination.emplace_back(v1, v2); }
@@ -15,7 +16,8 @@ namespace reshuffle::internal {
     }
 
     template<typename T>
-    auto to_matrix(const std::vector<T> &values, const Dimension<2> &dimension) {
+    auto to_matrix(const std::vector<T> &values, const Dimension<2> &dimension)
+            -> std::vector<std::vector<T>> {
         using Matrix = std::vector<std::vector<T>>;
 
         auto matrix = Matrix(dimension[1], std::vector<T>(dimension[0]));
