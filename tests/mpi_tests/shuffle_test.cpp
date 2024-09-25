@@ -230,14 +230,14 @@ TEST_F(Shuffle, ThrowsIfDataDistributionsDoNotHaveSameNumberOfValuesDifferentCom
 TEST_F(Shuffle,
        ThrowsIn2DIfDataDistributionsDoNotHaveSameNumberOfValuesOnEachDimensionDifferentCommunicators) {
     using Matrix = std::vector<std::vector<int>>;
-    constexpr int num_values_x = 4;
-    constexpr int num_values_y = 10;
+    constexpr int num_columns = 4;
+    constexpr int num_rows = 10;
 
-    auto m = is_root() ? Matrix(num_values_y, std::vector(num_values_x, 0)) : Matrix();
-    const auto old_distribution = std::array{reshuffle::make_block_wise(num_values_x, 1),
-                                             reshuffle::make_block_wise(num_values_y, 1)};
-    const auto new_distribution = std::array{reshuffle::make_block_wise(num_values_x + 1, 2),
-                                             reshuffle::make_block_wise(num_values_y, 1)};
+    auto m = is_root() ? Matrix(num_rows, std::vector(num_columns, 0)) : Matrix();
+    const auto old_distribution = std::array{reshuffle::make_block_wise(num_columns, 1),
+                                             reshuffle::make_block_wise(num_rows, 1)};
+    const auto new_distribution = std::array{reshuffle::make_block_wise(num_columns + 1, 2),
+                                             reshuffle::make_block_wise(num_rows, 1)};
 
     EXPECT_THROW(m = reshuffle::shuffle(m, _comm_rank_0, MPI_COMM_WORLD, old_distribution,
                                         new_distribution),
