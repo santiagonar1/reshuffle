@@ -62,6 +62,15 @@ TEST(BlockCyclic, GetNumValuesReturns0IfRankIdEqualOrLargenThanNumRanks) {
     EXPECT_THAT(data_distribution.get_num_values(num_ranks), 0);
 }
 
+TEST(BlockCyclic, ThrowsIfInvalidRankIdUsedForGetNumValues) {
+    constexpr int block_size = 2;
+    constexpr int num_values = 7;
+    constexpr int num_ranks = 3;
+    const auto data_distribution = reshuffle::BlockCyclic(block_size, num_values, num_ranks);
+
+    EXPECT_THROW(auto _ = data_distribution.get_num_values(-1), std::invalid_argument);
+}
+
 TEST(MakeBlockWise, CanBeUsedToGetABlockWiseFromBlockCyclic) {
     constexpr int num_values = 10;
     constexpr int num_blocks = 2;
