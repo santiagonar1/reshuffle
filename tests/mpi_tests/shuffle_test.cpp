@@ -100,6 +100,29 @@ TEST_F(Shuffle, ThrowsIfDataDistributionsDoNotHaveSameNumberOfValues) {
                  std::invalid_argument);
 }
 
+TEST_F(Shuffle, ThrowsIfNumberOfValuesPassedInconsistentWithCurrentDistribution) {
+    const auto old_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
+    const auto new_distribution = reshuffle::make_block_wise(_total_num_values, 1);
+
+    const auto shuffle_call = [old_distribution, new_distribution] {
+        auto new_values = reshuffle::shuffle(std::vector<int>{}, MPI_COMM_WORLD, old_distribution,
+                                             new_distribution);
+    };
+
+    const auto shuffle_different_comm = [old_distribution, new_distribution, this] {
+        auto new_values = reshuffle::shuffle(std::vector<int>{}, MPI_COMM_WORLD, _comm_rank_0,
+                                             old_distribution, new_distribution);
+    };
+
+    EXPECT_THAT(shuffle_call,
+                ::testing::ThrowsMessage<std::invalid_argument>(
+                        "Number of values provided not consistent with current distribution"));
+
+    EXPECT_THAT(shuffle_different_comm,
+                ::testing::ThrowsMessage<std::invalid_argument>(
+                        "Number of values provided not consistent with current distribution"));
+}
+
 TEST_F(Shuffle, WorksIn2DButDataDistributionMustBeUsed) {
     using Matrix = std::vector<std::vector<int>>;
     constexpr int num_values_x = 4;

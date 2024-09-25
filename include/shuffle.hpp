@@ -111,7 +111,6 @@ namespace reshuffle {
         return internal::shuffle_with_coloring(std::span{values}, comm);
     }
 
-    //TODO: Handle exceptions (compare sizes distributions and values).
     template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
                  const BlockCyclic &new_distribution) {
@@ -122,6 +121,12 @@ namespace reshuffle {
         }
 
         const auto rank = internal::get_rank_id(comm);
+
+        if (old_distribution.get_num_values(rank) != std::ranges::size(values)) {
+            throw std::invalid_argument(
+                    "Number of values provided not consistent with current distribution");
+        }
+
         const auto old_global_coloring = internal::get_global_coloring(old_distribution);
 
         const auto local_coloring =
@@ -146,6 +151,14 @@ namespace reshuffle {
         if (not internal::have_same_num_values(old_distribution, new_distribution)) {
             throw std::invalid_argument(
                     "The old and new distributions have different number of values");
+        }
+
+        if (internal::in_mpi_comm(origin_comm)) {
+            const auto rank = internal::get_rank_id(origin_comm);
+            if (old_distribution.get_num_values(rank) != std::ranges::size(values)) {
+                throw std::invalid_argument(
+                        "Number of values provided not consistent with current distribution");
+            }
         }
 
         const auto new_global_coloring = internal::is_root(destiny_comm)
