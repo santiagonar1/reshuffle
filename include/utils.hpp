@@ -2,7 +2,6 @@
 #define RESHUFFLE_UTILS_HPP
 
 #include <mpi.h>
-#include <ranges>
 
 #include "dimensions.hpp"
 
