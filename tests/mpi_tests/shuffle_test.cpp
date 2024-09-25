@@ -156,6 +156,37 @@ TEST_F(Shuffle, ThrowsIn2DIfDataDistributionsDoNotHaveSameNumberOfValuesOnEachDi
                  std::invalid_argument);
 }
 
+TEST_F(Shuffle, ThrowsIn2DIfNumberOfValuesPassedInconsistentWithCurrentDistribution) {
+    using Matrix = std::vector<std::vector<int>>;
+    constexpr int num_values_x = 4;
+    constexpr int num_values_y = 10;
+
+    const auto old_distribution = std::array{reshuffle::make_block_wise(num_values_x, 1),
+                                             reshuffle::make_block_wise(num_values_y, 1)};
+    const auto new_distribution = std::array{reshuffle::make_block_wise(num_values_x, 2),
+                                             reshuffle::make_block_wise(num_values_y, 1)};
+
+    const auto shuffle_call = [old_distribution, new_distribution] {
+        auto new_values =
+                reshuffle::shuffle(Matrix{}, MPI_COMM_WORLD, old_distribution, new_distribution);
+    };
+
+    const auto shuffle_different_comm = [old_distribution, new_distribution, this] {
+        auto new_values = reshuffle::shuffle(Matrix{}, MPI_COMM_WORLD, _comm_rank_0,
+                                             old_distribution, new_distribution);
+    };
+
+    if (is_root()) {
+        EXPECT_THAT(shuffle_call,
+                    ThrowsMessage<std::invalid_argument>(
+                            "Number of values provided not consistent with current distribution"));
+
+        EXPECT_THAT(shuffle_different_comm,
+                    ThrowsMessage<std::invalid_argument>(
+                            "Number of values provided not consistent with current distribution"));
+    }
+}
+
 TEST_F(Shuffle, CanBePassedDifferentCommunicators) {
     const auto new_values = reshuffle::shuffle(_values_only_in_root, _comm_rank_0, MPI_COMM_WORLD);
     EXPECT_THAT(new_values, Eq(_values));

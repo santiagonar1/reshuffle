@@ -215,6 +215,17 @@ namespace reshuffle {
         }
 
         const auto rank = internal::get_rank_id(comm);
+        int num_values{};
+
+        if (not std::ranges::empty(values)) {
+            num_values = std::ranges::size(values) * std::ranges::size(values[0]);
+        }
+
+        if (num_values != internal::number_of_values_in_rank(old_distribution, rank)) {
+            throw std::invalid_argument(
+                    "Number of values provided not consistent with current distribution");
+        }
+
         const auto old_global_coloring = internal::get_global_coloring(old_distribution);
 
         const auto local_coloring =
@@ -240,6 +251,20 @@ namespace reshuffle {
         if (not internal::have_same_num_values(old_distribution, new_distribution)) {
             throw std::invalid_argument(
                     "The old and new distributions have different number of values");
+        }
+
+        if (internal::in_mpi_comm(origin_comm)) {
+            const auto rank = internal::get_rank_id(origin_comm);
+            int num_values{};
+
+            if (not std::ranges::empty(values)) {
+                num_values = std::ranges::size(values) * std::ranges::size(values[0]);
+            }
+
+            if (num_values != internal::number_of_values_in_rank(old_distribution, rank)) {
+                throw std::invalid_argument(
+                        "Number of values provided not consistent with current distribution");
+            }
         }
 
         const auto old_global_coloring = internal::get_global_coloring(old_distribution);
