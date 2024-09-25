@@ -13,7 +13,7 @@ namespace reshuffle::internal {
     }
 
     auto get_blocks_2D(const std::array<BlockCyclic, 2> &data_distributions)
-        -> std::vector<std::pair<LeftClosedRange, LeftClosedRange>> {
+            -> std::vector<std::pair<LeftClosedRange, LeftClosedRange>> {
         const auto blocks_x = data_distributions[0].get_blocks();
         const auto blocks_y = data_distributions[1].get_blocks();
         return combine(blocks_x, blocks_y);
@@ -24,18 +24,18 @@ namespace reshuffle::internal {
     }
 
     auto get_dimension_from_distribution(const std::array<BlockCyclic, 2> &distribution)
-        -> Dimension<2> {
+            -> Dimension<2> {
         return Dimension<2>{distribution[0].get_num_values(), distribution[1].get_num_values()};
     }
 
     auto get_global_and_local_coloring(const std::vector<rank_id> &global_coloring,
                                        const BlockCyclic &new_distribution, const rank_id rank)
-        -> ColoringReturn {
+            -> ColoringReturn {
 
         throw_if_different(static_cast<int>(global_coloring.size()),
                            new_distribution.get_num_values(),
                            std::string{"Mismatch between size of global_coloring and "
-                                   "number of values new_distribution"});
+                                       "number of values new_distribution"});
 
         auto new_global_coloring = std::vector<rank_id>(global_coloring.size());
         auto local_coloring = std::vector<rank_id>{};
@@ -57,7 +57,7 @@ namespace reshuffle::internal {
         throw_if_different(static_cast<int>(global_coloring.size()),
                            calc_total_num_values(global_dimensions),
                            std::string{"Mismatch between size of global_coloring and "
-                                   "number of elements global_dimensions"});
+                                       "number of elements global_dimensions"});
 
         const auto blocks = get_blocks_2D(new_distributions);
 
@@ -86,7 +86,7 @@ namespace reshuffle::internal {
     }
 
     auto get_global_coloring(const std::array<BlockCyclic, 2> &data_distributions)
-        -> std::vector<rank_id> {
+            -> std::vector<rank_id> {
         const auto dimensions = get_dimension_from_distribution(data_distributions);
         const auto num_values = calc_total_num_values(dimensions);
         const auto dummy_global_coloring = std::vector<rank_id>(num_values);
@@ -105,8 +105,7 @@ namespace reshuffle::internal {
     }
 
     auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions,
-                             const rank_id rank)
-        -> Dimension<2> {
+                             const rank_id rank) -> Dimension<2> {
         const auto block_pairs = get_blocks_2D(data_distributions);
 
         if (rank >= block_pairs.size()) { return Dimension<2>{{0, 0}}; }
