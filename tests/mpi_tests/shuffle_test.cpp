@@ -9,6 +9,7 @@
 #include <reshuffle.hpp>
 
 using testing::Eq;
+using testing::ThrowsMessage;
 
 class Shuffle : public testing::Test {
 protected:
@@ -115,11 +116,11 @@ TEST_F(Shuffle, ThrowsIfNumberOfValuesPassedInconsistentWithCurrentDistribution)
     };
 
     EXPECT_THAT(shuffle_call,
-                ::testing::ThrowsMessage<std::invalid_argument>(
+                ThrowsMessage<std::invalid_argument>(
                         "Number of values provided not consistent with current distribution"));
 
     EXPECT_THAT(shuffle_different_comm,
-                ::testing::ThrowsMessage<std::invalid_argument>(
+                ThrowsMessage<std::invalid_argument>(
                         "Number of values provided not consistent with current distribution"));
 }
 
