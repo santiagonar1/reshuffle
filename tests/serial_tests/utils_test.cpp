@@ -58,3 +58,34 @@ TEST(HaveSameNumValues, WorksFor2DArrays) {
     EXPECT_TRUE(have_same_num_values(d1, d2));
     EXPECT_FALSE(have_same_num_values(d1, d3));
 }
+
+TEST(NumberOfValuesInRank, ReturnsTheNumberOfValuesInARankFor2DDistribution) {
+    constexpr auto num_columns = 2;
+    constexpr auto num_rows = 2;
+
+    const auto distribution = std::array{reshuffle::make_block_wise(num_columns, 2),
+                                         reshuffle::make_block_wise(num_rows, 1)};
+
+    EXPECT_THAT(number_of_values_in_rank(distribution, 0), Eq(2));
+    EXPECT_THAT(number_of_values_in_rank(distribution, 1), Eq(2));
+}
+
+TEST(NumberOfValuesInRank, Returns0ForOutOfScopeRank) {
+    constexpr auto num_columns = 2;
+    constexpr auto num_rows = 2;
+
+    const auto distribution = std::array{reshuffle::make_block_wise(num_columns, 2),
+                                         reshuffle::make_block_wise(num_rows, 1)};
+
+    EXPECT_THAT(number_of_values_in_rank(distribution, 100), Eq(0));
+}
+
+TEST(NumberOfValuesInRank, ThrowsIfNegativeRankIsPassed) {
+    constexpr auto num_columns = 2;
+    constexpr auto num_rows = 2;
+
+    const auto distribution = std::array{reshuffle::make_block_wise(num_columns, 2),
+                                         reshuffle::make_block_wise(num_rows, 1)};
+
+    EXPECT_THROW(auto _ = number_of_values_in_rank(distribution, -1), std::invalid_argument);
+}
