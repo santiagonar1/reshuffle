@@ -56,7 +56,7 @@ namespace reshuffle {
 
     auto BlockCyclic::get_num_values() const -> int { return _num_values; }
 
-    auto BlockCyclic::get_num_values(const int rank_id) const -> int {
+    auto BlockCyclic::get_num_values(const rank_id rank_id) const -> int {
         if (rank_id >= _num_ranks) { return 0; }
 
         if (rank_id < 0) { throw std::invalid_argument("rank_id cannot be negative"); }
