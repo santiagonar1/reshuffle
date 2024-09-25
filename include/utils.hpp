@@ -2,7 +2,10 @@
 #define RESHUFFLE_UTILS_HPP
 
 #include "block_cyclic.hpp"
+#include "concepts.hpp"
 #include "dimensions.hpp"
+
+#include <ranges>
 
 namespace reshuffle::internal {
     template<typename T>
@@ -32,6 +35,14 @@ namespace reshuffle::internal {
 
         return matrix;
     }
+
+    template<concepts::Matrix2D M>
+    auto num_elements(const M &matrix) -> int {
+        if (std::ranges::empty(matrix)) { return 0; }
+
+        return std::ranges::size(matrix) * std::ranges::size(matrix[0]);
+    }
+
 
     [[nodiscard]] auto have_same_num_values(const BlockCyclic &first, const BlockCyclic &second)
             -> bool;

@@ -1,6 +1,8 @@
 #ifndef RESHUFFLE_CONCEPTS_HPP
 #define RESHUFFLE_CONCEPTS_HPP
 
+#include <ranges>
+
 namespace reshuffle::concepts {
     template<typename T>
     concept Iterable = std::ranges::range<T>;

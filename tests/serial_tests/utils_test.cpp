@@ -101,3 +101,15 @@ TEST(NumberOfRanks, ReturnsTheTotalNumberOfRanksIn2DDistribution) {
 
     EXPECT_THAT(number_of_ranks(distribution), Eq(num_ranks_x * num_ranks_y));
 }
+
+TEST(NumElements, ReturnsTheNumberOfElementsOfA2DMatrix) {
+    const auto matrix = std::vector{std::vector{1, 2}, std::vector{3, 4}};
+
+    EXPECT_THAT(num_elements(matrix), Eq(4));
+}
+
+TEST(NumElements, Returns0ForEmptyMatrix) {
+    constexpr auto matrix = std::vector<std::vector<int>>{};
+
+    EXPECT_THAT(num_elements(matrix), Eq(0));
+}

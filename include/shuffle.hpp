@@ -215,11 +215,7 @@ namespace reshuffle {
         }
 
         const auto rank = internal::get_rank_id(comm);
-        int num_values{};
-
-        if (not std::ranges::empty(values)) {
-            num_values = std::ranges::size(values) * std::ranges::size(values[0]);
-        }
+        const auto num_values = internal::num_elements(values);
 
         if (num_values != internal::number_of_values_in_rank(old_distribution, rank)) {
             throw std::invalid_argument(
@@ -255,11 +251,7 @@ namespace reshuffle {
 
         if (internal::in_mpi_comm(origin_comm)) {
             const auto rank = internal::get_rank_id(origin_comm);
-            int num_values{};
-
-            if (not std::ranges::empty(values)) {
-                num_values = std::ranges::size(values) * std::ranges::size(values[0]);
-            }
+            const auto num_values = internal::num_elements(values);
 
             if (num_values != internal::number_of_values_in_rank(old_distribution, rank)) {
                 throw std::invalid_argument(
