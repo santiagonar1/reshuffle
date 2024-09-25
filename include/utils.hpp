@@ -41,6 +41,8 @@ namespace reshuffle::internal {
 
     [[nodiscard]] auto number_of_values_in_rank(const std::array<BlockCyclic, 2> &distribution,
                                                 rank_id rank) -> int;
+
+    [[nodiscard]] auto number_of_ranks(const std::array<BlockCyclic, 2> &distribution) -> int;
 }// namespace reshuffle::internal
 
 #endif//RESHUFFLE_UTILS_HPP

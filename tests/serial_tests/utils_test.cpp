@@ -89,3 +89,15 @@ TEST(NumberOfValuesInRank, ThrowsIfNegativeRankIsPassed) {
 
     EXPECT_THROW(auto _ = number_of_values_in_rank(distribution, -1), std::invalid_argument);
 }
+
+TEST(NumberOfRanks, ReturnsTheTotalNumberOfRanksIn2DDistribution) {
+    constexpr auto num_ranks_x = 2;
+    constexpr auto num_ranks_y = 3;
+    constexpr auto num_columns = 6;
+    constexpr auto num_rows = 6;
+
+    const auto distribution = std::array{reshuffle::make_block_wise(num_columns, num_ranks_x),
+                                         reshuffle::make_block_wise(num_rows, num_ranks_y)};
+
+    EXPECT_THAT(number_of_ranks(distribution), Eq(num_ranks_x * num_ranks_y));
+}
