@@ -1,24 +1,9 @@
 #ifndef RESHUFFLE_UTILS_HPP
 #define RESHUFFLE_UTILS_HPP
 
-#include <mpi.h>
-
 #include "dimensions.hpp"
 
 namespace reshuffle::internal {
-    template<typename DATATYPE>
-    MPI_Datatype to_mpi_datatype() {
-        if (std::is_same_v<DATATYPE, int>) { return MPI_INT; }
-
-        if (std::is_same_v<DATATYPE, float>) { return MPI_FLOAT; }
-
-        if (std::is_same_v<DATATYPE, double>) { return MPI_DOUBLE; }
-
-        if (std::is_same_v<DATATYPE, std::byte>) { return MPI_BYTE; }
-
-        throw std::invalid_argument("No MPI Datatype");
-    }
-
     template<typename T>
     auto combine(const std::vector<T> &first, const std::vector<T> &second) {
         std::vector<std::pair<T, T>> combination{};

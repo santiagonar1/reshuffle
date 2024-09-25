@@ -6,11 +6,24 @@
 #include <numeric>
 #include <span>
 #include <vector>
+#include <ranges>
 
 #include "rank_id.hpp"
-#include "utils.hpp"
 
 namespace reshuffle::internal {
+    template<typename DATATYPE>
+    MPI_Datatype to_mpi_datatype() {
+        if (std::is_same_v<DATATYPE, int>) { return MPI_INT; }
+
+        if (std::is_same_v<DATATYPE, float>) { return MPI_FLOAT; }
+
+        if (std::is_same_v<DATATYPE, double>) { return MPI_DOUBLE; }
+
+        if (std::is_same_v<DATATYPE, std::byte>) { return MPI_BYTE; }
+
+        throw std::invalid_argument("No MPI Datatype");
+    }
+
     inline auto get_rank_id(const MPI_Comm &comm) -> rank_id {
         int rank{};
         MPI_Comm_rank(comm, &rank);

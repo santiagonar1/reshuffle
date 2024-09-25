@@ -4,6 +4,8 @@
 #include "utils.hpp"
 
 #include <algorithm>
+#include <stdexcept>
+#include <string>
 
 namespace reshuffle::internal {
     auto to_2D(const int num_columns, const int index) -> Indices2D {
