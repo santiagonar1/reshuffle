@@ -6,12 +6,12 @@
 using testing::Eq;
 using namespace reshuffle::internal;
 
-TEST(Combine, CalculatesTheCartesianProductOfTwoVectors) {
+TEST(CartesianProduct, CalculatesTheCartesianProductOfTwoVectors) {
     const auto v1 = std::vector{1, 2};
     const auto v2 = std::vector{3, 4};
 
-    EXPECT_THAT(combine(v1, v2), Eq(std::vector{std::pair{1, 3}, std::pair{2, 3}, std::pair{1, 4},
-                                                std::pair{2, 4}}));
+    EXPECT_THAT(cartesian_product(v1, v2), Eq(std::vector{std::pair{1, 3}, std::pair{2, 3},
+                                                          std::pair{1, 4}, std::pair{2, 4}}));
 }
 
 TEST(ToMatrix, ConstructsAMatrixFromA1DArray) {

@@ -6,7 +6,7 @@
 
 namespace reshuffle::internal {
     template<typename T>
-    auto combine(const std::vector<T> &first, const std::vector<T> &second)
+    auto cartesian_product(const std::vector<T> &first, const std::vector<T> &second)
             -> std::vector<std::pair<T, T>> {
         std::vector<std::pair<T, T>> combination{};
         for (const auto &v2: second) {

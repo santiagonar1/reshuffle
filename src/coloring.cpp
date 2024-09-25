@@ -16,7 +16,7 @@ namespace reshuffle::internal {
             -> std::vector<std::pair<LeftClosedRange, LeftClosedRange>> {
         const auto blocks_x = data_distributions[0].get_blocks();
         const auto blocks_y = data_distributions[1].get_blocks();
-        return combine(blocks_x, blocks_y);
+        return cartesian_product(blocks_x, blocks_y);
     }
 
     auto throw_if_different(const int val1, const int val2, const std::string &error_msg) {
