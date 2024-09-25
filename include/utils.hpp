@@ -8,15 +8,13 @@
 namespace reshuffle::internal {
     template<typename DATATYPE>
     MPI_Datatype to_mpi_datatype() {
-        if (std::is_same_v<DATATYPE, int>) {
-            return MPI_INT;
-        } else if (std::is_same_v<DATATYPE, float>) {
-            return MPI_FLOAT;
-        } else if (std::is_same_v<DATATYPE, double>) {
-            return MPI_DOUBLE;
-        } else if (std::is_same_v<DATATYPE, std::byte>) {
-            return MPI_BYTE;
-        }
+        if (std::is_same_v<DATATYPE, int>) { return MPI_INT; }
+
+        if (std::is_same_v<DATATYPE, float>) { return MPI_FLOAT; }
+
+        if (std::is_same_v<DATATYPE, double>) { return MPI_DOUBLE; }
+
+        if (std::is_same_v<DATATYPE, std::byte>) { return MPI_BYTE; }
 
         throw std::invalid_argument("No MPI Datatype");
     }
@@ -35,8 +33,7 @@ namespace reshuffle::internal {
     auto to_matrix(const std::vector<T> &values, const Dimension<2> &dimension) {
         using Matrix = std::vector<std::vector<T>>;
 
-        auto matrix = Matrix(dimension[1],
-                             std::vector<T>(dimension[0]));
+        auto matrix = Matrix(dimension[1], std::vector<T>(dimension[0]));
         int i = 0;
         for (auto &row: matrix) {
             for (auto &value: row) {
