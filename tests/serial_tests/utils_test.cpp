@@ -20,3 +20,41 @@ TEST(ToMatrix, ConstructsAMatrixFromA1DArray) {
 
     EXPECT_THAT(to_matrix(v, dimensions), Eq(std::vector{std::vector{1, 2}, std::vector{3, 4}}));
 }
+
+TEST(HaveSameNumValues, ReturnsTrueIfTwoDistributionsHaveSameNumberOfValues) {
+    constexpr auto block_size = 2;
+    constexpr auto num_values = 6;
+    constexpr auto num_ranks = 1;
+
+    const auto d1 = reshuffle::BlockCyclic(block_size, num_values, num_ranks);
+    const auto d2 = reshuffle::BlockCyclic(block_size, num_values, num_ranks);
+
+    EXPECT_TRUE(have_same_num_values(d1, d2));
+}
+
+TEST(HaveSameNumValues, ReturnsFalseIfTwoDistributionsHaveSameNumberOfValues) {
+    constexpr auto block_size = 2;
+    constexpr auto num_values = 6;
+    constexpr auto num_ranks = 1;
+
+    const auto d1 = reshuffle::BlockCyclic(block_size, num_values, num_ranks);
+    const auto d2 = reshuffle::BlockCyclic(block_size, num_values + 1, num_ranks);
+
+    EXPECT_FALSE(have_same_num_values(d1, d2));
+}
+
+TEST(HaveSameNumValues, WorksFor2DArrays) {
+    constexpr auto block_size = 2;
+    constexpr auto num_values = 6;
+    constexpr auto num_ranks = 1;
+
+    const auto d1 = std::array{reshuffle::BlockCyclic(block_size, num_values, num_ranks),
+                               reshuffle::BlockCyclic(block_size, num_values, num_ranks)};
+    const auto d2 = std::array{reshuffle::BlockCyclic(block_size, num_values, num_ranks),
+                               reshuffle::BlockCyclic(block_size, num_values, num_ranks)};
+    const auto d3 = std::array{reshuffle::BlockCyclic(block_size, num_values + 1, num_ranks),
+                               reshuffle::BlockCyclic(block_size, num_values, num_ranks)};
+
+    EXPECT_TRUE(have_same_num_values(d1, d2));
+    EXPECT_FALSE(have_same_num_values(d1, d3));
+}
