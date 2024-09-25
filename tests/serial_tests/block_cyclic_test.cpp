@@ -53,6 +53,15 @@ TEST(BlockCyclic, CalculatesTheNumberOfValuesPerRank) {
     EXPECT_THAT(data_distribution.get_num_values(2), Eq(2));
 }
 
+TEST(BlockCyclic, GetNumValuesReturns0IfRankIdEqualOrLargenThanNumRanks) {
+    constexpr int block_size = 2;
+    constexpr int num_values = 7;
+    constexpr int num_ranks = 3;
+    const auto data_distribution = reshuffle::BlockCyclic(block_size, num_values, num_ranks);
+
+    EXPECT_THAT(data_distribution.get_num_values(num_ranks), 0);
+}
+
 TEST(MakeBlockWise, CanBeUsedToGetABlockWiseFromBlockCyclic) {
     constexpr int num_values = 10;
     constexpr int num_blocks = 2;

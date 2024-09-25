@@ -57,6 +57,8 @@ namespace reshuffle {
     auto BlockCyclic::get_num_values() const -> int { return _num_values; }
 
     auto BlockCyclic::get_num_values(const int rank_id) const -> int {
+        if (rank_id >= _num_ranks) { return 0; }
+
         const auto block_ids =
                 internal::generate_integers(rank_id, static_cast<int>(_blocks.size()), _num_ranks);
 
