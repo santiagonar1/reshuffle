@@ -71,6 +71,19 @@ TEST(NumValuesInRank, ReturnsTheNumberOfValuesInARankFor2DDistribution) {
     EXPECT_THAT(num_values_in_rank(distribution, 1), Eq(2));
 }
 
+TEST(NumValuesInRank, WorksForSplitInMultipleDimensions) {
+    constexpr int num_rows = 2;
+    constexpr int num_columns = 2;
+
+    const auto distribution = std::array{reshuffle::make_block_wise(num_columns, 2),
+                                         reshuffle::make_block_wise(num_rows, 2)};
+
+    EXPECT_THAT(num_values_in_rank(distribution, 0), Eq(1));
+    EXPECT_THAT(num_values_in_rank(distribution, 1), Eq(1));
+    EXPECT_THAT(num_values_in_rank(distribution, 2), Eq(1));
+    EXPECT_THAT(num_values_in_rank(distribution, 3), Eq(1));
+}
+
 TEST(NumberOfValuesInRank, Returns0ForOutOfScopeRank) {
     constexpr auto num_columns = 2;
     constexpr auto num_rows = 2;

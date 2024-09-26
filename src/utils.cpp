@@ -32,14 +32,11 @@ namespace reshuffle::internal {
 
         if (rank >= num_ranks(distribution)) { return 0; }
 
-        auto values_per_dimension =
-                distribution | std::views::transform([rank](const BlockCyclic &d) {
-                    const auto num_values = d.get_num_values(rank);
-                    return num_values == 0 ? d.get_num_values() : num_values;
-                }) |
-                std::views::filter([](const int num_values) { return num_values > 0; });
+        const auto num_ranks_x = distribution[0].get_num_ranks();
+        const auto [x_coordinates, y_coordinates] = get_2d_coordinates(num_ranks_x, rank);
 
-        if (values_per_dimension.empty()) { return 0; }
+        auto values_per_dimension = std::array{distribution[0].get_num_values(x_coordinates),
+                                               distribution[1].get_num_values(y_coordinates)};
 
         return std::accumulate(values_per_dimension.begin(), values_per_dimension.end(), 1,
                                std::multiplies());
