@@ -1,7 +1,6 @@
 #ifndef RESHUFFLE_SHUFFLE_HPP
 #define RESHUFFLE_SHUFFLE_HPP
 
-#include <algorithm>
 #include <mpi.h>
 #include <ranges>
 #include <span>
