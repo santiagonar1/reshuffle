@@ -3,8 +3,8 @@
 
 namespace reshuffle::internal {
     struct Indices2D {
-        int i{};
-        int j{};
+        int row_id{};
+        int column_id{};
     };
 }// namespace reshuffle::internal
 
