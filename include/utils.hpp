@@ -37,7 +37,7 @@ namespace reshuffle::internal {
         return matrix;
     }
 
-    auto to_2D(int num_columns, int index) -> Indices2D;
+    [[nodiscard]] auto get_2d_coordinates(int num_columns, int index) -> Indices2D;
 
     template<concepts::Matrix2D M>
     auto num_elements(const M &matrix) -> int {

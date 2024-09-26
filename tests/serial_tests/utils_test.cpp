@@ -115,18 +115,18 @@ TEST(NumElements, Returns0ForEmptyMatrix) {
     EXPECT_THAT(num_elements(matrix), Eq(0));
 }
 
-TEST(To2D, TransformsA1DIndexInto2D) {
+TEST(Get2DCoordiantes, Transforms1DIndexInto2DCoordiantes) {
     constexpr auto num_columns = 3;
     constexpr auto origin = 0;
 
-    EXPECT_THAT(to_2D(num_columns, origin), FieldsAre(0, 0));
+    EXPECT_THAT(get_2d_coordinates(num_columns, origin), FieldsAre(0, 0));
 }
 
-TEST(To2D, UsesRowMajorCounting) {
+TEST(Get2DCoordiantes, UsesRowMajorCounting) {
     constexpr auto num_columns = 3;
     constexpr auto first_element_second_row = num_columns;
 
-    for (int i = 0; i < num_columns; i++) { EXPECT_THAT(to_2D(num_columns, i), FieldsAre(i, 0)); }
+    for (int i = 0; i < num_columns; i++) { EXPECT_THAT(get_2d_coordinates(num_columns, i), FieldsAre(i, 0)); }
 
-    EXPECT_THAT(to_2D(num_columns, first_element_second_row), FieldsAre(0, 1));
+    EXPECT_THAT(get_2d_coordinates(num_columns, first_element_second_row), FieldsAre(0, 1));
 }

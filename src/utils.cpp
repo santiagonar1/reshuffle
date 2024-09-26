@@ -21,7 +21,7 @@ namespace reshuffle::internal {
                            std::multiplies());
     }
 
-    auto to_2D(const int num_columns, const int index) -> Indices2D {
+    auto get_2d_coordinates(const int num_columns, const int index) -> Indices2D {
         return {index % num_columns, index / num_columns};
     }
 
