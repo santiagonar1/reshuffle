@@ -21,6 +21,10 @@ namespace reshuffle::internal {
                            std::multiplies());
     }
 
+    auto to_2D(const int num_columns, const int index) -> Indices2D {
+        return {index % num_columns, index / num_columns};
+    }
+
     auto num_values_in_rank(const std::array<BlockCyclic, 2> &distribution, const rank_id rank)
             -> int {
 

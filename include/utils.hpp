@@ -1,11 +1,12 @@
 #ifndef RESHUFFLE_UTILS_HPP
 #define RESHUFFLE_UTILS_HPP
 
+#include <ranges>
+
 #include "block_cyclic.hpp"
 #include "concepts.hpp"
 #include "dimensions.hpp"
-
-#include <ranges>
+#include "indices.hpp"
 
 namespace reshuffle::internal {
     template<typename T>
@@ -35,6 +36,8 @@ namespace reshuffle::internal {
 
         return matrix;
     }
+
+    auto to_2D(int num_columns, int index) -> Indices2D;
 
     template<concepts::Matrix2D M>
     auto num_elements(const M &matrix) -> int {

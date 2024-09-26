@@ -8,10 +8,6 @@
 #include <string>
 
 namespace reshuffle::internal {
-    auto to_2D(const int num_columns, const int index) -> Indices2D {
-        return {index % num_columns, index / num_columns};
-    }
-
     auto get_blocks_2D(const std::array<BlockCyclic, 2> &data_distributions)
             -> std::vector<std::pair<LeftClosedRange, LeftClosedRange>> {
         const auto blocks_x = data_distributions[0].get_blocks();
