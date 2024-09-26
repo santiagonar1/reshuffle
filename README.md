@@ -125,7 +125,7 @@ Currently, supports 1D and 2D buffers. Below you see an example of partitioning 
 ```c++
 constexpr int num_values_x = 20;
 constexpr int num_valuex_y = 20;
-constexpr int num_values = num_rows * num_columns;
+constexpr int num_values = num_values_x * num_valuex_y;
 
 // Let's assume that all values are in rank 0
 const auto old_distribution = std::array{reshuffle::make_block_wise(num_values_x, 1),
