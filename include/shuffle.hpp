@@ -7,6 +7,7 @@
 #include <span>
 #include <vector>
 
+#include "coloring.hpp"
 #include "concepts.hpp"
 #include "dimensions.hpp"
 #include "mpi_utils.hpp"
@@ -92,6 +93,20 @@ namespace reshuffle {
 
             return scatter_values_from_root(std::span{all_values}, destiny_comm, all_coloring);
         }
+
+        void check_distributions_have_same_num_values(const BlockCyclic &d1, const BlockCyclic &d2);
+
+        void check_distributions_have_same_num_values(const std::array<BlockCyclic, 2> &d1,
+                                                      const std::array<BlockCyclic, 2> &d2);
+
+        void check_correct_num_values_provided(const BlockCyclic &distribution, int num_values,
+                                               rank_id rank);
+        void check_correct_num_values_provided(const std::array<BlockCyclic, 2> &distribution,
+                                               int num_values, rank_id rank);
+
+        void check_rank_only_in_destiny_comm_does_not_have_data(const MPI_Comm &origin_comm,
+                                                                const MPI_Comm &destiny_comm,
+                                                                bool contains_data);
     }// namespace internal
 
     template<concepts::ContiguousContainer C>
@@ -102,18 +117,11 @@ namespace reshuffle {
     template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
                  const BlockCyclic &new_distribution) {
-
-        if (not internal::have_same_num_values(old_distribution, new_distribution)) {
-            throw std::invalid_argument(
-                    "The old and new distributions have different number of values");
-        }
-
         const auto rank = internal::get_rank_id(comm);
 
-        if (old_distribution.get_num_values(rank) != std::ranges::size(values)) {
-            throw std::invalid_argument(
-                    "Number of values provided not consistent with current distribution");
-        }
+        internal::check_distributions_have_same_num_values(old_distribution, new_distribution);
+        internal::check_correct_num_values_provided(old_distribution, std::ranges::size(values),
+                                                    rank);
 
         const auto old_global_coloring = internal::get_global_coloring(old_distribution);
 
@@ -127,12 +135,8 @@ namespace reshuffle {
 
     template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
-        const auto is_rank_only_in_destiny_comm =
-                internal::in_mpi_comm(destiny_comm) and not internal::in_mpi_comm(origin_comm);
-
-        if (is_rank_only_in_destiny_comm and not std::ranges::empty(values)) {
-            throw std::invalid_argument("A rank only in destiny communicator contains data");
-        }
+        internal::check_rank_only_in_destiny_comm_does_not_have_data(
+                origin_comm, destiny_comm, not std::ranges::empty(values));
 
         return internal::shuffle_with_coloring(std::span{values}, origin_comm, destiny_comm);
     }
@@ -143,24 +147,14 @@ namespace reshuffle {
         //TODO: Try to use shuffle_with_coloring here
         using T = typename C::value_type;
 
-        if (not internal::have_same_num_values(old_distribution, new_distribution)) {
-            throw std::invalid_argument(
-                    "The old and new distributions have different number of values");
-        }
-
-        const auto is_rank_only_in_destiny_comm =
-                internal::in_mpi_comm(destiny_comm) and not internal::in_mpi_comm(origin_comm);
-
-        if (is_rank_only_in_destiny_comm and not std::ranges::empty(values)) {
-            throw std::invalid_argument("A rank only in destiny communicator contains data");
-        }
+        internal::check_distributions_have_same_num_values(old_distribution, new_distribution);
+        internal::check_rank_only_in_destiny_comm_does_not_have_data(
+                origin_comm, destiny_comm, not std::ranges::empty(values));
 
         if (internal::in_mpi_comm(origin_comm)) {
             const auto rank = internal::get_rank_id(origin_comm);
-            if (old_distribution.get_num_values(rank) != std::ranges::size(values)) {
-                throw std::invalid_argument(
-                        "Number of values provided not consistent with current distribution");
-            }
+            internal::check_correct_num_values_provided(old_distribution, std::ranges::size(values),
+                                                        rank);
         }
 
         const auto new_global_coloring = internal::is_root(destiny_comm)
@@ -222,18 +216,11 @@ namespace reshuffle {
                  const std::array<BlockCyclic, 2> &new_distribution) {
         using T = typename M::value_type::value_type;
 
-        if (not internal::have_same_num_values(old_distribution, new_distribution)) {
-            throw std::invalid_argument(
-                    "The old and new distributions have different number of values");
-        }
-
         const auto rank = internal::get_rank_id(comm);
         const auto num_values = internal::num_elements(values);
 
-        if (num_values != internal::num_values_in_rank(old_distribution, rank)) {
-            throw std::invalid_argument(
-                    "Number of values provided not consistent with current distribution");
-        }
+        internal::check_distributions_have_same_num_values(old_distribution, new_distribution);
+        internal::check_correct_num_values_provided(old_distribution, num_values, rank);
 
         const auto old_global_coloring = internal::get_global_coloring(old_distribution);
 
@@ -257,26 +244,15 @@ namespace reshuffle {
                  const std::array<BlockCyclic, 2> &new_distribution) {
         using T = typename M::value_type::value_type;
 
-        if (not internal::have_same_num_values(old_distribution, new_distribution)) {
-            throw std::invalid_argument(
-                    "The old and new distributions have different number of values");
-        }
-
-        const auto is_rank_only_in_destiny_comm =
-                internal::in_mpi_comm(destiny_comm) and not internal::in_mpi_comm(origin_comm);
-
-        if (is_rank_only_in_destiny_comm and not std::ranges::empty(values)) {
-            throw std::invalid_argument("A rank only in destiny communicator contains data");
-        }
+        internal::check_distributions_have_same_num_values(old_distribution, new_distribution);
+        internal::check_rank_only_in_destiny_comm_does_not_have_data(
+                origin_comm, destiny_comm, not std::ranges::empty(values));
 
         if (internal::in_mpi_comm(origin_comm)) {
             const auto rank = internal::get_rank_id(origin_comm);
             const auto num_values = internal::num_elements(values);
 
-            if (num_values != internal::num_values_in_rank(old_distribution, rank)) {
-                throw std::invalid_argument(
-                        "Number of values provided not consistent with current distribution");
-            }
+            internal::check_correct_num_values_provided(old_distribution, num_values, rank);
         }
 
         const auto old_global_coloring = internal::get_global_coloring(old_distribution);
