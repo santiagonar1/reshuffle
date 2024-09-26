@@ -54,11 +54,10 @@ namespace reshuffle {
         }
 
         template<typename Tc, std::size_t N>
-        auto
-        shuffle_with_coloring(const std::span<Tc, N> values, const MPI_Comm &origin_comm,
-                              const MPI_Comm &destiny_comm,
-                              const std::vector<rank_id> &local_coloring = std::vector<rank_id>{},
-                              const std::vector<rank_id> &old_global_coloring = {}) {
+        auto shuffle_with_coloring(const std::span<Tc, N> values, const MPI_Comm &origin_comm,
+                                   const MPI_Comm &destiny_comm,
+                                   const std::vector<rank_id> &local_coloring = {},
+                                   const std::vector<rank_id> &old_global_coloring = {}) {
             using T = std::remove_cv_t<Tc>;
 
             // TODO: Find way to check if root belongs to both communicators (or change algorithm)
