@@ -61,22 +61,22 @@ TEST(HaveSameNumValues, WorksFor2DArrays) {
 }
 
 TEST(NumValuesInRank, ReturnsTheNumberOfValuesInARankFor2DDistribution) {
-    constexpr auto num_columns = 2;
-    constexpr auto num_rows = 2;
+    constexpr auto num_values_x = 2;
+    constexpr auto num_values_y = 2;
 
-    const auto distribution = std::array{reshuffle::make_block_wise(num_columns, 2),
-                                         reshuffle::make_block_wise(num_rows, 1)};
+    const auto distribution = std::array{reshuffle::make_block_wise(num_values_x, 2),
+                                         reshuffle::make_block_wise(num_values_y, 1)};
 
     EXPECT_THAT(num_values_in_rank(distribution, 0), Eq(2));
     EXPECT_THAT(num_values_in_rank(distribution, 1), Eq(2));
 }
 
 TEST(NumValuesInRank, WorksForSplitInMultipleDimensions) {
-    constexpr int num_rows = 2;
-    constexpr int num_columns = 2;
+    constexpr int num_values_x = 2;
+    constexpr int num_values_y = 2;
 
-    const auto distribution = std::array{reshuffle::make_block_wise(num_columns, 2),
-                                         reshuffle::make_block_wise(num_rows, 2)};
+    const auto distribution = std::array{reshuffle::make_block_wise(num_values_x, 2),
+                                         reshuffle::make_block_wise(num_values_y, 2)};
 
     EXPECT_THAT(num_values_in_rank(distribution, 0), Eq(1));
     EXPECT_THAT(num_values_in_rank(distribution, 1), Eq(1));
@@ -85,21 +85,21 @@ TEST(NumValuesInRank, WorksForSplitInMultipleDimensions) {
 }
 
 TEST(NumberOfValuesInRank, Returns0ForOutOfScopeRank) {
-    constexpr auto num_columns = 2;
-    constexpr auto num_rows = 2;
+    constexpr auto num_values_x = 2;
+    constexpr auto num_valuex_y = 2;
 
-    const auto distribution = std::array{reshuffle::make_block_wise(num_columns, 2),
-                                         reshuffle::make_block_wise(num_rows, 1)};
+    const auto distribution = std::array{reshuffle::make_block_wise(num_values_x, 2),
+                                         reshuffle::make_block_wise(num_valuex_y, 1)};
 
     EXPECT_THAT(num_values_in_rank(distribution, 100), Eq(0));
 }
 
 TEST(NumValuesInRank, ThrowsIfNegativeRankIsPassed) {
-    constexpr auto num_columns = 2;
-    constexpr auto num_rows = 2;
+    constexpr auto num_values_x = 2;
+    constexpr auto num_values_y = 2;
 
-    const auto distribution = std::array{reshuffle::make_block_wise(num_columns, 2),
-                                         reshuffle::make_block_wise(num_rows, 1)};
+    const auto distribution = std::array{reshuffle::make_block_wise(num_values_x, 2),
+                                         reshuffle::make_block_wise(num_values_y, 1)};
 
     EXPECT_THROW(auto _ = num_values_in_rank(distribution, -1), std::invalid_argument);
 }
@@ -107,11 +107,11 @@ TEST(NumValuesInRank, ThrowsIfNegativeRankIsPassed) {
 TEST(NumRanks, ReturnsTheTotalNumberOfRanksIn2DDistribution) {
     constexpr auto num_ranks_x = 2;
     constexpr auto num_ranks_y = 3;
-    constexpr auto num_columns = 6;
-    constexpr auto num_rows = 6;
+    constexpr auto num_values_x = 6;
+    constexpr auto num_values_y = 6;
 
-    const auto distribution = std::array{reshuffle::make_block_wise(num_columns, num_ranks_x),
-                                         reshuffle::make_block_wise(num_rows, num_ranks_y)};
+    const auto distribution = std::array{reshuffle::make_block_wise(num_values_x, num_ranks_x),
+                                         reshuffle::make_block_wise(num_values_y, num_ranks_y)};
 
     EXPECT_THAT(num_ranks(distribution), Eq(num_ranks_x * num_ranks_y));
 }
@@ -129,17 +129,19 @@ TEST(NumElements, Returns0ForEmptyMatrix) {
 }
 
 TEST(Get2DCoordiantes, Transforms1DIndexInto2DCoordiantes) {
-    constexpr auto num_columns = 3;
+    constexpr auto num_values_x = 3;
     constexpr auto origin = 0;
 
-    EXPECT_THAT(get_2d_coordinates(num_columns, origin), FieldsAre(0, 0));
+    EXPECT_THAT(get_2d_coordinates(num_values_x, origin), FieldsAre(0, 0));
 }
 
 TEST(Get2DCoordiantes, UsesRowMajorCounting) {
-    constexpr auto num_columns = 3;
-    constexpr auto first_element_second_row = num_columns;
+    constexpr auto num_values_x = 3;
+    constexpr auto first_element_second_row = num_values_x;
 
-    for (int i = 0; i < num_columns; i++) { EXPECT_THAT(get_2d_coordinates(num_columns, i), FieldsAre(i, 0)); }
+    for (int i = 0; i < num_values_x; i++) {
+        EXPECT_THAT(get_2d_coordinates(num_values_x, i), FieldsAre(i, 0));
+    }
 
-    EXPECT_THAT(get_2d_coordinates(num_columns, first_element_second_row), FieldsAre(0, 1));
+    EXPECT_THAT(get_2d_coordinates(num_values_x, first_element_second_row), FieldsAre(0, 1));
 }
