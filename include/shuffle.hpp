@@ -143,9 +143,6 @@ namespace reshuffle {
     template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm,
                  const BlockCyclic &old_distribution, const BlockCyclic &new_distribution) {
-        //TODO: Try to use shuffle_with_coloring here
-        using T = typename C::value_type;
-
         internal::check_distributions_have_same_num_values(old_distribution, new_distribution);
         internal::check_rank_only_in_destiny_comm_does_not_have_data(
                 origin_comm, destiny_comm, not std::ranges::empty(values));
@@ -156,25 +153,18 @@ namespace reshuffle {
                                                         rank);
         }
 
-        const auto new_global_coloring = internal::is_root(destiny_comm)
-                                                 ? internal::get_global_coloring(new_distribution)
-                                                 : std::vector<rank_id>{};
-
         const auto old_global_coloring = internal::get_global_coloring(old_distribution);
-        const auto all_values =
-                internal::in_mpi_comm(origin_comm)
-                        ? internal::gather_values_in_root(std::span{values}, origin_comm,
-                                                          old_global_coloring)
-                        : std::vector<T>{};
+        auto local_coloring = std::vector<rank_id>{};
 
+        if (internal::in_mpi_comm(origin_comm)) {
+            const auto rank = internal::get_rank_id(origin_comm);
+            local_coloring = internal::get_global_and_local_coloring(old_global_coloring,
+                                                                     new_distribution, rank)
+                                     .local_coloring;
+        }
 
-        const auto my_values =
-                internal::in_mpi_comm(destiny_comm)
-                        ? internal::scatter_values_from_root(std::span{all_values}, destiny_comm,
-                                                             new_global_coloring)
-                        : std::vector<T>{};
-
-        return my_values;
+        return internal::shuffle_with_coloring(std::span{values}, origin_comm, destiny_comm,
+                                               local_coloring, old_global_coloring);
     }
 
     template<concepts::Iterable I>
