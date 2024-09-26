@@ -5,8 +5,8 @@
 
 #include "block_cyclic.hpp"
 #include "concepts.hpp"
+#include "coordinates.hpp"
 #include "dimensions.hpp"
-#include "indices.hpp"
 
 namespace reshuffle::internal {
     template<typename T>
@@ -37,7 +37,7 @@ namespace reshuffle::internal {
         return matrix;
     }
 
-    [[nodiscard]] auto get_2d_coordinates(int num_columns, int index) -> Indices2D;
+    [[nodiscard]] auto get_2d_coordinates(int num_values_x, int index) -> Coordinates2D;
 
     template<concepts::Matrix2D M>
     auto num_elements(const M &matrix) -> int {

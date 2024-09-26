@@ -21,8 +21,8 @@ namespace reshuffle::internal {
                            std::multiplies());
     }
 
-    auto get_2d_coordinates(const int num_columns, const int index) -> Indices2D {
-        return {index % num_columns, index / num_columns};
+    auto get_2d_coordinates(const int num_values_x, const int index) -> Coordinates2D {
+        return {index % num_values_x, index / num_values_x};
     }
 
     auto num_values_in_rank(const std::array<BlockCyclic, 2> &distribution, const rank_id rank)

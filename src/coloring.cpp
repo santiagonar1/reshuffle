@@ -1,6 +1,5 @@
 #include "coloring.hpp"
 
-#include "indices.hpp"
 #include "utils.hpp"
 
 #include <algorithm>
