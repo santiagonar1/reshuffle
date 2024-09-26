@@ -18,17 +18,27 @@ namespace reshuffle::internal {
 
     void check_correct_num_values_provided(const BlockCyclic &distribution, const int num_values,
                                            const rank_id rank) {
+        const auto expected = distribution.get_num_values(rank);
+
         if (distribution.get_num_values(rank) != num_values) {
-            throw std::invalid_argument(
-                    "Number of values provided not consistent with current distribution");
+            const std::string error_msg = "Number of values provided not consistent with current "
+                                          "distribution. Expected: " +
+                                          std::to_string(expected) +
+                                          " but got: " + std::to_string(num_values);
+            throw std::invalid_argument(error_msg);
         }
     }
 
     void check_correct_num_values_provided(const std::array<BlockCyclic, 2> &distribution,
                                            const int num_values, const rank_id rank) {
-        if (num_values != num_values_in_rank(distribution, rank)) {
-            throw std::invalid_argument(
-                    "Number of values provided not consistent with current distribution");
+        const auto expected = num_values_in_rank(distribution, rank);
+
+        if (num_values != expected) {
+            const std::string error_msg = "Number of values provided not consistent with current "
+                                          "distribution. Expected: " +
+                                          std::to_string(expected) +
+                                          " but got: " + std::to_string(num_values);
+            throw std::invalid_argument(error_msg);
         }
     }
 

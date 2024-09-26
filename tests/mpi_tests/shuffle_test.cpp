@@ -9,6 +9,7 @@
 #include <reshuffle.hpp>
 
 using testing::Eq;
+using testing::HasSubstr;
 using testing::ThrowsMessage;
 
 class Shuffle : public testing::Test {
@@ -116,12 +117,13 @@ TEST_F(Shuffle, ThrowsIfNumberOfValuesPassedInconsistentWithCurrentDistribution)
     };
 
     EXPECT_THAT(shuffle_call,
-                ThrowsMessage<std::invalid_argument>(
-                        "Number of values provided not consistent with current distribution"));
+                ThrowsMessage<std::invalid_argument>(HasSubstr(
+                        "Number of values provided not consistent with current distribution")));
+
 
     EXPECT_THAT(shuffle_different_comm,
-                ThrowsMessage<std::invalid_argument>(
-                        "Number of values provided not consistent with current distribution"));
+                ThrowsMessage<std::invalid_argument>(HasSubstr(
+                        "Number of values provided not consistent with current distribution")));
 }
 
 TEST_F(Shuffle, ThrowsIfRankOnlyInDestinyContainsData) {
@@ -203,12 +205,12 @@ TEST_F(Shuffle, ThrowsIn2DIfNumberOfValuesPassedInconsistentWithCurrentDistribut
 
     if (is_root()) {
         EXPECT_THAT(shuffle_call,
-                    ThrowsMessage<std::invalid_argument>(
-                            "Number of values provided not consistent with current distribution"));
+                    ThrowsMessage<std::invalid_argument>(HasSubstr(
+                            "Number of values provided not consistent with current distribution")));
 
         EXPECT_THAT(shuffle_different_comm,
-                    ThrowsMessage<std::invalid_argument>(
-                            "Number of values provided not consistent with current distribution"));
+                    ThrowsMessage<std::invalid_argument>(HasSubstr(
+                            "Number of values provided not consistent with current distribution")));
     }
 }
 
