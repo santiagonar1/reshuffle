@@ -4,9 +4,9 @@
 #include <algorithm>
 #include <mpi.h>
 #include <numeric>
+#include <ranges>
 #include <span>
 #include <vector>
-#include <ranges>
 
 #include "rank_id.hpp"
 
@@ -25,7 +25,7 @@ namespace reshuffle::internal {
     }
 
     inline auto get_rank_id(const MPI_Comm &comm) -> rank_id {
-        int rank{};
+        int rank{MPI_ERR_RANK};
         MPI_Comm_rank(comm, &rank);
         return rank;
     }
