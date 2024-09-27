@@ -3,6 +3,11 @@
 namespace reshuffle::internal {
     auto get_rank_id(const MPI_Comm &comm) -> rank_id {
         int rank{MPI_ERR_RANK};
+
+        if (comm == MPI_COMM_NULL) {
+            throw std::invalid_argument("Invalid MPI_COMM_NULL communicator");
+        }
+
         MPI_Comm_rank(comm, &rank);
         return rank;
     }
