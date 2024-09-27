@@ -4,7 +4,6 @@
 #include <utility>
 
 namespace reshuffle::internal {
-    LeftClosedRange::LeftClosedRange() : _interval(){};
     LeftClosedRange::LeftClosedRange(int left_bound, int right_bound)
         : _interval{left_bound, right_bound} {
         if (left_bound > right_bound) {

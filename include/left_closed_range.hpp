@@ -6,7 +6,6 @@
 namespace reshuffle::internal {
     class LeftClosedRange {
     public:
-        LeftClosedRange();
         LeftClosedRange(int left_bound, int right_bound);
 
         [[nodiscard]] auto contains(int value) const -> bool;
