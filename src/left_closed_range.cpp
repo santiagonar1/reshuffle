@@ -1,11 +1,16 @@
 #include "left_closed_range.hpp"
 
+#include <stdexcept>
 #include <utility>
 
 namespace reshuffle::internal {
     LeftClosedRange::LeftClosedRange() : _interval(){};
     LeftClosedRange::LeftClosedRange(int left_bound, int right_bound)
-        : _interval{left_bound, right_bound} {};
+        : _interval{left_bound, right_bound} {
+        if (left_bound > right_bound) {
+            throw std::invalid_argument("The right bound cannot be smaller than the left bound");
+        }
+    };
 
     auto LeftClosedRange::contains(const int value) const -> bool {
         return _interval.first <= value and value < _interval.second;
