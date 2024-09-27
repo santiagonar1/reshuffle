@@ -24,23 +24,13 @@ namespace reshuffle::internal {
         throw std::invalid_argument("No MPI Datatype");
     }
 
-    inline auto get_rank_id(const MPI_Comm &comm) -> rank_id {
-        int rank{MPI_ERR_RANK};
-        MPI_Comm_rank(comm, &rank);
-        return rank;
-    }
+    [[nodiscard]] auto get_rank_id(const MPI_Comm &comm) -> rank_id;
 
-    inline auto in_mpi_comm(const MPI_Comm &comm) { return comm != MPI_COMM_NULL; }
+    [[nodiscard]] auto in_mpi_comm(const MPI_Comm &comm) -> bool;
 
-    inline auto is_root(const MPI_Comm &comm) {
-        return in_mpi_comm(comm) and get_rank_id(comm) == 0;
-    }
+    [[nodiscard]] auto is_root(const MPI_Comm &comm) -> bool;
 
-    inline auto get_num_ranks(const MPI_Comm &comm) {
-        int num_ranks{};
-        MPI_Comm_size(comm, &num_ranks);
-        return num_ranks;
-    }
+    [[nodiscard]] auto get_num_ranks(const MPI_Comm &comm) -> int;
 
     inline auto calc_num_values_per_rank(const int num_ranks,
                                          const std::vector<rank_id> &coloring) {
