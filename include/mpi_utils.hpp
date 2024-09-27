@@ -32,6 +32,8 @@ namespace reshuffle::internal {
 
     [[nodiscard]] auto get_num_ranks(const MPI_Comm &comm) -> int;
 
+    [[nodiscard]] auto is_comm_null(const MPI_Comm &comm) -> bool;
+
     inline auto calc_num_values_per_rank(const int num_ranks,
                                          const std::vector<rank_id> &coloring) {
         std::vector<int> values_per_rank(num_ranks);
