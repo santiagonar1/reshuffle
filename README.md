@@ -172,8 +172,7 @@ buffer = reshuffle::shuffle(buffer, MPI_COMM_WORLD, old_distribution, new_distri
 ```
 
 `Suffle` should work out of the box with any iterable container (even non-consecutive, as `std::list`) and with any
-fundamental datatype supported by MPI (e.g., `int`), as well as any aggregate datatype. For more complex types,
-the user needs to use [zpp_bits](https://github.com/eyalz800/zpp_bits) to serialize the type.
+fundamental datatype supported by MPI (e.g., `int`).
 
 ### 2D Datatypes
 
