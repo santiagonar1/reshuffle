@@ -36,7 +36,7 @@ namespace reshuffle::internal {
 
     [[nodiscard]] auto is_comm_null(const MPI_Comm &comm) -> bool;
 
-    [[nodiscard]] inline auto calc_displacements(const std::vector<int> &num_values_per_rank) {
+    [[nodiscard]] inline auto get_displacements(const std::vector<int> &num_values_per_rank) {
         std::vector<int> displacements(num_values_per_rank.size(), 0);
         std::partial_sum(num_values_per_rank.begin(), num_values_per_rank.end() - 1,
                          displacements.begin() + 1);
@@ -60,7 +60,7 @@ namespace reshuffle::internal {
                 std::accumulate(num_values_per_rank.cbegin(), num_values_per_rank.cend(), 0);
 
         auto all_values = is_root(comm) ? std::vector<T>(total_num_values) : std::vector<T>{};
-        const auto displacements = calc_displacements(num_values_per_rank);
+        const auto displacements = get_displacements(num_values_per_rank);
 
         MPI_Gatherv(std::ranges::data(values), num_values, mpi_datatype, all_values.data(),
                     num_values_per_rank.data(), displacements.data(), mpi_datatype, 0, comm);
@@ -99,7 +99,7 @@ namespace reshuffle::internal {
         MPI_Bcast(new_num_values_per_rank.data(), static_cast<int>(new_num_values_per_rank.size()),
                   MPI_INT, 0, comm);
 
-        const auto displacements = internal::calc_displacements(new_num_values_per_rank);
+        const auto displacements = internal::get_displacements(new_num_values_per_rank);
         const int new_num_values = new_num_values_per_rank[rank];
 
         auto values_to_scatter = using_coloring ? order_by_color(values, coloring, displacements)
