@@ -68,3 +68,9 @@ TEST(GetNumRanks, ThrowsIfCommIsNull) {
 TEST(IsCommNull, ReturnsTrueIfCommIsNull) { EXPECT_TRUE(is_comm_null(MPI_COMM_NULL)); }
 
 TEST(IsCommNull, ReturnsFalseIfCommNotNull) { EXPECT_FALSE(is_comm_null(MPI_COMM_WORLD)); }
+
+TEST(GetDisplacements, ReturnsTheVectorOfDisplacementsBasedOnNumberOfValuesPerRank) {
+    const auto num_values_per_rank = std::vector{2, 3, 4};
+
+    EXPECT_THAT(get_displacements(num_values_per_rank), Eq(std::vector{0, 2, 5}));
+}
