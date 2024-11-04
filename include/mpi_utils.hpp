@@ -10,6 +10,7 @@
 
 #include "coloring_utils.hpp"
 #include "rank_id.hpp"
+#include "utils.hpp"
 
 namespace reshuffle::internal {
     template<typename DATATYPE>
@@ -41,22 +42,6 @@ namespace reshuffle::internal {
                          displacements.begin() + 1);
 
         return displacements;
-    }
-
-    template<typename T>
-    auto reorder_values(std::vector<T> &values, std::vector<int> indices) -> void {
-        if (values.size() != indices.size()) {
-            throw std::invalid_argument("values.size() != indices.size()");
-        }
-
-        for (int i = 0; i < values.size(); i++) {
-            auto destiny = indices[i];
-            while (destiny != i) {
-                std::swap(values[i], values[destiny]);
-                std::swap(indices[i], indices[destiny]);
-                destiny = indices[i];
-            }
-        }
     }
 
     template<typename Tc, std::size_t N>

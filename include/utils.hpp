@@ -56,6 +56,22 @@ namespace reshuffle::internal {
         return destiny_values;
     }
 
+    template<typename T>
+    auto reorder_values(std::vector<T> &values, std::vector<int> indices) -> void {
+        if (values.size() != indices.size()) {
+            throw std::invalid_argument("values.size() != indices.size()");
+        }
+
+        for (int i = 0; i < values.size(); i++) {
+            auto destiny = indices[i];
+            while (destiny != i) {
+                std::swap(values[i], values[destiny]);
+                std::swap(indices[i], indices[destiny]);
+                destiny = indices[i];
+            }
+        }
+    }
+
 
     [[nodiscard]] auto have_same_num_values(const BlockCyclic &first, const BlockCyclic &second)
             -> bool;
