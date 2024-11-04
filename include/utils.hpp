@@ -10,7 +10,7 @@
 
 namespace reshuffle::internal {
     template<typename T>
-    auto cartesian_product(const std::vector<T> &first, const std::vector<T> &second)
+    [[nodiscard]] auto cartesian_product(const std::vector<T> &first, const std::vector<T> &second)
             -> std::vector<std::pair<T, T>> {
         std::vector<std::pair<T, T>> combination{};
         for (const auto &v2: second) {
@@ -21,7 +21,7 @@ namespace reshuffle::internal {
     }
 
     template<typename T>
-    auto to_matrix(const std::vector<T> &values, const Dimension<2> &dimension)
+    [[nodiscard]] auto to_matrix(const std::vector<T> &values, const Dimension<2> &dimension)
             -> std::vector<std::vector<T>> {
         using Matrix = std::vector<std::vector<T>>;
 
@@ -40,14 +40,14 @@ namespace reshuffle::internal {
     [[nodiscard]] auto get_2d_coordinates(int num_values_x, int index) -> Coordinates2D;
 
     template<concepts::Matrix2D M>
-    auto num_elements(const M &matrix) -> int {
+    [[nodiscard]] auto num_elements(const M &matrix) -> int {
         if (std::ranges::empty(matrix)) { return 0; }
 
         return std::ranges::size(matrix) * std::ranges::size(matrix[0]);
     }
 
     template<typename T>
-    auto get_values(const std::vector<T> &values, const std::vector<int> &indices)
+    [[nodiscard]] auto get_values(const std::vector<T> &values, const std::vector<int> &indices)
             -> std::vector<T> {
         auto destiny_values = std::vector<T>(indices.size());
 
