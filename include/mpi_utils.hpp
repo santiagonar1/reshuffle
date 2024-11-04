@@ -37,7 +37,7 @@ namespace reshuffle::internal {
     [[nodiscard]] auto is_comm_null(const MPI_Comm &comm) -> bool;
 
     [[nodiscard]] inline auto get_displacements(const std::vector<int> &num_values_per_rank) {
-        std::vector<int> displacements(num_values_per_rank.size(), 0);
+        std::vector displacements(num_values_per_rank.size(), 0);
         std::partial_sum(num_values_per_rank.begin(), num_values_per_rank.end() - 1,
                          displacements.begin() + 1);
 
