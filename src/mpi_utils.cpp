@@ -32,4 +32,12 @@ namespace reshuffle::internal {
     auto is_comm_null(const MPI_Comm &comm) -> bool { return comm == MPI_COMM_NULL; }
 
 
+    auto get_displacements(const std::vector<int> &num_values_per_rank) -> std::vector<int> {
+        std::vector displacements(num_values_per_rank.size(), 0);
+        std::partial_sum(num_values_per_rank.begin(), num_values_per_rank.end() - 1,
+                         displacements.begin() + 1);
+
+        return displacements;
+    }
+
 }// namespace reshuffle::internal

@@ -36,18 +36,13 @@ namespace reshuffle::internal {
 
     [[nodiscard]] auto is_comm_null(const MPI_Comm &comm) -> bool;
 
-    [[nodiscard]] inline auto get_displacements(const std::vector<int> &num_values_per_rank) {
-        std::vector displacements(num_values_per_rank.size(), 0);
-        std::partial_sum(num_values_per_rank.begin(), num_values_per_rank.end() - 1,
-                         displacements.begin() + 1);
-
-        return displacements;
-    }
+    [[nodiscard]] auto get_displacements(const std::vector<int> &num_values_per_rank)
+            -> std::vector<int>;
 
     template<typename Tc, std::size_t N>
     [[nodiscard]] auto gather_in_root(const std::span<Tc, N> values, const MPI_Comm &comm,
-                        const MPI_Datatype &mpi_datatype,
-                        const std::vector<rank_id> &global_coloring) {
+                                      const MPI_Datatype &mpi_datatype,
+                                      const std::vector<rank_id> &global_coloring) {
         using T = std::remove_cv_t<Tc>;
 
         const auto num_ranks = get_num_ranks(comm);
@@ -75,7 +70,8 @@ namespace reshuffle::internal {
 
     template<typename Tc, std::size_t N>
     [[nodiscard]] auto scatter_from_root(const std::span<Tc, N> values, const MPI_Comm &comm,
-                           const MPI_Datatype &mpi_datatype, const std::vector<rank_id> &coloring) {
+                                         const MPI_Datatype &mpi_datatype,
+                                         const std::vector<rank_id> &coloring) {
         using T = std::remove_cv_t<Tc>;
         int num_ranks{};
         int rank{};
@@ -115,7 +111,7 @@ namespace reshuffle::internal {
 
     template<typename Tc, std::size_t N>
     [[nodiscard]] auto gather_values_in_root(const std::span<Tc, N> values, const MPI_Comm &comm,
-                               const std::vector<rank_id> &global_coloring = {}) {
+                                             const std::vector<rank_id> &global_coloring = {}) {
         using T = std::remove_cv_t<Tc>;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
 
@@ -124,7 +120,7 @@ namespace reshuffle::internal {
 
     template<typename Tc, std::size_t N>
     [[nodiscard]] auto scatter_values_from_root(const std::span<Tc, N> values, const MPI_Comm &comm,
-                                  const std::vector<rank_id> &coloring) {
+                                                const std::vector<rank_id> &coloring) {
         using T = std::remove_cv_t<Tc>;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
 
