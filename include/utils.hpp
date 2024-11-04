@@ -57,19 +57,13 @@ namespace reshuffle::internal {
     }
 
     template<typename T>
-    auto reorder_values(std::vector<T> &values, std::vector<int> indices) -> void {
+    [[nodiscard]] auto reorder_values(const std::vector<T> &values, const std::vector<int> &indices)
+            -> std::vector<T> {
         if (values.size() != indices.size()) {
             throw std::invalid_argument("values.size() != indices.size()");
         }
 
-        for (int i = 0; i < values.size(); i++) {
-            auto destiny = indices[i];
-            while (destiny != i) {
-                std::swap(values[i], values[destiny]);
-                std::swap(indices[i], indices[destiny]);
-                destiny = indices[i];
-            }
-        }
+        return get_values(values, indices);
     }
 
 

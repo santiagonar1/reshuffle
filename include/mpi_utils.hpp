@@ -67,7 +67,7 @@ namespace reshuffle::internal {
 
         if (using_coloring and is_root(comm)) {
             const auto indices = get_global_index_by_rank(global_coloring, num_ranks);
-            reorder_values(all_values, indices);
+            all_values = reorder_values(all_values, indices);
         }
 
         return all_values;
