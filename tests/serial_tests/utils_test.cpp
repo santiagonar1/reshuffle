@@ -157,5 +157,5 @@ TEST(GetValues, ThrowsIfIndexOutOfBounds) {
     const auto values = std::vector{0, 1, 2, 3, 4};
     const auto indices = std::vector{5};
 
-    EXPECT_THROW(get_values(values, indices), std::out_of_range);
+    EXPECT_THROW(auto _ = get_values(values, indices), std::out_of_range);
 }
