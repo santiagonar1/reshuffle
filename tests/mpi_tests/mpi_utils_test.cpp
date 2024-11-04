@@ -14,7 +14,7 @@ TEST(ToMPIDatatype, ConvertsDatatypeToMPIDatatype) {
 }
 
 TEST(ToMPIDatatype, ThrowsIfDatatypeCannotBeConverted) {
-    EXPECT_THROW(to_mpi_datatype<char>(), std::invalid_argument);
+    EXPECT_THROW(auto _ = to_mpi_datatype<char>(), std::invalid_argument);
 }
 
 TEST(GetRankId, ReturnsRankId) {
