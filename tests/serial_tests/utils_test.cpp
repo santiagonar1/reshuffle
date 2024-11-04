@@ -159,3 +159,19 @@ TEST(GetValues, ThrowsIfIndexOutOfBounds) {
 
     EXPECT_THROW(auto _ = get_values(values, indices), std::out_of_range);
 }
+
+TEST(ReorderValues, ReturnsVectorOfValuesOrderdedBasedOnIndex) {
+    const auto values = std::vector{0, 1, 2, 3, 4};
+    const auto indices = std::vector{4, 3, 2, 1, 0};
+
+    EXPECT_THAT(reorder_values(values, indices), Eq(std::vector{4, 3, 2, 1, 0}));
+}
+
+TEST(ReorderValues, ThrowsIfSizeOfIndicesDifferentFromSizeOfValues) {
+    const auto values = std::vector{0, 1, 2, 3, 4};
+    const auto less_indices = std::vector{0};
+    const auto more_indices = std::vector{0, 1, 2, 3, 4, 5};
+
+    EXPECT_THROW(auto _ = reorder_values(values, less_indices), std::invalid_argument);
+    EXPECT_THROW(auto _ = reorder_values(values, more_indices), std::invalid_argument);
+}
