@@ -46,6 +46,16 @@ namespace reshuffle::internal {
         return std::ranges::size(matrix) * std::ranges::size(matrix[0]);
     }
 
+    template<typename T>
+    auto get_values(const std::vector<T> &values, const std::vector<int> &indices)
+            -> std::vector<T> {
+        auto destiny_values = std::vector<T>(indices.size());
+
+        for (int i = 0; i < indices.size(); i++) { destiny_values[i] = values.at(indices[i]); }
+
+        return destiny_values;
+    }
+
 
     [[nodiscard]] auto have_same_num_values(const BlockCyclic &first, const BlockCyclic &second)
             -> bool;

@@ -145,3 +145,17 @@ TEST(Get2DCoordiantes, UsesRowMajorCounting) {
 
     EXPECT_THAT(get_2d_coordinates(num_values_x, first_element_second_row), FieldsAre(0, 1));
 }
+
+TEST(GetValues, ReturnsTheListOfValuesListedInTheIndicesVector) {
+    const auto values = std::vector{0, 1, 2, 3, 4};
+    const auto indices = std::vector{0, 4};
+
+    EXPECT_THAT(get_values(values, indices), Eq(std::vector{0, 4}));
+}
+
+TEST(GetValues, ThrowsIfIndexOutOfBounds) {
+    const auto values = std::vector{0, 1, 2, 3, 4};
+    const auto indices = std::vector{5};
+
+    EXPECT_THROW(get_values(values, indices), std::out_of_range);
+}
