@@ -70,6 +70,16 @@ namespace reshuffle::internal {
     }
 
     template<typename Tc, std::size_t N>
+    [[nodiscard]] auto gather_in_root(const std::span<Tc, N> values, const MPI_Comm &comm,
+                                      const std::vector<rank_id> &global_coloring = {})
+            -> std::vector<std::remove_cv_t<Tc>> {
+        using T = std::remove_cv_t<Tc>;
+        MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
+
+        return gather_in_root(values, comm, mpi_datatype, global_coloring);
+    }
+
+    template<typename Tc, std::size_t N>
     [[nodiscard]] auto scatter_from_root(const std::span<Tc, N> values, const MPI_Comm &comm,
                                          const MPI_Datatype &mpi_datatype,
                                          const std::vector<rank_id> &coloring)
@@ -112,18 +122,8 @@ namespace reshuffle::internal {
     }
 
     template<typename Tc, std::size_t N>
-    [[nodiscard]] auto gather_in_root(const std::span<Tc, N> values, const MPI_Comm &comm,
-                                             const std::vector<rank_id> &global_coloring = {})
-            -> std::vector<std::remove_cv_t<Tc>> {
-        using T = std::remove_cv_t<Tc>;
-        MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
-
-        return gather_in_root(values, comm, mpi_datatype, global_coloring);
-    }
-
-    template<typename Tc, std::size_t N>
     [[nodiscard]] auto scatter_from_root(const std::span<Tc, N> values, const MPI_Comm &comm,
-                                                const std::vector<rank_id> &coloring)
+                                         const std::vector<rank_id> &coloring)
             -> std::vector<std::remove_cv_t<Tc>> {
         using T = std::remove_cv_t<Tc>;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
