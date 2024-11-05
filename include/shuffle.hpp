@@ -27,7 +27,7 @@ namespace reshuffle {
             const auto new_global_coloring =
                     is_root(comm) ? get_global_coloring(new_distribution) : std::vector<rank_id>{};
 
-            return scatter_values_from_root(values, comm, new_global_coloring);
+            return scatter_from_root(values, comm, new_global_coloring);
         }
 
         template<typename Tc, std::size_t N>
@@ -49,7 +49,7 @@ namespace reshuffle {
 
             if (not using_coloring) { return split_equally(std::span{all_values}, comm); }
 
-            return scatter_values_from_root(std::span{all_values}, comm, all_coloring);
+            return scatter_from_root(std::span{all_values}, comm, all_coloring);
         }
 
         template<typename Tc, std::size_t N>
@@ -89,7 +89,7 @@ namespace reshuffle {
                 return split_equally(std::span{all_values}, destiny_comm);
             }
 
-            return scatter_values_from_root(std::span{all_values}, destiny_comm, all_coloring);
+            return scatter_from_root(std::span{all_values}, destiny_comm, all_coloring);
         }
 
         void check_distributions_have_same_num_values(const BlockCyclic &d1, const BlockCyclic &d2);
