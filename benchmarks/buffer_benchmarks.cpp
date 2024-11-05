@@ -33,7 +33,7 @@ reshuffle::rank_id get_rank();
 
 constexpr int NUM_ELEMENTS = 2000;
 
-void reorder_data(benchmark::State &state) {
+void shuffle_from_N_to_one(benchmark::State &state) {
     const auto rank = get_rank();
 
     const auto num_elements_per_rank = get_num_elements_per_rank(NUM_ELEMENTS);
@@ -84,7 +84,7 @@ void shuffle_from_one_to_N(benchmark::State &state) {
     }
 }
 
-BENCHMARK(reorder_data)->UseManualTime();
+BENCHMARK(shuffle_from_N_to_one)->UseManualTime();
 BENCHMARK(shuffle_from_one_to_N)->UseManualTime();
 
 // This reporter does nothing.
