@@ -42,7 +42,8 @@ namespace reshuffle::internal {
     template<typename Tc, std::size_t N>
     [[nodiscard]] auto gather_in_root(const std::span<Tc, N> values, const MPI_Comm &comm,
                                       const MPI_Datatype &mpi_datatype,
-                                      const std::vector<rank_id> &global_coloring) {
+                                      const std::vector<rank_id> &global_coloring)
+            -> std::vector<std::remove_cv_t<Tc>> {
         using T = std::remove_cv_t<Tc>;
 
         const auto num_ranks = get_num_ranks(comm);
@@ -71,7 +72,8 @@ namespace reshuffle::internal {
     template<typename Tc, std::size_t N>
     [[nodiscard]] auto scatter_from_root(const std::span<Tc, N> values, const MPI_Comm &comm,
                                          const MPI_Datatype &mpi_datatype,
-                                         const std::vector<rank_id> &coloring) {
+                                         const std::vector<rank_id> &coloring)
+            -> std::vector<std::remove_cv_t<Tc>> {
         using T = std::remove_cv_t<Tc>;
         int num_ranks{};
         int rank{};
@@ -111,7 +113,8 @@ namespace reshuffle::internal {
 
     template<typename Tc, std::size_t N>
     [[nodiscard]] auto gather_values_in_root(const std::span<Tc, N> values, const MPI_Comm &comm,
-                                             const std::vector<rank_id> &global_coloring = {}) {
+                                             const std::vector<rank_id> &global_coloring = {})
+            -> std::vector<std::remove_cv_t<Tc>> {
         using T = std::remove_cv_t<Tc>;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
 
@@ -120,7 +123,8 @@ namespace reshuffle::internal {
 
     template<typename Tc, std::size_t N>
     [[nodiscard]] auto scatter_values_from_root(const std::span<Tc, N> values, const MPI_Comm &comm,
-                                                const std::vector<rank_id> &coloring) {
+                                                const std::vector<rank_id> &coloring)
+            -> std::vector<std::remove_cv_t<Tc>> {
         using T = std::remove_cv_t<Tc>;
         MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
 
