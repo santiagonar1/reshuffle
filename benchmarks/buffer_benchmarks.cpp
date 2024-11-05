@@ -43,15 +43,15 @@ void shuffle_from_N_to_one(benchmark::State &state) {
     double max_elapsed_second{};
     while (state.KeepRunning()) {
         // Do the work and time it on each proc
-        auto start = std::chrono::high_resolution_clock::now();
-        auto data = reshuffle::shuffle(original_data, MPI_COMM_WORLD);
-        auto end = std::chrono::high_resolution_clock::now();
+        const auto start = std::chrono::high_resolution_clock::now();
+        const auto data = reshuffle::shuffle(original_data, MPI_COMM_WORLD);
+        const auto end = std::chrono::high_resolution_clock::now();
         // Now get the max time across all procs:
         // for better or for worse, the slowest processor is the one that is
         // holding back the others in the benchmark.
-        auto const duration =
+        const auto duration =
                 std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-        auto elapsed_seconds = duration.count();
+        const auto elapsed_seconds = duration.count();
         MPI_Allreduce(&elapsed_seconds, &max_elapsed_second, 1, MPI_DOUBLE, MPI_MAX,
                       MPI_COMM_WORLD);
         state.SetIterationTime(max_elapsed_second);
@@ -60,22 +60,22 @@ void shuffle_from_N_to_one(benchmark::State &state) {
 
 void shuffle_from_one_to_N(benchmark::State &state) {
     constexpr auto num_values = 2000;
-    const auto original_data = reshuffle::internal::is_root(MPI_COMM_WORLD)
+    const auto original_values = reshuffle::internal::is_root(MPI_COMM_WORLD)
                                        ? std::vector<int>(num_values)
                                        : std::vector<int>{};
 
     while (state.KeepRunning()) {
         // Do the work and time it on each proc
-        auto start = std::chrono::high_resolution_clock::now();
-        auto data = reshuffle::shuffle(original_data, MPI_COMM_WORLD);
-        auto end = std::chrono::high_resolution_clock::now();
+        const auto start = std::chrono::high_resolution_clock::now();
+        const auto values = reshuffle::shuffle(original_values, MPI_COMM_WORLD);
+        const auto end = std::chrono::high_resolution_clock::now();
 
         // Now get the max time across all procs:
         // for better or for worse, the slowest processor is the one that is
         // holding back the others in the benchmark.
-        auto const duration =
+        const auto duration =
                 std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-        auto elapsed_seconds = duration.count();
+        const auto elapsed_seconds = duration.count();
 
         double max_elapsed_second{};
         MPI_Allreduce(&elapsed_seconds, &max_elapsed_second, 1, MPI_DOUBLE, MPI_MAX,
