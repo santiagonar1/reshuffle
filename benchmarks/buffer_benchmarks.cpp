@@ -27,10 +27,6 @@
 
 #include <reshuffle.hpp>
 
-bool is_root();
-std::vector<int> get_num_elements_per_rank(int total_num_elements);
-reshuffle::rank_id get_rank();
-
 void shuffle_from_N_to_one(benchmark::State &state) {
     constexpr auto num_values = 2000;
 
@@ -110,7 +106,7 @@ int main(int argc, char **argv) {
 
     benchmark::Initialize(&argc, argv);
 
-    if (is_root())
+    if (reshuffle::internal::is_root(MPI_COMM_WORLD))
         // root process will use a reporter from the usual set provided by
         // ::benchmark
         benchmark::RunSpecifiedBenchmarks();
@@ -122,38 +118,4 @@ int main(int argc, char **argv) {
 
     MPI_Finalize();
     return 0;
-}
-
-bool is_root() { return get_rank() == 0; }
-
-reshuffle::rank_id get_rank() {
-    reshuffle::rank_id rank{};
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    return rank;
-}
-
-std::vector<int> get_num_elements_per_rank(int total_num_elements) {
-    int num_ranks{};
-    MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
-
-    const auto seq = std::views::iota(0, num_ranks);
-    const auto rank_id_sum = std::accumulate(seq.begin(), seq.end(), 0);
-
-    std::vector<double> weights_per_rank(num_ranks);
-    std::ranges::transform(seq, weights_per_rank.begin(),
-                           [rank_id_sum](auto r) { return static_cast<double>(r) / rank_id_sum; });
-
-    std::vector<int> num_elements_per_rank(num_ranks);
-    std::ranges::transform(
-            weights_per_rank, num_elements_per_rank.begin(),
-            [total_num_elements](auto w) { return static_cast<int>(total_num_elements * w); });
-
-    const auto num_missing_elements =
-            total_num_elements -
-            std::accumulate(num_elements_per_rank.begin(), num_elements_per_rank.end(), 0);
-
-    num_elements_per_rank[0] += num_missing_elements;
-
-    return num_elements_per_rank;
 }
