@@ -112,9 +112,35 @@ void shuffle_from_one_to_N_without_distribution(benchmark::State &state) {
     }
 }
 
+void shuffle_reduction(benchmark::State &state) {
+    constexpr auto num_values = 2000;
+
+    const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
+
+    if (num_values % num_ranks != 0) {
+        throw std::runtime_error("Number of values not divisible by number of ranks");
+    }
+
+    if (num_ranks < 2) {
+        throw std::runtime_error("You need to use at least two ranks for this benchmark");
+    }
+
+    const auto values_per_rank = num_values / num_ranks;
+    const auto original_values = std::vector<int>(values_per_rank);
+
+    const auto current_distribution = reshuffle::make_block_wise(num_values, num_ranks);
+    const auto new_distribution = reshuffle::make_block_wise(num_values, num_ranks / 2);
+
+    while (state.KeepRunning()) {
+        state.SetIterationTime(
+                time_shuffle(original_values, current_distribution, new_distribution));
+    }
+}
+
 BENCHMARK(shuffle_from_N_to_one)->UseManualTime();
 BENCHMARK(shuffle_from_one_to_N_with_distribution)->UseManualTime();
 BENCHMARK(shuffle_from_one_to_N_without_distribution)->UseManualTime();
+BENCHMARK(shuffle_reduction)->UseManualTime();
 
 // This reporter does nothing.
 // We can use it to disable output from all but the root process
