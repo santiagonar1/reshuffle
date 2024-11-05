@@ -48,7 +48,7 @@ double time_shuffle(const std::vector<int> &values,
 }
 
 void shuffle_from_N_to_one(benchmark::State &state) {
-    constexpr auto num_values = 2000;
+    const auto num_values = static_cast<int>(state.range(0));
 
     const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
 
@@ -69,7 +69,7 @@ void shuffle_from_N_to_one(benchmark::State &state) {
 }
 
 void shuffle_from_one_to_N_with_distribution(benchmark::State &state) {
-    constexpr auto num_values = 2000;
+    const auto num_values = static_cast<int>(state.range(0));
     const auto original_values = reshuffle::internal::is_root(MPI_COMM_WORLD)
                                          ? std::vector<int>(num_values)
                                          : std::vector<int>{};
@@ -86,7 +86,7 @@ void shuffle_from_one_to_N_with_distribution(benchmark::State &state) {
 }
 
 void shuffle_from_one_to_N_without_distribution(benchmark::State &state) {
-    constexpr auto num_values = 2000;
+    const auto num_values = static_cast<int>(state.range(0));
     const auto original_values = reshuffle::internal::is_root(MPI_COMM_WORLD)
                                          ? std::vector<int>(num_values)
                                          : std::vector<int>{};
@@ -112,7 +112,7 @@ void shuffle_from_one_to_N_without_distribution(benchmark::State &state) {
 }
 
 void shuffle_reduction(benchmark::State &state) {
-    constexpr auto num_values = 2000;
+    const auto num_values = static_cast<int>(state.range(0));
 
     const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
 
@@ -136,10 +136,10 @@ void shuffle_reduction(benchmark::State &state) {
     }
 }
 
-BENCHMARK(shuffle_from_N_to_one)->UseManualTime();
-BENCHMARK(shuffle_from_one_to_N_with_distribution)->UseManualTime();
-BENCHMARK(shuffle_from_one_to_N_without_distribution)->UseManualTime();
-BENCHMARK(shuffle_reduction)->UseManualTime();
+BENCHMARK(shuffle_from_N_to_one)->UseManualTime()->Arg(2000);
+BENCHMARK(shuffle_from_one_to_N_with_distribution)->UseManualTime()->Arg(2000);
+BENCHMARK(shuffle_from_one_to_N_without_distribution)->UseManualTime()->Arg(2000);
+BENCHMARK(shuffle_reduction)->UseManualTime()->Arg(2000);
 
 // This reporter does nothing.
 // We can use it to disable output from all but the root process
