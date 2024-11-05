@@ -33,17 +33,23 @@ reshuffle::rank_id get_rank();
 
 void shuffle_from_N_to_one(benchmark::State &state) {
     constexpr auto num_values = 2000;
-    const auto rank = get_rank();
 
-    const auto num_elements_per_rank = get_num_elements_per_rank(num_values);
-    const auto original_data = std::vector<int>(num_elements_per_rank[rank]);
-    const auto initial_global_coloring = std::vector<reshuffle::rank_id>(num_values, 0);
+    const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
+
+    if (num_values % num_ranks != 0) {
+        throw std::runtime_error("Number of values not divisible by number of ranks");
+    }
+
+    const auto values_per_rank = num_values / num_ranks;
+    const auto original_values = std::vector<int>(values_per_rank);
 
     double max_elapsed_second{};
     while (state.KeepRunning()) {
         // Do the work and time it on each proc
         const auto start = std::chrono::high_resolution_clock::now();
-        const auto data = reshuffle::shuffle(original_data, MPI_COMM_WORLD);
+        const auto data = reshuffle::shuffle(original_values, MPI_COMM_WORLD,
+                                             reshuffle::make_block_wise(num_values, num_ranks),
+                                             reshuffle::make_block_wise(num_values, 1));
         const auto end = std::chrono::high_resolution_clock::now();
         // Now get the max time across all procs:
         // for better or for worse, the slowest processor is the one that is
@@ -60,8 +66,8 @@ void shuffle_from_N_to_one(benchmark::State &state) {
 void shuffle_from_one_to_N(benchmark::State &state) {
     constexpr auto num_values = 2000;
     const auto original_values = reshuffle::internal::is_root(MPI_COMM_WORLD)
-                                       ? std::vector<int>(num_values)
-                                       : std::vector<int>{};
+                                         ? std::vector<int>(num_values)
+                                         : std::vector<int>{};
 
     while (state.KeepRunning()) {
         // Do the work and time it on each proc
