@@ -33,28 +33,6 @@ reshuffle::rank_id get_rank();
 
 constexpr int NUM_ELEMENTS = 2000;
 
-void scatter_buffer_from_root(benchmark::State &state) {
-    const auto original_data = is_root() ? std::vector<int>(NUM_ELEMENTS) : std::vector<int>{};
-    const auto initial_global_coloring = std::vector<reshuffle::rank_id>(NUM_ELEMENTS, 0);
-
-    double max_elapsed_second{};
-    while (state.KeepRunning()) {
-        // Do the work and time it on each proc
-        auto start = std::chrono::high_resolution_clock::now();
-        auto data = reshuffle::shuffle(original_data, MPI_COMM_WORLD);
-        auto end = std::chrono::high_resolution_clock::now();
-        // Now get the max time across all procs:
-        // for better or for worse, the slowest processor is the one that is
-        // holding back the others in the benchmark.
-        auto const duration =
-                std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-        auto elapsed_seconds = duration.count();
-        MPI_Allreduce(&elapsed_seconds, &max_elapsed_second, 1, MPI_DOUBLE, MPI_MAX,
-                      MPI_COMM_WORLD);
-        state.SetIterationTime(max_elapsed_second);
-    }
-}
-
 void reorder_data(benchmark::State &state) {
     const auto rank = get_rank();
 
@@ -106,7 +84,6 @@ void shuffle_from_one_to_N(benchmark::State &state) {
     }
 }
 
-BENCHMARK(scatter_buffer_from_root)->UseManualTime();
 BENCHMARK(reorder_data)->UseManualTime();
 BENCHMARK(shuffle_from_one_to_N)->UseManualTime();
 
