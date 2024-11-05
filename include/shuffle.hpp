@@ -35,7 +35,7 @@ namespace reshuffle {
                                    const std::vector<rank_id> &local_coloring = {},
                                    const std::vector<rank_id> &old_global_coloring = {}) {
             auto all_coloring =
-                    gather_values_in_root(std::span{local_coloring}, comm, old_global_coloring);
+                    gather_in_root(std::span{local_coloring}, comm, old_global_coloring);
             auto using_coloring = not all_coloring.empty();
             MPI_Bcast(&using_coloring, 1, MPI_CXX_BOOL, 0, comm);
 
@@ -45,7 +45,7 @@ namespace reshuffle {
                         "not match size of data");
             }
 
-            const auto all_values = gather_values_in_root(values, comm, old_global_coloring);
+            const auto all_values = gather_in_root(values, comm, old_global_coloring);
 
             if (not using_coloring) { return split_equally(std::span{all_values}, comm); }
 
@@ -74,8 +74,8 @@ namespace reshuffle {
             auto all_values = std::vector<T>{};
 
             if (in_mpi_comm(origin_comm)) {
-                all_coloring = gather_values_in_root(std::span{local_coloring}, origin_comm);
-                all_values = gather_values_in_root(values, origin_comm, old_global_coloring);
+                all_coloring = gather_in_root(std::span{local_coloring}, origin_comm);
+                all_values = gather_in_root(values, origin_comm, old_global_coloring);
             }
 
             if (not in_mpi_comm(destiny_comm)) { return std::vector<T>{}; }

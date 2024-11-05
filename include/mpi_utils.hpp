@@ -112,7 +112,7 @@ namespace reshuffle::internal {
     }
 
     template<typename Tc, std::size_t N>
-    [[nodiscard]] auto gather_values_in_root(const std::span<Tc, N> values, const MPI_Comm &comm,
+    [[nodiscard]] auto gather_in_root(const std::span<Tc, N> values, const MPI_Comm &comm,
                                              const std::vector<rank_id> &global_coloring = {})
             -> std::vector<std::remove_cv_t<Tc>> {
         using T = std::remove_cv_t<Tc>;
