@@ -31,14 +31,13 @@ bool is_root();
 std::vector<int> get_num_elements_per_rank(int total_num_elements);
 reshuffle::rank_id get_rank();
 
-constexpr int NUM_ELEMENTS = 2000;
-
 void shuffle_from_N_to_one(benchmark::State &state) {
+    constexpr auto num_values = 2000;
     const auto rank = get_rank();
 
-    const auto num_elements_per_rank = get_num_elements_per_rank(NUM_ELEMENTS);
+    const auto num_elements_per_rank = get_num_elements_per_rank(num_values);
     const auto original_data = std::vector<int>(num_elements_per_rank[rank]);
-    const auto initial_global_coloring = std::vector<reshuffle::rank_id>(NUM_ELEMENTS, 0);
+    const auto initial_global_coloring = std::vector<reshuffle::rank_id>(num_values, 0);
 
     double max_elapsed_second{};
     while (state.KeepRunning()) {
