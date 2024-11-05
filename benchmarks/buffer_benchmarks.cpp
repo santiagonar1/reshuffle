@@ -24,6 +24,7 @@
 #include <mpi.h>
 #include <numeric>
 #include <ranges>
+
 #include <reshuffle.hpp>
 
 bool is_root();
@@ -79,8 +80,35 @@ void reorder_data(benchmark::State &state) {
     }
 }
 
+void shuffle_from_one_to_N(benchmark::State &state) {
+    constexpr auto num_values = 2000;
+    const auto original_data = reshuffle::internal::is_root(MPI_COMM_WORLD)
+                                       ? std::vector<int>(num_values)
+                                       : std::vector<int>{};
+
+    while (state.KeepRunning()) {
+        // Do the work and time it on each proc
+        auto start = std::chrono::high_resolution_clock::now();
+        auto data = reshuffle::shuffle(original_data, MPI_COMM_WORLD);
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Now get the max time across all procs:
+        // for better or for worse, the slowest processor is the one that is
+        // holding back the others in the benchmark.
+        auto const duration =
+                std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+        auto elapsed_seconds = duration.count();
+
+        double max_elapsed_second{};
+        MPI_Allreduce(&elapsed_seconds, &max_elapsed_second, 1, MPI_DOUBLE, MPI_MAX,
+                      MPI_COMM_WORLD);
+        state.SetIterationTime(max_elapsed_second);
+    }
+}
+
 BENCHMARK(scatter_buffer_from_root)->UseManualTime();
 BENCHMARK(reorder_data)->UseManualTime();
+BENCHMARK(shuffle_from_one_to_N)->UseManualTime();
 
 // This reporter does nothing.
 // We can use it to disable output from all but the root process
@@ -101,8 +129,8 @@ int main(int argc, char **argv) {
     benchmark::Initialize(&argc, argv);
 
     if (is_root())
-    // root process will use a reporter from the usual set provided by
-    // ::benchmark
+        // root process will use a reporter from the usual set provided by
+        // ::benchmark
         benchmark::RunSpecifiedBenchmarks();
     else {
         // reporting from other processes is disabled by passing a custom reporter
@@ -135,11 +163,9 @@ std::vector<int> get_num_elements_per_rank(int total_num_elements) {
                            [rank_id_sum](auto r) { return static_cast<double>(r) / rank_id_sum; });
 
     std::vector<int> num_elements_per_rank(num_ranks);
-    std::ranges::transform(weights_per_rank
-                           , num_elements_per_rank.begin(),
-                           [total_num_elements](auto w) {
-                               return static_cast<int>(total_num_elements * w);
-                           });
+    std::ranges::transform(
+            weights_per_rank, num_elements_per_rank.begin(),
+            [total_num_elements](auto w) { return static_cast<int>(total_num_elements * w); });
 
     const auto num_missing_elements =
             total_num_elements -
