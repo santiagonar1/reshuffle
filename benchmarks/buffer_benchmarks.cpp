@@ -59,7 +59,37 @@ void shuffle_from_N_to_one(benchmark::State &state) {
     }
 }
 
-void shuffle_from_one_to_N(benchmark::State &state) {
+void shuffle_from_one_to_N_with_distribution(benchmark::State &state) {
+    constexpr auto num_values = 2000;
+    const auto original_values = reshuffle::internal::is_root(MPI_COMM_WORLD)
+                                         ? std::vector<int>(num_values)
+                                         : std::vector<int>{};
+
+    const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
+
+    while (state.KeepRunning()) {
+        // Do the work and time it on each proc
+        const auto start = std::chrono::high_resolution_clock::now();
+        const auto values = reshuffle::shuffle(original_values, MPI_COMM_WORLD,
+                                               reshuffle::make_block_wise(num_values, 1),
+                                               reshuffle::make_block_wise(num_values, num_ranks));
+        const auto end = std::chrono::high_resolution_clock::now();
+
+        // Now get the max time across all procs:
+        // for better or for worse, the slowest processor is the one that is
+        // holding back the others in the benchmark.
+        const auto duration =
+                std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+        const auto elapsed_seconds = duration.count();
+
+        double max_elapsed_second{};
+        MPI_Allreduce(&elapsed_seconds, &max_elapsed_second, 1, MPI_DOUBLE, MPI_MAX,
+                      MPI_COMM_WORLD);
+        state.SetIterationTime(max_elapsed_second);
+    }
+}
+
+void shuffle_from_one_to_N_without_distribution(benchmark::State &state) {
     constexpr auto num_values = 2000;
     const auto original_values = reshuffle::internal::is_root(MPI_COMM_WORLD)
                                          ? std::vector<int>(num_values)
@@ -86,7 +116,8 @@ void shuffle_from_one_to_N(benchmark::State &state) {
 }
 
 BENCHMARK(shuffle_from_N_to_one)->UseManualTime();
-BENCHMARK(shuffle_from_one_to_N)->UseManualTime();
+BENCHMARK(shuffle_from_one_to_N_with_distribution)->UseManualTime();
+BENCHMARK(shuffle_from_one_to_N_without_distribution)->UseManualTime();
 
 // This reporter does nothing.
 // We can use it to disable output from all but the root process
