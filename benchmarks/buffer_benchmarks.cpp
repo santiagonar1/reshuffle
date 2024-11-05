@@ -23,7 +23,6 @@
 #include <chrono>
 #include <mpi.h>
 #include <numeric>
-#include <ranges>
 
 #include <reshuffle.hpp>
 
