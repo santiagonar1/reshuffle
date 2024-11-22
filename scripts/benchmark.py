@@ -53,14 +53,23 @@ def get_args():
         help="List of metric names to plot, e.g., --metrics cpu_time real_time"
     )
 
+    parser.add_argument(
+        "--results",
+        type=str,
+        default="benchmark_example/results.json",
+        help="Path to the JSON file with benchmark results"
+    )
+
     return parser.parse_args()
 
 
 def main():
     args = get_args()
-    metric_names = args.metrics
 
-    results = load_benchmark_results("benchmark_example/results.json")
+    metric_names = args.metrics
+    results_fname = args.results
+
+    results = load_benchmark_results(results_fname)
     metrics = get_metrics(results, metric_names)
 
     for metric_name in metric_names:
