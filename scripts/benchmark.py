@@ -1,5 +1,6 @@
 import json
 import matplotlib.pyplot as plt
+import argparse
 
 
 def load_benchmark_results(fname: str):
@@ -41,11 +42,29 @@ def plot_metrics(metrics, metric_name: str):
     plt.show()
 
 
+def get_args():
+    parser = argparse.ArgumentParser(description="Plot benchmark metrics.")
+
+    parser.add_argument(
+        "--metrics",
+        type=str,
+        nargs='*',
+        default=["cpu_time", "real_time"],
+        help="List of metric names to plot, e.g., --metrics cpu_time real_time"
+    )
+
+    return parser.parse_args()
+
+
 def main():
+    args = get_args()
+    metric_names = args.metrics
+
     results = load_benchmark_results("benchmark_example/results.json")
-    metrics = get_metrics(results, ["cpu_time", "real_time"])
-    plot_metrics(metrics, "cpu_time")
-    plot_metrics(metrics, "real_time")
+    metrics = get_metrics(results, metric_names)
+
+    for metric_name in metric_names:
+        plot_metrics(metrics, metric_name)
 
 
 if __name__ == "__main__":
