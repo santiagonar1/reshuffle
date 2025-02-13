@@ -23,64 +23,125 @@
 #include <chrono>
 #include <mpi.h>
 #include <numeric>
-#include <ranges>
+
 #include <reshuffle.hpp>
 
-bool is_root();
-std::vector<int> get_num_elements_per_rank(int total_num_elements);
-reshuffle::rank_id get_rank();
+double time_shuffle(const std::vector<int> &values,
+                    const reshuffle::BlockCyclic &current_distribution,
+                    const reshuffle::BlockCyclic &new_distribution) {
+    // Do the work and time it on each proc
+    const auto start = std::chrono::high_resolution_clock::now();
+    const auto _ =
+            reshuffle::shuffle(values, MPI_COMM_WORLD, current_distribution, new_distribution);
+    const auto end = std::chrono::high_resolution_clock::now();
 
-constexpr int NUM_ELEMENTS = 2000;
-
-void scatter_buffer_from_root(benchmark::State &state) {
-    const auto original_data = is_root() ? std::vector<int>(NUM_ELEMENTS) : std::vector<int>{};
-    const auto initial_global_coloring = std::vector<reshuffle::rank_id>(NUM_ELEMENTS, 0);
+    // Now get the max time across all procs:
+    // for better or for worse, the slowest processor is the one that is
+    // holding back the others in the benchmark.
+    const auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+    const auto elapsed_seconds = duration.count();
 
     double max_elapsed_second{};
+    MPI_Allreduce(&elapsed_seconds, &max_elapsed_second, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+    return max_elapsed_second;
+}
+
+void shuffle_from_N_to_one(benchmark::State &state) {
+    const auto num_values = static_cast<int>(state.range(0));
+
+    const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
+
+    if (num_values % num_ranks != 0) {
+        throw std::runtime_error("Number of values not divisible by number of ranks");
+    }
+
+    const auto values_per_rank = num_values / num_ranks;
+    const auto original_values = std::vector<int>(values_per_rank);
+
+    const auto current_distribution = reshuffle::make_block_wise(num_values, num_ranks);
+    const auto new_distribution = reshuffle::make_block_wise(num_values, 1);
+
+    while (state.KeepRunning()) {
+        state.SetIterationTime(
+                time_shuffle(original_values, current_distribution, new_distribution));
+    }
+}
+
+void shuffle_from_one_to_N_with_distribution(benchmark::State &state) {
+    const auto num_values = static_cast<int>(state.range(0));
+    const auto original_values = reshuffle::internal::is_root(MPI_COMM_WORLD)
+                                         ? std::vector<int>(num_values)
+                                         : std::vector<int>{};
+
+    const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
+
+    const auto current_distribution = reshuffle::make_block_wise(num_values, 1);
+    const auto new_distribution = reshuffle::make_block_wise(num_values, num_ranks);
+
+    while (state.KeepRunning()) {
+        state.SetIterationTime(
+                time_shuffle(original_values, current_distribution, new_distribution));
+    }
+}
+
+void shuffle_from_one_to_N_without_distribution(benchmark::State &state) {
+    const auto num_values = static_cast<int>(state.range(0));
+    const auto original_values = reshuffle::internal::is_root(MPI_COMM_WORLD)
+                                         ? std::vector<int>(num_values)
+                                         : std::vector<int>{};
+
     while (state.KeepRunning()) {
         // Do the work and time it on each proc
-        auto start = std::chrono::high_resolution_clock::now();
-        auto data = reshuffle::shuffle(original_data, MPI_COMM_WORLD);
-        auto end = std::chrono::high_resolution_clock::now();
+        const auto start = std::chrono::high_resolution_clock::now();
+        const auto values = reshuffle::shuffle(original_values, MPI_COMM_WORLD);
+        const auto end = std::chrono::high_resolution_clock::now();
+
         // Now get the max time across all procs:
         // for better or for worse, the slowest processor is the one that is
         // holding back the others in the benchmark.
-        auto const duration =
+        const auto duration =
                 std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-        auto elapsed_seconds = duration.count();
+        const auto elapsed_seconds = duration.count();
+
+        double max_elapsed_second{};
         MPI_Allreduce(&elapsed_seconds, &max_elapsed_second, 1, MPI_DOUBLE, MPI_MAX,
                       MPI_COMM_WORLD);
         state.SetIterationTime(max_elapsed_second);
     }
 }
 
-void reorder_data(benchmark::State &state) {
-    const auto rank = get_rank();
+void shuffle_reduction(benchmark::State &state) {
+    const auto num_values = static_cast<int>(state.range(0));
 
-    const auto num_elements_per_rank = get_num_elements_per_rank(NUM_ELEMENTS);
-    const auto original_data = std::vector<int>(num_elements_per_rank[rank]);
-    const auto initial_global_coloring = std::vector<reshuffle::rank_id>(NUM_ELEMENTS, 0);
+    const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
 
-    double max_elapsed_second{};
+    if (num_values % num_ranks != 0) {
+        throw std::runtime_error("Number of values not divisible by number of ranks");
+    }
+
+    if (num_ranks < 2) {
+        throw std::runtime_error("You need to use at least two ranks for this benchmark");
+    }
+
+    const auto values_per_rank = num_values / num_ranks;
+    const auto original_values = std::vector<int>(values_per_rank);
+
+    const auto current_distribution = reshuffle::make_block_wise(num_values, num_ranks);
+    const auto new_distribution = reshuffle::make_block_wise(num_values, num_ranks / 2);
+
     while (state.KeepRunning()) {
-        // Do the work and time it on each proc
-        auto start = std::chrono::high_resolution_clock::now();
-        auto data = reshuffle::shuffle(original_data, MPI_COMM_WORLD);
-        auto end = std::chrono::high_resolution_clock::now();
-        // Now get the max time across all procs:
-        // for better or for worse, the slowest processor is the one that is
-        // holding back the others in the benchmark.
-        auto const duration =
-                std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-        auto elapsed_seconds = duration.count();
-        MPI_Allreduce(&elapsed_seconds, &max_elapsed_second, 1, MPI_DOUBLE, MPI_MAX,
-                      MPI_COMM_WORLD);
-        state.SetIterationTime(max_elapsed_second);
+        state.SetIterationTime(
+                time_shuffle(original_values, current_distribution, new_distribution));
     }
 }
 
-BENCHMARK(scatter_buffer_from_root)->UseManualTime();
-BENCHMARK(reorder_data)->UseManualTime();
+BENCHMARK(shuffle_from_N_to_one)->UseManualTime()->DenseRange(1000, 10000, 1000);
+BENCHMARK(shuffle_from_one_to_N_with_distribution)->UseManualTime()->DenseRange(1000, 10000, 1000);
+BENCHMARK(shuffle_from_one_to_N_without_distribution)
+        ->UseManualTime()
+        ->DenseRange(1000, 10000, 1000);
+BENCHMARK(shuffle_reduction)->UseManualTime()->DenseRange(1000, 10000, 1000);
 
 // This reporter does nothing.
 // We can use it to disable output from all but the root process
@@ -100,9 +161,9 @@ int main(int argc, char **argv) {
 
     benchmark::Initialize(&argc, argv);
 
-    if (is_root())
-    // root process will use a reporter from the usual set provided by
-    // ::benchmark
+    if (reshuffle::internal::is_root(MPI_COMM_WORLD))
+        // root process will use a reporter from the usual set provided by
+        // ::benchmark
         benchmark::RunSpecifiedBenchmarks();
     else {
         // reporting from other processes is disabled by passing a custom reporter
@@ -112,40 +173,4 @@ int main(int argc, char **argv) {
 
     MPI_Finalize();
     return 0;
-}
-
-bool is_root() { return get_rank() == 0; }
-
-reshuffle::rank_id get_rank() {
-    reshuffle::rank_id rank{};
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    return rank;
-}
-
-std::vector<int> get_num_elements_per_rank(int total_num_elements) {
-    int num_ranks{};
-    MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
-
-    const auto seq = std::views::iota(0, num_ranks);
-    const auto rank_id_sum = std::accumulate(seq.begin(), seq.end(), 0);
-
-    std::vector<double> weights_per_rank(num_ranks);
-    std::ranges::transform(seq, weights_per_rank.begin(),
-                           [rank_id_sum](auto r) { return static_cast<double>(r) / rank_id_sum; });
-
-    std::vector<int> num_elements_per_rank(num_ranks);
-    std::ranges::transform(weights_per_rank
-                           , num_elements_per_rank.begin(),
-                           [total_num_elements](auto w) {
-                               return static_cast<int>(total_num_elements * w);
-                           });
-
-    const auto num_missing_elements =
-            total_num_elements -
-            std::accumulate(num_elements_per_rank.begin(), num_elements_per_rank.end(), 0);
-
-    num_elements_per_rank[0] += num_missing_elements;
-
-    return num_elements_per_rank;
 }
