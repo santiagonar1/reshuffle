@@ -1,12 +1,19 @@
 import json
 import matplotlib.pyplot as plt
 import argparse
+import re
 
 
-def load_benchmark_results(fname: str):
+def load_benchmark_results(fname: str, benchmark_filter: str) -> [dict]:
+    def benchmark_wanted(benchmark):
+        if benchmark_filter is None:
+            return True
+        name = benchmark.get("run_name", None) or benchmark["name"]
+        return re.search(benchmark_filter, name) is not None
+
     with open(fname, "r") as f:
         results = json.load(f)
-        return results["benchmarks"]
+        return list(filter(benchmark_wanted, results["benchmarks"]))
 
 
 def get_experiment_names(results) -> [str]:
@@ -60,6 +67,13 @@ def get_args():
         help="Path to the JSON file with benchmark results"
     )
 
+    parser.add_argument(
+        "--benchmark_filter",
+        required=False,
+        type=str,
+        help="Show the results of the benchmarks that contain the given string in their name"
+    )
+
     return parser.parse_args()
 
 
@@ -68,8 +82,9 @@ def main():
 
     metric_names = args.metrics
     results_fname = args.result_file
+    benchmark_filter = args.benchmark_filter
 
-    results = load_benchmark_results(results_fname)
+    results = load_benchmark_results(results_fname, benchmark_filter)
     metrics = get_metrics(results, metric_names)
 
     for metric_name in metric_names:
