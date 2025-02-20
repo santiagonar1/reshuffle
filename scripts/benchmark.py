@@ -54,7 +54,7 @@ def get_args():
     )
 
     parser.add_argument(
-        "--results",
+        "--result_file",
         type=str,
         default="benchmark_example/results.json",
         help="Path to the JSON file with benchmark results"
@@ -67,7 +67,7 @@ def main():
     args = get_args()
 
     metric_names = args.metrics
-    results_fname = args.results
+    results_fname = args.result_file
 
     results = load_benchmark_results(results_fname)
     metrics = get_metrics(results, metric_names)
