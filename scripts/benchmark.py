@@ -74,6 +74,13 @@ def get_args():
         help="Show the results of the benchmarks that contain the given string in their name"
     )
 
+    parser.add_argument(
+        "--compare_with",
+        type=str,
+        required=False,
+        help="Compare the results of the current benchmark with the results of the given benchmark"
+    )
+
     return parser.parse_args()
 
 
@@ -83,12 +90,28 @@ def main():
     metric_names = args.metrics
     results_fname = args.result_file
     benchmark_filter = args.benchmark_filter
+    compare_with = args.compare_with
 
     results = load_benchmark_results(results_fname, benchmark_filter)
     metrics = get_metrics(results, metric_names)
 
     for metric_name in metric_names:
         plot_metrics(metrics, metric_name)
+
+    if compare_with:
+        compare_results = load_benchmark_results(compare_with, benchmark_filter)
+        compare_metrics = get_metrics(compare_results, metric_names)
+
+        for metric_name in metric_names:
+            for experiment, metric_data in metrics.items():
+                plt.plot(metric_data["num_elements"], metric_data[metric_name], label=f"{results_fname}")
+                plt.plot(compare_metrics[experiment]["num_elements"], compare_metrics[experiment][metric_name], label=f"{compare_with}")
+
+                plt.title(f"{experiment}")
+                plt.xlabel("Number of Elements")
+                plt.ylabel("Value")
+                plt.legend()
+                plt.show()
 
 
 if __name__ == "__main__":
