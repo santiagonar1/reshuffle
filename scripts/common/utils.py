@@ -2,14 +2,14 @@ import json
 import re
 
 
-def load_benchmark_results(fname: str, benchmark_filter: str) -> [dict]:
+def load_benchmark_results(file_name: str, benchmark_filter: str) -> [dict]:
     def benchmark_wanted(benchmark):
         if benchmark_filter is None:
             return True
         name = benchmark.get("run_name", None) or benchmark["name"]
         return re.search(benchmark_filter, name) is not None
 
-    with open(fname, "r") as f:
+    with open(file_name, "r") as f:
         results = json.load(f)
         return list(filter(benchmark_wanted, results["benchmarks"]))
 

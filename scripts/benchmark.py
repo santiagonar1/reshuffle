@@ -48,10 +48,10 @@ def main():
     args = get_args()
 
     metric_names = args.metrics
-    results_fname = args.result_file
+    results_file = args.result_file
     benchmark_filter = args.benchmark_filter
 
-    results = utils.load_benchmark_results(results_fname, benchmark_filter)
+    results = utils.load_benchmark_results(results_file, benchmark_filter)
     metrics = utils.get_metrics(results, metric_names)
 
     for metric_name in metric_names:
