@@ -1,41 +1,8 @@
-import json
 import matplotlib.pyplot as plt
 import argparse
-import re
 
 
-def load_benchmark_results(fname: str, benchmark_filter: str) -> [dict]:
-    def benchmark_wanted(benchmark):
-        if benchmark_filter is None:
-            return True
-        name = benchmark.get("run_name", None) or benchmark["name"]
-        return re.search(benchmark_filter, name) is not None
-
-    with open(fname, "r") as f:
-        results = json.load(f)
-        return list(filter(benchmark_wanted, results["benchmarks"]))
-
-
-def get_experiment_names(results) -> [str]:
-    experiment_names = set()
-    for result in results:
-        name, _, _ = (result.get("run_name", None) or result["name"]).split("/")
-        experiment_names.add(name)
-    return list(experiment_names)
-
-
-def get_metrics(results, metric_names: [str]):
-    experiment_names: [str] = get_experiment_names(results)
-    metrics = {experiment: {metric_name: [] for metric_name in metric_names + ["num_elements"]} for experiment in
-               experiment_names}
-
-    for result in results:
-        name, num_elements, _ = (result.get("run_name", None) or result["name"]).split("/")
-        metrics[name]["num_elements"].append(int(num_elements))
-        for metric_name in metric_names:
-            metrics[name][metric_name].append(float(result[metric_name]))
-
-    return metrics
+from common import utils
 
 
 def plot_metrics(metrics, metric_name: str):
@@ -92,15 +59,15 @@ def main():
     benchmark_filter = args.benchmark_filter
     compare_with = args.compare_with
 
-    results = load_benchmark_results(results_fname, benchmark_filter)
-    metrics = get_metrics(results, metric_names)
+    results = utils.load_benchmark_results(results_fname, benchmark_filter)
+    metrics = utils.get_metrics(results, metric_names)
 
     for metric_name in metric_names:
         plot_metrics(metrics, metric_name)
 
     if compare_with:
-        compare_results = load_benchmark_results(compare_with, benchmark_filter)
-        compare_metrics = get_metrics(compare_results, metric_names)
+        compare_results = utils.load_benchmark_results(compare_with, benchmark_filter)
+        compare_metrics = utils.get_metrics(compare_results, metric_names)
 
         for metric_name in metric_names:
             for experiment, metric_data in metrics.items():
