@@ -9,7 +9,7 @@ def plot_comparison(base_metrics, compare_metrics, metric_name: str, experiment:
     plt.plot(compare_metrics[experiment]["num_elements"], compare_metrics[experiment][metric_name],
              label=f"Contender")
 
-    plt.title(f"{experiment}")
+    plt.title(f"{experiment} + {metric_name}")
     plt.xlabel("Number of Elements")
     plt.ylabel("Value")
     plt.legend()
