@@ -20,6 +20,7 @@ namespace reshuffle {
         const int _num_ranks;
         const int _num_values;
         const std::vector<Block> _blocks;
+        const int _block_size;
     };
 
     auto make_block_wise(int num_values, int num_blocks) -> BlockCyclic;
