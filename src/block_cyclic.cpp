@@ -44,7 +44,7 @@ namespace reshuffle {
     auto BlockCyclic::get_blocks() const -> std::vector<Block> { return _blocks; }
 
     auto BlockCyclic::get_rank_id(std::size_t index) const -> rank_id {
-        const auto global_block_id = static_cast<int>(index) / _blocks.at(0).get_length();
+        const auto global_block_id = static_cast<int>(index) / _block_size;
         return global_block_id % _num_ranks;
     }
 
