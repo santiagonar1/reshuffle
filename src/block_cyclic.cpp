@@ -1,8 +1,6 @@
 #include "block_cyclic.hpp"
 
-#include <algorithm>
 #include <cmath>
-#include <numeric>
 #include <ranges>
 #include <stdexcept>
 
@@ -59,15 +57,19 @@ namespace reshuffle {
 
         if (rank_id < 0) { throw std::invalid_argument("rank_id cannot be negative"); }
 
-        const auto block_ids =
-                internal::generate_integers(rank_id, static_cast<int>(_blocks.size()), _num_ranks);
+        const auto num_blocks = static_cast<int>(_blocks.size());
+        const auto min_blocks_per_rank = num_blocks / _num_ranks;
+        const auto max_id_with_extra_blocks = (num_blocks % _num_ranks) - 1;
 
-        const int num_values = std::accumulate(block_ids.begin(), block_ids.end(), 0,
-                                               [this](const int value, const int block_id) {
-                                                   return value + _blocks[block_id].get_length();
-                                               });
+        const auto min_values_per_rank = _block_size * min_blocks_per_rank;
 
-        return num_values;
+        if (rank_id == max_id_with_extra_blocks) {
+            return min_values_per_rank + (_num_values % _block_size);
+        }
+
+        if (rank_id < max_id_with_extra_blocks) { return min_values_per_rank + _block_size; }
+
+        return min_values_per_rank;
     }
 
     auto make_block_wise(const int num_values, const int num_blocks) -> BlockCyclic {
