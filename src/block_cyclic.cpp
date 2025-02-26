@@ -37,9 +37,9 @@ namespace reshuffle {
         }
     }// namespace internal
 
-    BlockCyclic::BlockCyclic(const int block_size, const int num_values, const int num_ranks)
-        : _num_ranks(num_ranks), _num_values(num_values),
-          _blocks(internal::get_blocks(block_size, num_values)), _block_size(block_size) {}
+    BlockCyclic::BlockCyclic(const int block_size, const int total_num_values, const int num_ranks)
+        : _num_ranks(num_ranks), _total_num_values(total_num_values),
+          _blocks(internal::get_blocks(block_size, total_num_values)), _block_size(block_size) {}
 
     auto BlockCyclic::get_blocks() const -> std::vector<Block> { return _blocks; }
 
@@ -50,7 +50,7 @@ namespace reshuffle {
 
     auto BlockCyclic::get_num_ranks() const -> int { return _num_ranks; }
 
-    auto BlockCyclic::get_num_total_values() const -> int { return _num_values; }
+    auto BlockCyclic::get_num_total_values() const -> int { return _total_num_values; }
 
     auto BlockCyclic::get_num_values(const rank_id rank_id) const -> int {
         if (rank_id >= _num_ranks) { return 0; }
@@ -64,7 +64,7 @@ namespace reshuffle {
         const auto min_values_per_rank = _block_size * min_blocks_per_rank;
 
         if (rank_id == max_id_with_extra_blocks) {
-            return min_values_per_rank + (_num_values % _block_size);
+            return min_values_per_rank + (_total_num_values % _block_size);
         }
 
         if (rank_id < max_id_with_extra_blocks) { return min_values_per_rank + _block_size; }
