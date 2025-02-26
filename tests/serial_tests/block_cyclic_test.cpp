@@ -59,7 +59,8 @@ TEST(BlockCyclic, GetNumValuesReturns0IfRankIdEqualOrLargerThanNumRanks) {
     constexpr int num_ranks = 3;
     const auto data_distribution = reshuffle::BlockCyclic(block_size, num_values, num_ranks);
 
-    EXPECT_THAT(data_distribution.get_num_values_hold_by(num_ranks), 0);
+    constexpr int rank_out_of_bounds = num_ranks;
+    EXPECT_THAT(data_distribution.get_num_values_hold_by(rank_out_of_bounds), 0);
 }
 
 TEST(BlockCyclic, ThrowsIfInvalidRankIdUsedForGetNumValues) {
