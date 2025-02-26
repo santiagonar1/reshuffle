@@ -48,9 +48,9 @@ TEST(BlockCyclic, CalculatesTheNumberOfValuesPerRank) {
     constexpr int num_ranks = 3;
     const auto data_distribution = reshuffle::BlockCyclic(block_size, num_values, num_ranks);
 
-    EXPECT_THAT(data_distribution.get_num_values(0), Eq(3));
-    EXPECT_THAT(data_distribution.get_num_values(1), Eq(2));
-    EXPECT_THAT(data_distribution.get_num_values(2), Eq(2));
+    EXPECT_THAT(data_distribution.get_num_values_hold_by(0), Eq(3));
+    EXPECT_THAT(data_distribution.get_num_values_hold_by(1), Eq(2));
+    EXPECT_THAT(data_distribution.get_num_values_hold_by(2), Eq(2));
 }
 
 TEST(BlockCyclic, GetNumValuesReturns0IfRankIdEqualOrLargenThanNumRanks) {
@@ -59,7 +59,7 @@ TEST(BlockCyclic, GetNumValuesReturns0IfRankIdEqualOrLargenThanNumRanks) {
     constexpr int num_ranks = 3;
     const auto data_distribution = reshuffle::BlockCyclic(block_size, num_values, num_ranks);
 
-    EXPECT_THAT(data_distribution.get_num_values(num_ranks), 0);
+    EXPECT_THAT(data_distribution.get_num_values_hold_by(num_ranks), 0);
 }
 
 TEST(BlockCyclic, ThrowsIfInvalidRankIdUsedForGetNumValues) {
@@ -68,7 +68,7 @@ TEST(BlockCyclic, ThrowsIfInvalidRankIdUsedForGetNumValues) {
     constexpr int num_ranks = 3;
     const auto data_distribution = reshuffle::BlockCyclic(block_size, num_values, num_ranks);
 
-    EXPECT_THROW(auto _ = data_distribution.get_num_values(-1), std::invalid_argument);
+    EXPECT_THROW(auto _ = data_distribution.get_num_values_hold_by(-1), std::invalid_argument);
 }
 
 TEST(MakeBlockWise, CanBeUsedToGetABlockWiseFromBlockCyclic) {

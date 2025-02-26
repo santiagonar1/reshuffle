@@ -18,9 +18,9 @@ namespace reshuffle::internal {
 
     void check_correct_num_values_provided(const BlockCyclic &distribution, const int num_values,
                                            const rank_id rank) {
-        const auto expected = distribution.get_num_values(rank);
+        const auto expected = distribution.get_num_values_hold_by(rank);
 
-        if (distribution.get_num_values(rank) != num_values) {
+        if (distribution.get_num_values_hold_by(rank) != num_values) {
             const std::string error_msg = "Number of values provided not consistent with current "
                                           "distribution. Expected: " +
                                           std::to_string(expected) +
