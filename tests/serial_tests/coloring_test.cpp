@@ -128,3 +128,14 @@ TEST(GetSendingRankIds, ReturnsToWhichRankIShouldSendMyLocalData) {
                                                           rank_id),
                 Eq(expect_sending_rank_1));
 }
+
+TEST(GetReceivingRankIds, ReturnsFromWhichRankIShouldReceiveLocalData) {
+    constexpr auto rank_id = 1;
+    const auto old_global_coloring = {0, 0, 1, 1, 2, 2, 1};
+    const auto new_global_coloring = {1, 1, 1, 1, 2, 2, 2};
+    const auto expect_receiving_rank_1 = std::vector{0, 0, 1, 1};
+
+    EXPECT_THAT(reshuffle::internal::get_receiving_rank_ids(old_global_coloring,
+                                                            new_global_coloring, rank_id),
+                Eq(expect_receiving_rank_1));
+}

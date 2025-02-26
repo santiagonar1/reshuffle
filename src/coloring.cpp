@@ -103,6 +103,13 @@ namespace reshuffle::internal {
         return get_local_coloring(old_global_coloring, new_global_coloring, rank);
     }
 
+    auto get_receiving_rank_ids(const std::vector<rank_id> &old_global_coloring,
+                                const std::vector<rank_id> &new_global_coloring, rank_id rank)
+            -> std::vector<rank_id> {
+        // It's equivalent of getting the sending ranks if the new and old coloring where exchanged
+        return get_sending_rank_ids(new_global_coloring, old_global_coloring, rank);
+    }
+
     auto get_global_coloring(const std::array<BlockCyclic, 2> &data_distributions)
             -> std::vector<rank_id> {
         const auto dimensions = get_dimension_from_distribution(data_distributions);

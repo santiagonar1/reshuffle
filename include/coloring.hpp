@@ -39,6 +39,10 @@ namespace reshuffle::internal {
     auto get_sending_rank_ids(const std::vector<rank_id> &old_global_coloring,
                               const std::vector<rank_id> &new_global_coloring, rank_id rank)
             -> std::vector<rank_id>;
+
+    auto get_receiving_rank_ids(const std::vector<rank_id> &old_global_coloring,
+                                const std::vector<rank_id> &new_global_coloring, rank_id rank)
+            -> std::vector<rank_id>;
 }// namespace reshuffle::internal
 
 #endif//RESHUFFLE_COLORING_HPP
