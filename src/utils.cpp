@@ -4,7 +4,7 @@
 
 namespace reshuffle::internal {
     auto have_same_num_values(const BlockCyclic &first, const BlockCyclic &second) -> bool {
-        return first.get_num_values() == second.get_num_values();
+        return first.get_num_total_values() == second.get_num_total_values();
     }
 
     auto have_same_num_values(const std::array<BlockCyclic, 2> &first,

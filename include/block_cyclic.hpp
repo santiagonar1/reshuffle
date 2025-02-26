@@ -11,7 +11,7 @@ namespace reshuffle {
         explicit BlockCyclic(int block_size, int num_values, int num_ranks);
 
         [[nodiscard]] auto get_blocks() const -> std::vector<Block>;
-        [[nodiscard]] auto get_num_values() const -> int;
+        [[nodiscard]] auto get_num_total_values() const -> int;
         [[nodiscard]] auto get_num_values(rank_id rank_id) const -> int;
         [[nodiscard]] auto get_rank_id(std::size_t index) const -> rank_id;
         [[nodiscard]] auto get_num_ranks() const -> int;

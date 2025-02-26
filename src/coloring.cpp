@@ -20,7 +20,8 @@ namespace reshuffle::internal {
 
     auto get_dimension_from_distribution(const std::array<BlockCyclic, 2> &distribution)
             -> Dimension<2> {
-        return Dimension<2>{distribution[0].get_num_values(), distribution[1].get_num_values()};
+        return Dimension<2>{distribution[0].get_num_total_values(),
+                            distribution[1].get_num_total_values()};
     }
 
     auto get_global_and_local_coloring(const std::vector<rank_id> &global_coloring,
@@ -28,7 +29,7 @@ namespace reshuffle::internal {
             -> ColoringReturn {
 
         throw_if_different(static_cast<int>(global_coloring.size()),
-                           new_distribution.get_num_values(),
+                           new_distribution.get_num_total_values(),
                            std::string{"Mismatch between size of global_coloring and "
                                        "number of values new_distribution"});
 
@@ -46,8 +47,8 @@ namespace reshuffle::internal {
                                        const std::array<BlockCyclic, 2> &new_distributions,
                                        const rank_id rank) -> ColoringReturn {
 
-        const auto global_dimensions = Dimension<2>{new_distributions[0].get_num_values(),
-                                                    new_distributions[1].get_num_values()};
+        const auto global_dimensions = Dimension<2>{new_distributions[0].get_num_total_values(),
+                                                    new_distributions[1].get_num_total_values()};
 
         throw_if_different(static_cast<int>(global_coloring.size()),
                            calc_total_num_values(global_dimensions),
@@ -72,7 +73,7 @@ namespace reshuffle::internal {
     }
 
     auto get_global_coloring(const BlockCyclic &data_distribution) -> std::vector<rank_id> {
-        const auto num_values = data_distribution.get_num_values();
+        const auto num_values = data_distribution.get_num_total_values();
         auto global_coloring = std::vector<rank_id>(num_values);
 
 #pragma omp parallel for

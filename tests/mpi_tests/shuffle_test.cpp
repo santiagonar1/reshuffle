@@ -95,7 +95,7 @@ TEST_F(Shuffle, CanBePassedADataDistribution) {
 TEST_F(Shuffle, ThrowsIfDataDistributionsDoNotHaveSameNumberOfValues) {
     const auto old_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
     const auto new_distribution =
-            reshuffle::make_block_wise(old_distribution.get_num_values() + 1, 1);
+            reshuffle::make_block_wise(old_distribution.get_num_total_values() + 1, 1);
 
     EXPECT_THROW(auto new_values = reshuffle::shuffle(_values, MPI_COMM_WORLD, old_distribution,
                                                       new_distribution),
@@ -301,7 +301,7 @@ TEST_F(Shuffle, WorksIfEachRankHasData) {
 TEST_F(Shuffle, ThrowsIfDataDistributionsDoNotHaveSameNumberOfValuesDifferentCommunicators) {
     const auto old_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
     const auto new_distribution =
-            reshuffle::make_block_wise(old_distribution.get_num_values() + 1, 1);
+            reshuffle::make_block_wise(old_distribution.get_num_total_values() + 1, 1);
 
     EXPECT_THROW(auto new_values =
                          reshuffle::shuffle(_values_only_in_root, _comm_rank_0, MPI_COMM_WORLD,

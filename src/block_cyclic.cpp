@@ -50,7 +50,7 @@ namespace reshuffle {
 
     auto BlockCyclic::get_num_ranks() const -> int { return _num_ranks; }
 
-    auto BlockCyclic::get_num_values() const -> int { return _num_values; }
+    auto BlockCyclic::get_num_total_values() const -> int { return _num_values; }
 
     auto BlockCyclic::get_num_values(const rank_id rank_id) const -> int {
         if (rank_id >= _num_ranks) { return 0; }
