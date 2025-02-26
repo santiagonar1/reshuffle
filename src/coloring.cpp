@@ -84,7 +84,7 @@ namespace reshuffle::internal {
     }
 
     auto get_local_coloring(const std::vector<rank_id> &old_global_coloring,
-                            const std::vector<rank_id> &new_global_coloring, rank_id rank)
+                            const std::vector<rank_id> &new_global_coloring, const rank_id rank)
             -> std::vector<rank_id> {
         auto local_coloring = std::vector<rank_id>{};
         for (int i = 0; i < old_global_coloring.size(); ++i) {
