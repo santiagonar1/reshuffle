@@ -122,10 +122,10 @@ namespace reshuffle {
                                                     rank);
 
         const auto old_global_coloring = internal::get_global_coloring(old_distribution);
+        const auto new_global_coloring = internal::get_global_coloring(new_distribution);
 
         const auto local_coloring =
-                internal::get_global_and_local_coloring(old_global_coloring, new_distribution, rank)
-                        .local_coloring;
+                internal::get_local_coloring(old_global_coloring, new_global_coloring, rank);
 
         return internal::shuffle_with_coloring(std::span{values}, comm, local_coloring,
                                                old_global_coloring);

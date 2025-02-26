@@ -73,11 +73,27 @@ namespace reshuffle::internal {
 
     auto get_global_coloring(const BlockCyclic &data_distribution) -> std::vector<rank_id> {
         const auto num_values = data_distribution.get_num_values();
-        const auto dummy_global_coloring = std::vector<rank_id>(num_values);
-        constexpr rank_id dummy_rank = 0;
-        const auto [global_coloring, _] =
-                get_global_and_local_coloring(dummy_global_coloring, data_distribution, dummy_rank);
+        auto global_coloring = std::vector<rank_id>(num_values);
+
+#pragma omp parallel for
+        for (int i = 0; i < num_values; ++i) {
+            global_coloring[i] = data_distribution.get_rank_id(i);
+        }
+
         return global_coloring;
+    }
+
+    auto get_local_coloring(const std::vector<rank_id> &old_global_coloring,
+                            const std::vector<rank_id> &new_global_coloring, rank_id rank)
+            -> std::vector<rank_id> {
+        auto local_coloring = std::vector<rank_id>{};
+        for (int i = 0; i < old_global_coloring.size(); ++i) {
+            if (old_global_coloring[i] == rank) {
+                local_coloring.push_back(new_global_coloring[i]);
+            }
+        }
+
+        return local_coloring;
     }
 
     auto get_global_coloring(const std::array<BlockCyclic, 2> &data_distributions)
