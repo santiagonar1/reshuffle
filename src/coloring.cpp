@@ -2,7 +2,6 @@
 
 #include "utils.hpp"
 
-#include <algorithm>
 #include <stdexcept>
 #include <string>
 
