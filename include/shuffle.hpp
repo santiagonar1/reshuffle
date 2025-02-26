@@ -2,6 +2,7 @@
 #define RESHUFFLE_SHUFFLE_HPP
 
 #include <mpi.h>
+#include <numeric>
 #include <ranges>
 #include <span>
 #include <vector>
@@ -107,6 +108,83 @@ namespace reshuffle {
                                                                 bool contains_data);
     }// namespace internal
 
+    namespace dev {
+        template<typename Tc, std::size_t N>
+        auto shuffle_with_coloring(const std::span<Tc, N> local_values, const MPI_Comm &comm,
+                                   const BlockCyclic &old_distribution,
+                                   const BlockCyclic &new_distribution) {
+            const auto rank = internal::get_rank_id(comm);
+            const auto num_ranks = internal::get_num_ranks(comm);
+
+            const auto old_global_coloring = internal::get_global_coloring(old_distribution);
+            const auto new_global_coloring = internal::get_global_coloring(new_distribution);
+
+            const auto sending_coloring =
+                    internal::get_sending_rank_ids(old_global_coloring, new_global_coloring, rank);
+
+            const auto receiving_coloring = internal::get_receiving_rank_ids(
+                    old_global_coloring, new_global_coloring, rank);
+
+            // Steps:
+            // 1. Get how many values to send to each rank
+            // 2. Get how many values to receive from each rank
+            // 3. Order local_values to send all values at once
+            // 4. For each rank
+            //       1. Send values to that rank (non-blocking
+            //       2. Receive values from that rank
+            //       3. Store all values in a receiver buffer
+            //  5. Order the receiver buffer to match the expected order of values
+
+            // 1
+            auto num_values_send_per_rank = std::vector<int>(num_ranks);
+            for (const auto rank_id: sending_coloring) { num_values_send_per_rank[rank_id]++; }
+
+            // 2
+            auto num_values_recv_per_rank = std::vector<int>(num_ranks);
+            for (const auto rank_id: receiving_coloring) { num_values_recv_per_rank[rank_id]++; }
+
+            // 3
+            auto send_buffer = std::vector<int>(local_values.size());
+            auto send_positions = std::vector<int>(num_ranks);
+            std::exclusive_scan(num_values_send_per_rank.begin(), num_values_send_per_rank.end(),
+                                send_positions.begin(), 0);
+            for (int i = 0; i < sending_coloring.size(); i++) {
+                const auto dest_rank = sending_coloring[i];
+                send_buffer[send_positions[dest_rank]] = local_values[i];
+                send_positions[dest_rank]++;
+            }
+
+            // 4
+            auto recv_buffer = std::vector<std::remove_cv_t<Tc>>(receiving_coloring.size());
+            std::exclusive_scan(num_values_send_per_rank.begin(), num_values_send_per_rank.end(),
+                                send_positions.begin(), 0);
+            auto recv_positions = std::vector<int>(num_ranks);
+            std::exclusive_scan(num_values_recv_per_rank.begin(), num_values_recv_per_rank.end(),
+                                recv_positions.begin(), 0);
+            for (int i = 0; i < num_ranks; i++) {
+                MPI_Request request{};
+                MPI_Isend(send_buffer.data() + send_positions[i], num_values_send_per_rank[i],
+                          internal::to_mpi_datatype<std::remove_cv_t<Tc>>(), i, 0, comm, &request);
+
+                MPI_Recv(recv_buffer.data() + recv_positions[i], num_values_recv_per_rank[i],
+                         internal::to_mpi_datatype<std::remove_cv_t<Tc>>(), i, 0, comm,
+                         MPI_STATUS_IGNORE);
+
+                MPI_Wait(&request, MPI_STATUS_IGNORE);
+            }
+
+            // 5
+            auto recv_buffer_ordered = std::vector<std::remove_cv_t<Tc>>(receiving_coloring.size());
+            for (int i = 0; i < receiving_coloring.size(); i++) {
+                const auto src_rank = receiving_coloring[i];
+                recv_buffer_ordered[i] = recv_buffer[recv_positions[src_rank]];
+                recv_positions[src_rank]++;
+            }
+
+            return recv_buffer_ordered;
+        }
+    }// namespace dev
+
     template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &comm) {
         return internal::shuffle_with_coloring(std::span{values}, comm);
@@ -121,14 +199,8 @@ namespace reshuffle {
         internal::check_correct_num_values_provided(old_distribution, std::ranges::size(values),
                                                     rank);
 
-        const auto old_global_coloring = internal::get_global_coloring(old_distribution);
-        const auto new_global_coloring = internal::get_global_coloring(new_distribution);
-
-        const auto local_coloring =
-                internal::get_local_coloring(old_global_coloring, new_global_coloring, rank);
-
-        return internal::shuffle_with_coloring(std::span{values}, comm, local_coloring,
-                                               old_global_coloring);
+        return dev::shuffle_with_coloring(std::span{values}, comm, old_distribution,
+                                          new_distribution);
     }
 
     template<concepts::ContiguousContainer C>
