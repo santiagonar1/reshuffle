@@ -53,7 +53,7 @@ TEST(BlockCyclic, CalculatesTheNumberOfValuesPerRank) {
     EXPECT_THAT(data_distribution.get_num_values_hold_by(2), Eq(2));
 }
 
-TEST(BlockCyclic, GetNumValuesReturns0IfRankIdEqualOrLargenThanNumRanks) {
+TEST(BlockCyclic, GetNumValuesReturns0IfRankIdEqualOrLargerThanNumRanks) {
     constexpr int block_size = 2;
     constexpr int num_values = 7;
     constexpr int num_ranks = 3;
