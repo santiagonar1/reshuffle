@@ -119,10 +119,10 @@ namespace reshuffle {
             const auto old_global_coloring = internal::get_global_coloring(old_distribution);
             const auto new_global_coloring = internal::get_global_coloring(new_distribution);
 
-            const auto sending_coloring = internal::get_rank_ids_send_data_to(
+            const auto sending_data_to = internal::get_rank_ids_send_data_to(
                     old_global_coloring, new_global_coloring, rank);
 
-            const auto receiving_coloring = internal::get_ranks_id_receive_data_from(
+            const auto receiving_data_from = internal::get_ranks_id_receive_data_from(
                     old_global_coloring, new_global_coloring, rank);
 
             // Steps:
@@ -137,25 +137,25 @@ namespace reshuffle {
 
             // 1
             auto num_values_send_per_rank = std::vector<int>(num_ranks);
-            for (const auto rank_id: sending_coloring) { num_values_send_per_rank[rank_id]++; }
+            for (const auto rank_id: sending_data_to) { num_values_send_per_rank[rank_id]++; }
 
             // 2
             auto num_values_recv_per_rank = std::vector<int>(num_ranks);
-            for (const auto rank_id: receiving_coloring) { num_values_recv_per_rank[rank_id]++; }
+            for (const auto rank_id: receiving_data_from) { num_values_recv_per_rank[rank_id]++; }
 
             // 3
             auto send_buffer = std::vector<int>(local_values.size());
             auto send_positions = std::vector<int>(num_ranks);
             std::exclusive_scan(num_values_send_per_rank.begin(), num_values_send_per_rank.end(),
                                 send_positions.begin(), 0);
-            for (int i = 0; i < sending_coloring.size(); i++) {
-                const auto dest_rank = sending_coloring[i];
+            for (int i = 0; i < sending_data_to.size(); i++) {
+                const auto dest_rank = sending_data_to[i];
                 send_buffer[send_positions[dest_rank]] = local_values[i];
                 send_positions[dest_rank]++;
             }
 
             // 4
-            auto recv_buffer = std::vector<std::remove_cv_t<Tc>>(receiving_coloring.size());
+            auto recv_buffer = std::vector<std::remove_cv_t<Tc>>(receiving_data_from.size());
             std::exclusive_scan(num_values_send_per_rank.begin(), num_values_send_per_rank.end(),
                                 send_positions.begin(), 0);
             auto recv_positions = std::vector<int>(num_ranks);
@@ -174,9 +174,10 @@ namespace reshuffle {
             }
 
             // 5
-            auto recv_buffer_ordered = std::vector<std::remove_cv_t<Tc>>(receiving_coloring.size());
-            for (int i = 0; i < receiving_coloring.size(); i++) {
-                const auto src_rank = receiving_coloring[i];
+            auto recv_buffer_ordered =
+                    std::vector<std::remove_cv_t<Tc>>(receiving_data_from.size());
+            for (int i = 0; i < receiving_data_from.size(); i++) {
+                const auto src_rank = receiving_data_from[i];
                 recv_buffer_ordered[i] = recv_buffer[recv_positions[src_rank]];
                 recv_positions[src_rank]++;
             }
