@@ -82,6 +82,8 @@ namespace reshuffle::internal {
                                           rank_id rank) -> int;
 
     [[nodiscard]] auto num_ranks(const std::array<BlockCyclic, 2> &distribution) -> int;
+
+    [[nodiscard]] auto get_num_repetitions(const std::vector<int> &values, int max_value) -> std::vector<int>;
 }// namespace reshuffle::internal
 
 #endif//RESHUFFLE_UTILS_HPP

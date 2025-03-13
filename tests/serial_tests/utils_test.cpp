@@ -175,3 +175,11 @@ TEST(ReorderValues, ThrowsIfSizeOfNewIndicesDifferentFromSizeOfValues) {
     EXPECT_THROW(auto _ = reorder_values(values, less_indices), std::invalid_argument);
     EXPECT_THROW(auto _ = reorder_values(values, more_indices), std::invalid_argument);
 }
+
+TEST(GetNumRepetitions, CalculatesHowOftenANumberRepeatsAndStoreInIndex) {
+    const auto values = std::vector{0, 0, 2, 3, 2, 2};
+    constexpr auto max_value = 3;
+
+    // 0: 2 times, 1: 0 times, 2: 3 times, 3: 1 time
+    EXPECT_THAT(get_num_repetitions(values, max_value), Eq(std::vector{2, 0, 3, 1}));
+}

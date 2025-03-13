@@ -42,4 +42,11 @@ namespace reshuffle::internal {
         return std::accumulate(values_per_dimension.begin(), values_per_dimension.end(), 1,
                                std::multiplies());
     }
+
+    auto get_num_repetitions(const std::vector<int> &values, const int max_value)
+            -> std::vector<int> {
+        auto num_repetitions = std::vector(max_value + 1, 0);
+        for (const auto value: values) { num_repetitions[value]++; }
+        return num_repetitions;
+    }
 }// namespace reshuffle::internal

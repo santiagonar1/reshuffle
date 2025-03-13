@@ -136,12 +136,12 @@ namespace reshuffle {
             //  5. Order the receiver buffer to match the expected order of values
 
             // 1
-            auto num_values_send_per_rank = std::vector<int>(num_ranks);
-            for (const auto rank_id: sending_data_to) { num_values_send_per_rank[rank_id]++; }
+            const auto num_values_send_per_rank =
+                    internal::get_num_repetitions(sending_data_to, num_ranks - 1);
 
             // 2
-            auto num_values_recv_per_rank = std::vector<int>(num_ranks);
-            for (const auto rank_id: receiving_data_from) { num_values_recv_per_rank[rank_id]++; }
+            const auto num_values_recv_per_rank =
+                    internal::get_num_repetitions(receiving_data_from, num_ranks - 1);
 
             // 3
             auto send_buffer = std::vector<int>(local_values.size());
