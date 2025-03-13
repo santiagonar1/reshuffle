@@ -7,8 +7,8 @@
 
 namespace reshuffle::internal {
     auto get_local_coloring(const std::vector<rank_id> &old_global_coloring,
-                               const std::vector<rank_id> &new_global_coloring, const rank_id rank)
-               -> std::vector<rank_id> {
+                            const std::vector<rank_id> &new_global_coloring, const rank_id rank)
+            -> std::vector<rank_id> {
         auto local_coloring = std::vector<rank_id>{};
         for (int i = 0; i < old_global_coloring.size(); ++i) {
             if (old_global_coloring[i] == rank) {
@@ -96,17 +96,17 @@ namespace reshuffle::internal {
         return global_coloring;
     }
 
-    auto get_sending_rank_ids(const std::vector<rank_id> &old_global_coloring,
-                              const std::vector<rank_id> &new_global_coloring, const rank_id rank)
-            -> std::vector<rank_id> {
+    auto get_rank_ids_send_data_to(const std::vector<rank_id> &old_global_coloring,
+                                   const std::vector<rank_id> &new_global_coloring,
+                                   const rank_id rank) -> std::vector<rank_id> {
         return get_local_coloring(old_global_coloring, new_global_coloring, rank);
     }
 
-    auto get_receiving_rank_ids(const std::vector<rank_id> &old_global_coloring,
-                                const std::vector<rank_id> &new_global_coloring, rank_id rank)
-            -> std::vector<rank_id> {
+    auto get_ranks_id_receive_data_from(const std::vector<rank_id> &old_global_coloring,
+                                        const std::vector<rank_id> &new_global_coloring,
+                                        rank_id rank) -> std::vector<rank_id> {
         // It's equivalent of getting the sending ranks if the new and old coloring where exchanged
-        return get_sending_rank_ids(new_global_coloring, old_global_coloring, rank);
+        return get_rank_ids_send_data_to(new_global_coloring, old_global_coloring, rank);
     }
 
     auto get_global_coloring(const std::array<BlockCyclic, 2> &data_distributions)

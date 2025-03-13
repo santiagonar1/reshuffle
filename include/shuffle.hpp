@@ -119,10 +119,10 @@ namespace reshuffle {
             const auto old_global_coloring = internal::get_global_coloring(old_distribution);
             const auto new_global_coloring = internal::get_global_coloring(new_distribution);
 
-            const auto sending_coloring =
-                    internal::get_sending_rank_ids(old_global_coloring, new_global_coloring, rank);
+            const auto sending_coloring = internal::get_rank_ids_send_data_to(
+                    old_global_coloring, new_global_coloring, rank);
 
-            const auto receiving_coloring = internal::get_receiving_rank_ids(
+            const auto receiving_coloring = internal::get_ranks_id_receive_data_from(
                     old_global_coloring, new_global_coloring, rank);
 
             // Steps:

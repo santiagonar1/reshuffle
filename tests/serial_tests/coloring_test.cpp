@@ -124,7 +124,7 @@ TEST(GetSendingRankIds, ReturnsToWhichRankIShouldSendMyLocalData) {
     const auto new_global_coloring = {1, 1, 1, 1, 2, 2, 2};
     const auto expect_sending_rank_1 = std::vector{1, 1, 2};
 
-    EXPECT_THAT(reshuffle::internal::get_sending_rank_ids(old_global_coloring, new_global_coloring,
+    EXPECT_THAT(reshuffle::internal::get_rank_ids_send_data_to(old_global_coloring, new_global_coloring,
                                                           rank_id),
                 Eq(expect_sending_rank_1));
 }
@@ -135,7 +135,7 @@ TEST(GetReceivingRankIds, ReturnsFromWhichRankIShouldReceiveLocalData) {
     const auto new_global_coloring = {1, 1, 1, 1, 2, 2, 2};
     const auto expect_receiving_rank_1 = std::vector{0, 0, 1, 1};
 
-    EXPECT_THAT(reshuffle::internal::get_receiving_rank_ids(old_global_coloring,
+    EXPECT_THAT(reshuffle::internal::get_ranks_id_receive_data_from(old_global_coloring,
                                                             new_global_coloring, rank_id),
                 Eq(expect_receiving_rank_1));
 }
