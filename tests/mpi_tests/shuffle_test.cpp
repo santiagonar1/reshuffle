@@ -58,19 +58,25 @@ private:
 
 TEST_F(Shuffle, In1DWorksWithAnyIterableContainer) {
     const auto values = std::list(_values_only_in_root.begin(), _values_only_in_root.end());
-    const auto new_values = reshuffle::shuffle(values, MPI_COMM_WORLD);
+    const auto new_values = reshuffle::shuffle(
+            values, MPI_COMM_WORLD, reshuffle::make_block_wise(_total_num_values, 1),
+            reshuffle::make_block_wise(_total_num_values, _num_ranks));
     EXPECT_THAT(new_values, Eq(_values));
 }
 
-TEST_F(Shuffle, In1DSplitsDataEquallyAmongRanksByDefault) {
-    const auto new_values = reshuffle::shuffle(_values_only_in_root, MPI_COMM_WORLD);
+TEST_F(Shuffle, UsesBlockCyclicDistributionToRedistributeValues) {
+    const auto new_values = reshuffle::shuffle(
+            _values_only_in_root, MPI_COMM_WORLD, reshuffle::make_block_wise(_total_num_values, 1),
+            reshuffle::make_block_wise(_total_num_values, _num_ranks));
     EXPECT_THAT(new_values, Eq(_values));
 }
 
 TEST_F(Shuffle, IfNumValuesNoDivisibleGivesAdditionalDataToInitialRanks) {
     if (is_root()) { _values_only_in_root.push_back(_value); }
 
-    const auto new_values = reshuffle::shuffle(_values_only_in_root, MPI_COMM_WORLD);
+    const auto new_values = reshuffle::shuffle(
+            _values_only_in_root, MPI_COMM_WORLD, reshuffle::make_block_wise(_total_num_values + 1, 1),
+            reshuffle::make_block_wise(_total_num_values + 1, _num_ranks));
     if (is_last()) {
         EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, _value)));
     } else {
@@ -131,7 +137,9 @@ TEST_F(Shuffle, ThrowsIfRankOnlyInDestinyContainsData) {
     const auto new_distribution = reshuffle::make_block_wise(_total_num_values, _num_ranks);
 
     const auto shuffle_different_comm = [this] {
-        auto _ = reshuffle::shuffle(std::vector{1}, _comm_rank_1, MPI_COMM_WORLD);
+        auto _ = reshuffle::shuffle(std::vector{1}, _comm_rank_1, MPI_COMM_WORLD,
+                                    reshuffle::make_block_wise(_num_ranks, _num_ranks),
+                                    reshuffle::make_block_wise(_num_ranks, _num_ranks));
     };
 
     const auto shuffle_different_comm_with_distributions = [old_distribution, new_distribution,
@@ -238,7 +246,10 @@ TEST_F(Shuffle, ThrowsIn2DIfRankOnlyInDestinyContainsData) {
 }
 
 TEST_F(Shuffle, CanBePassedDifferentCommunicators) {
-    const auto new_values = reshuffle::shuffle(_values_only_in_root, _comm_rank_0, MPI_COMM_WORLD);
+    const auto new_values =
+            reshuffle::shuffle(_values_only_in_root, _comm_rank_0, MPI_COMM_WORLD,
+                               reshuffle::make_block_wise(_total_num_values, 1),
+                               reshuffle::make_block_wise(_total_num_values, _num_ranks));
     EXPECT_THAT(new_values, Eq(_values));
 }
 
@@ -294,7 +305,9 @@ TEST_F(Shuffle, WorksWithAnyIterableContainerAndDataDistributionAndDifferentComm
 }
 
 TEST_F(Shuffle, WorksIfEachRankHasData) {
-    const auto new_values = reshuffle::shuffle(_values, MPI_COMM_WORLD);
+    const auto new_values = reshuffle::shuffle(
+            _values, MPI_COMM_WORLD, reshuffle::make_block_wise(_total_num_values, _num_ranks),
+            reshuffle::make_block_wise(_total_num_values, _num_ranks));
     EXPECT_THAT(new_values, Eq(_values));
 }
 

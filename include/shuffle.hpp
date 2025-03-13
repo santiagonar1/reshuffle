@@ -129,11 +129,6 @@ namespace reshuffle {
     }// namespace dev
 
     template<concepts::ContiguousContainer C>
-    auto shuffle(const C &values, const MPI_Comm &comm) {
-        return internal::shuffle_with_coloring(std::span{values}, comm);
-    }
-
-    template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
                  const BlockCyclic &new_distribution) {
         const auto rank = internal::get_rank_id(comm);
@@ -143,14 +138,6 @@ namespace reshuffle {
                                                     rank);
 
         return dev::shuffle_with_coloring(values, comm, old_distribution, new_distribution);
-    }
-
-    template<concepts::ContiguousContainer C>
-    auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
-        internal::check_rank_only_in_destiny_comm_does_not_have_data(
-                origin_comm, destiny_comm, not std::ranges::empty(values));
-
-        return internal::shuffle_with_coloring(std::span{values}, origin_comm, destiny_comm);
     }
 
     template<concepts::ContiguousContainer C>
@@ -181,27 +168,11 @@ namespace reshuffle {
     }
 
     template<concepts::Iterable I>
-        requires(not concepts::ContiguousContainer<I>)
-    auto shuffle(const I &values, const MPI_Comm &comm) {
-        using T = typename I::value_type;
-        const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
-        return shuffle(v_values, comm);
-    }
-
-    template<concepts::Iterable I>
     auto shuffle(const I &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
                  const BlockCyclic &new_distribution) {
         using T = typename I::value_type;
         const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
         return shuffle(v_values, comm, old_distribution, new_distribution);
-    }
-
-    template<concepts::Iterable I>
-        requires(not concepts::ContiguousContainer<I>)
-    auto shuffle(const I &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
-        using T = typename I::value_type;
-        const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
-        return shuffle(v_values, origin_comm, destiny_comm);
     }
 
     template<concepts::Iterable I>

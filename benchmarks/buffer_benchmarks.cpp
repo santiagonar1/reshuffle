@@ -85,32 +85,6 @@ void shuffle_from_one_to_N_with_distribution(benchmark::State &state) {
     }
 }
 
-void shuffle_from_one_to_N_without_distribution(benchmark::State &state) {
-    const auto num_values = static_cast<int>(state.range(0));
-    const auto original_values = reshuffle::internal::is_root(MPI_COMM_WORLD)
-                                         ? std::vector<int>(num_values)
-                                         : std::vector<int>{};
-
-    while (state.KeepRunning()) {
-        // Do the work and time it on each proc
-        const auto start = std::chrono::high_resolution_clock::now();
-        const auto values = reshuffle::shuffle(original_values, MPI_COMM_WORLD);
-        const auto end = std::chrono::high_resolution_clock::now();
-
-        // Now get the max time across all procs:
-        // for better or for worse, the slowest processor is the one that is
-        // holding back the others in the benchmark.
-        const auto duration =
-                std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-        const auto elapsed_seconds = duration.count();
-
-        double max_elapsed_second{};
-        MPI_Allreduce(&elapsed_seconds, &max_elapsed_second, 1, MPI_DOUBLE, MPI_MAX,
-                      MPI_COMM_WORLD);
-        state.SetIterationTime(max_elapsed_second);
-    }
-}
-
 void shuffle_from_N_to_N(benchmark::State &state) {
     const auto num_values = static_cast<int>(state.range(0));
 
@@ -159,9 +133,6 @@ void shuffle_reduction(benchmark::State &state) {
 
 BENCHMARK(shuffle_from_N_to_one)->UseManualTime()->DenseRange(1000, 100000, 10000);
 BENCHMARK(shuffle_from_one_to_N_with_distribution)
-        ->UseManualTime()
-        ->DenseRange(1000, 100000, 10000);
-BENCHMARK(shuffle_from_one_to_N_without_distribution)
         ->UseManualTime()
         ->DenseRange(1000, 100000, 10000);
 BENCHMARK(shuffle_reduction)->UseManualTime()->DenseRange(1000, 10000, 1000);
