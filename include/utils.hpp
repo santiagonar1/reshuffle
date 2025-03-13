@@ -83,7 +83,32 @@ namespace reshuffle::internal {
 
     [[nodiscard]] auto num_ranks(const std::array<BlockCyclic, 2> &distribution) -> int;
 
-    [[nodiscard]] auto get_num_repetitions(const std::vector<int> &values, int max_value) -> std::vector<int>;
+    [[nodiscard]] auto get_num_repetitions(const std::vector<int> &values, int max_value)
+            -> std::vector<int>;
+
+    template<concepts::ContiguousContainer C>
+    [[nodiscard]] auto group_values_by_rank_id(const C &values,
+                                               const std::vector<rank_id> &associated_rank_ids,
+                                               const int num_ranks)
+            -> std::vector<typename C::value_type> {
+        if (values.size() != associated_rank_ids.size()) {
+            throw std::invalid_argument("values.size() != associated_rank_ids.size()");
+        }
+
+        const auto num_values_per_rank = get_num_repetitions(associated_rank_ids, num_ranks - 1);
+        auto grouped_values = std::vector<int>(values.size());
+        auto positions_by_rank = std::vector<int>(num_ranks);
+
+        std::exclusive_scan(num_values_per_rank.begin(), num_values_per_rank.end(),
+                            positions_by_rank.begin(), 0);
+        for (int i = 0; i < associated_rank_ids.size(); i++) {
+            const auto rank = associated_rank_ids[i];
+            grouped_values[positions_by_rank[rank]] = values[i];
+            positions_by_rank[rank]++;
+        }
+
+        return grouped_values;
+    }
 }// namespace reshuffle::internal
 
 #endif//RESHUFFLE_UTILS_HPP

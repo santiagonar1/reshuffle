@@ -176,6 +176,25 @@ TEST(ReorderValues, ThrowsIfSizeOfNewIndicesDifferentFromSizeOfValues) {
     EXPECT_THROW(auto _ = reorder_values(values, more_indices), std::invalid_argument);
 }
 
+TEST(GroupValuesByRankId, GroupsAllValuesThatHaveSameAssociatedRankIdTogether) {
+    const auto values = std::vector{0, 1, 2, 3, 4};
+    const auto rank_ids = std::vector{0, 1, 0, 0, 2};
+    constexpr auto num_ranks = 3;
+
+    // 0, 2, 3 -> rank 0, 1 -> rank 1, 4 -> rank 2
+    EXPECT_THAT(group_values_by_rank_id(values, rank_ids, num_ranks),
+                Eq(std::vector{0, 2, 3, 1, 4}));
+}
+
+TEST(GroupValuesByRankId, ThrowsIfSizeOfAssociatedRankIdsDifferentFromSizeOfValues) {
+    const auto values = std::vector{0, 1, 2, 3, 4};
+    const auto less_indices = std::vector{0};
+    const auto more_indices = std::vector{0, 1, 2, 3, 4, 5};
+
+    EXPECT_THROW(auto _ = group_values_by_rank_id(values, less_indices, 5), std::invalid_argument);
+    EXPECT_THROW(auto _ = group_values_by_rank_id(values, more_indices, 5), std::invalid_argument);
+}
+
 TEST(GetNumRepetitions, CalculatesHowOftenANumberRepeatsAndStoreInIndex) {
     const auto values = std::vector{0, 0, 2, 3, 2, 2};
     constexpr auto max_value = 3;

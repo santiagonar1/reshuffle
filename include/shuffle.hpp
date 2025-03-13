@@ -145,17 +145,12 @@ namespace reshuffle {
                     internal::get_num_repetitions(receiving_data_from, num_ranks - 1);
 
             // 3
-            auto send_buffer = std::vector<int>(local_values.size());
-            auto send_positions = std::vector<int>(num_ranks);
-            std::exclusive_scan(num_values_send_per_rank.begin(), num_values_send_per_rank.end(),
-                                send_positions.begin(), 0);
-            for (int i = 0; i < sending_data_to.size(); i++) {
-                const auto dest_rank = sending_data_to[i];
-                send_buffer[send_positions[dest_rank]] = local_values[i];
-                send_positions[dest_rank]++;
-            }
+            auto send_buffer =
+                    internal::group_values_by_rank_id(local_values, sending_data_to, num_ranks);
 
             // 4
+            auto send_positions = std::vector<int>(num_ranks);
+
             auto recv_buffer = std::vector<std::remove_cv_t<T>>(receiving_data_from.size());
             std::exclusive_scan(num_values_send_per_rank.begin(), num_values_send_per_rank.end(),
                                 send_positions.begin(), 0);
