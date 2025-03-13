@@ -109,10 +109,11 @@ namespace reshuffle {
     }// namespace internal
 
     namespace dev {
-        template<typename Tc, std::size_t N>
-        auto shuffle_with_coloring(const std::span<Tc, N> local_values, const MPI_Comm &comm,
+        template<concepts::ContiguousContainer C>
+        auto shuffle_with_coloring(const C &local_values, const MPI_Comm &comm,
                                    const BlockCyclic &old_distribution,
                                    const BlockCyclic &new_distribution) {
+            using T = typename C::value_type;
             const auto rank = internal::get_rank_id(comm);
             const auto num_ranks = internal::get_num_ranks(comm);
 
@@ -155,7 +156,7 @@ namespace reshuffle {
             }
 
             // 4
-            auto recv_buffer = std::vector<std::remove_cv_t<Tc>>(receiving_data_from.size());
+            auto recv_buffer = std::vector<std::remove_cv_t<T>>(receiving_data_from.size());
             std::exclusive_scan(num_values_send_per_rank.begin(), num_values_send_per_rank.end(),
                                 send_positions.begin(), 0);
             auto recv_positions = std::vector<int>(num_ranks);
@@ -164,18 +165,17 @@ namespace reshuffle {
             for (int i = 0; i < num_ranks; i++) {
                 MPI_Request request{};
                 MPI_Isend(send_buffer.data() + send_positions[i], num_values_send_per_rank[i],
-                          internal::to_mpi_datatype<std::remove_cv_t<Tc>>(), i, 0, comm, &request);
+                          internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0, comm, &request);
 
                 MPI_Recv(recv_buffer.data() + recv_positions[i], num_values_recv_per_rank[i],
-                         internal::to_mpi_datatype<std::remove_cv_t<Tc>>(), i, 0, comm,
+                         internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0, comm,
                          MPI_STATUS_IGNORE);
 
                 MPI_Wait(&request, MPI_STATUS_IGNORE);
             }
 
             // 5
-            auto recv_buffer_ordered =
-                    std::vector<std::remove_cv_t<Tc>>(receiving_data_from.size());
+            auto recv_buffer_ordered = std::vector<std::remove_cv_t<T>>(receiving_data_from.size());
             for (int i = 0; i < receiving_data_from.size(); i++) {
                 const auto src_rank = receiving_data_from[i];
                 recv_buffer_ordered[i] = recv_buffer[recv_positions[src_rank]];
@@ -200,8 +200,7 @@ namespace reshuffle {
         internal::check_correct_num_values_provided(old_distribution, std::ranges::size(values),
                                                     rank);
 
-        return dev::shuffle_with_coloring(std::span{values}, comm, old_distribution,
-                                          new_distribution);
+        return dev::shuffle_with_coloring(values, comm, old_distribution, new_distribution);
     }
 
     template<concepts::ContiguousContainer C>
