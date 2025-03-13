@@ -150,13 +150,14 @@ namespace reshuffle {
 
             // 4
             auto send_positions = std::vector<int>(num_ranks);
-
-            auto recv_buffer = std::vector<std::remove_cv_t<T>>(receiving_data_from.size());
             std::exclusive_scan(num_values_send_per_rank.begin(), num_values_send_per_rank.end(),
                                 send_positions.begin(), 0);
+
             auto recv_positions = std::vector<int>(num_ranks);
             std::exclusive_scan(num_values_recv_per_rank.begin(), num_values_recv_per_rank.end(),
                                 recv_positions.begin(), 0);
+
+            auto recv_buffer = std::vector<std::remove_cv_t<T>>(receiving_data_from.size());
             for (int i = 0; i < num_ranks; i++) {
                 MPI_Sendrecv(send_buffer.data() + send_positions[i], num_values_send_per_rank[i],
                              internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0,
