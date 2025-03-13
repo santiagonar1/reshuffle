@@ -6,6 +6,19 @@
 #include <string>
 
 namespace reshuffle::internal {
+    auto get_local_coloring(const std::vector<rank_id> &old_global_coloring,
+                               const std::vector<rank_id> &new_global_coloring, const rank_id rank)
+               -> std::vector<rank_id> {
+        auto local_coloring = std::vector<rank_id>{};
+        for (int i = 0; i < old_global_coloring.size(); ++i) {
+            if (old_global_coloring[i] == rank) {
+                local_coloring.push_back(new_global_coloring[i]);
+            }
+        }
+
+        return local_coloring;
+    }
+
     auto get_blocks_2D(const std::array<BlockCyclic, 2> &data_distributions)
             -> std::vector<std::pair<LeftClosedRange, LeftClosedRange>> {
         const auto blocks_x = data_distributions[0].get_blocks();
@@ -81,19 +94,6 @@ namespace reshuffle::internal {
         }
 
         return global_coloring;
-    }
-
-    auto get_local_coloring(const std::vector<rank_id> &old_global_coloring,
-                            const std::vector<rank_id> &new_global_coloring, const rank_id rank)
-            -> std::vector<rank_id> {
-        auto local_coloring = std::vector<rank_id>{};
-        for (int i = 0; i < old_global_coloring.size(); ++i) {
-            if (old_global_coloring[i] == rank) {
-                local_coloring.push_back(new_global_coloring[i]);
-            }
-        }
-
-        return local_coloring;
     }
 
     auto get_sending_rank_ids(const std::vector<rank_id> &old_global_coloring,
