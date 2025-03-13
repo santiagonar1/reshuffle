@@ -158,15 +158,11 @@ namespace reshuffle {
             std::exclusive_scan(num_values_recv_per_rank.begin(), num_values_recv_per_rank.end(),
                                 recv_positions.begin(), 0);
             for (int i = 0; i < num_ranks; i++) {
-                MPI_Request request{};
-                MPI_Isend(send_buffer.data() + send_positions[i], num_values_send_per_rank[i],
-                          internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0, comm, &request);
-
-                MPI_Recv(recv_buffer.data() + recv_positions[i], num_values_recv_per_rank[i],
-                         internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0, comm,
-                         MPI_STATUS_IGNORE);
-
-                MPI_Wait(&request, MPI_STATUS_IGNORE);
+                MPI_Sendrecv(send_buffer.data() + send_positions[i], num_values_send_per_rank[i],
+                             internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0,
+                             recv_buffer.data() + recv_positions[i], num_values_recv_per_rank[i],
+                             internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0, comm,
+                             MPI_STATUS_IGNORE);
             }
 
             // 5
