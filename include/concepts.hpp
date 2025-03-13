@@ -8,7 +8,8 @@ namespace reshuffle::concepts {
     concept Iterable = std::ranges::range<T>;
 
     template<typename T>
-    concept ContiguousContainer = std::ranges::contiguous_range<T>;
+    concept ContiguousContainer =
+            std::ranges::contiguous_range<T> && requires { typename T::value_type; };
 
     template<typename T>
     concept Matrix2D = requires(T t) { t[0][0]; };
