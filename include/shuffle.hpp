@@ -30,6 +30,26 @@ namespace reshuffle {
             return scatter_from_root(values, comm, new_global_coloring);
         }
 
+        template<concepts::ContiguousContainer C>
+        auto shuffle_with_coloring(const C &local_values, const MPI_Comm &comm,
+                                   const BlockCyclic &old_distribution,
+                                   const BlockCyclic &new_distribution) {
+            const auto rank = internal::get_rank_id(comm);
+
+            const auto old_global_coloring = internal::get_global_coloring(old_distribution);
+            const auto new_global_coloring = internal::get_global_coloring(new_distribution);
+
+            const auto sending_data_to = internal::get_rank_ids_send_data_to(
+                    old_global_coloring, new_global_coloring, rank);
+
+            const auto receiving_data_from = internal::get_ranks_id_receive_data_from(
+                    old_global_coloring, new_global_coloring, rank);
+
+            return internal::exchange_values(local_values, sending_data_to, receiving_data_from,
+                                             comm);
+        }
+
+        // TODO: Remove eventually, but right now being used by 2D implementations
         template<typename Tc, std::size_t N>
         auto shuffle_with_coloring(const std::span<Tc, N> values, const MPI_Comm &comm,
                                    const std::vector<rank_id> &local_coloring = {},
@@ -137,7 +157,7 @@ namespace reshuffle {
         internal::check_correct_num_values_provided(old_distribution, std::ranges::size(values),
                                                     rank);
 
-        return dev::shuffle_with_coloring(values, comm, old_distribution, new_distribution);
+        return internal::shuffle_with_coloring(values, comm, old_distribution, new_distribution);
     }
 
     template<concepts::ContiguousContainer C>
