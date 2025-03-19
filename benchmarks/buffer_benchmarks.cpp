@@ -22,7 +22,6 @@
 #include <benchmark/benchmark.h>
 #include <chrono>
 #include <mpi.h>
-#include <numeric>
 
 #include <reshuffle.hpp>
 
