@@ -130,6 +130,61 @@ namespace reshuffle::internal {
 
         return scatter_from_root(values, comm, mpi_datatype, coloring);
     }
+
+    template<typename T>
+    [[nodiscard]] auto exchange_values(const std::vector<T> &values,
+                                       const std::vector<rank_id> &sending_ids,
+                                       const std::vector<rank_id> &recv_ids, const MPI_Comm &comm)
+            -> std::vector<T> {
+        // Steps:
+        // 1. Get how many values to send to each rank
+        // 2. Get how many values to receive from each rank
+        // 3. Order local_values to send all values at once
+        // 4. For each rank
+        //       1. Send values to that rank
+        //       2. Receive values from that rank
+        //       3. Store all values in a receiver buffer
+        //  5. Order the receiver buffer to match the expected order of values
+
+        const auto num_ranks = get_num_ranks(comm);
+
+        // 1
+        const auto num_values_send_per_rank = get_num_repetitions(sending_ids, num_ranks - 1);
+
+        // 2
+        const auto num_values_recv_per_rank = get_num_repetitions(recv_ids, num_ranks - 1);
+
+        // 3
+        auto send_buffer = group_values_by_rank_id(values, sending_ids, num_ranks);
+
+        // 4
+        auto send_positions = std::vector<int>(num_ranks);
+        std::exclusive_scan(num_values_send_per_rank.begin(), num_values_send_per_rank.end(),
+                            send_positions.begin(), 0);
+
+        auto recv_positions = std::vector<int>(num_ranks);
+        std::exclusive_scan(num_values_recv_per_rank.begin(), num_values_recv_per_rank.end(),
+                            recv_positions.begin(), 0);
+
+        auto recv_buffer = std::vector<std::remove_cv_t<T>>(recv_ids.size());
+        for (int i = 0; i < num_ranks; i++) {
+            MPI_Sendrecv(send_buffer.data() + send_positions[i], num_values_send_per_rank[i],
+                         internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0,
+                         recv_buffer.data() + recv_positions[i], num_values_recv_per_rank[i],
+                         internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0, comm,
+                         MPI_STATUS_IGNORE);
+        }
+
+        // 5
+        auto recv_buffer_ordered = std::vector<std::remove_cv_t<T>>(recv_ids.size());
+        for (int i = 0; i < recv_ids.size(); i++) {
+            const auto src_rank = recv_ids[i];
+            recv_buffer_ordered[i] = recv_buffer[recv_positions[src_rank]];
+            recv_positions[src_rank]++;
+        }
+
+        return recv_buffer_ordered;
+    }
 }// namespace reshuffle::internal
 
 #endif//RESHUFFLE_MPI_UTILS_HPP

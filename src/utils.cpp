@@ -4,7 +4,7 @@
 
 namespace reshuffle::internal {
     auto have_same_num_values(const BlockCyclic &first, const BlockCyclic &second) -> bool {
-        return first.get_num_values() == second.get_num_values();
+        return first.get_num_total_values() == second.get_num_total_values();
     }
 
     auto have_same_num_values(const std::array<BlockCyclic, 2> &first,
@@ -35,10 +35,18 @@ namespace reshuffle::internal {
         const auto num_ranks_x = distribution[0].get_num_ranks();
         const auto [x_coordinates, y_coordinates] = get_2d_coordinates(num_ranks_x, rank);
 
-        auto values_per_dimension = std::array{distribution[0].get_num_values(x_coordinates),
-                                               distribution[1].get_num_values(y_coordinates)};
+        auto values_per_dimension =
+                std::array{distribution[0].get_num_values_hold_by(x_coordinates),
+                           distribution[1].get_num_values_hold_by(y_coordinates)};
 
         return std::accumulate(values_per_dimension.begin(), values_per_dimension.end(), 1,
                                std::multiplies());
+    }
+
+    auto get_num_repetitions(const std::vector<int> &values, const int max_value)
+            -> std::vector<int> {
+        auto num_repetitions = std::vector(max_value + 1, 0);
+        for (const auto value: values) { num_repetitions[value]++; }
+        return num_repetitions;
     }
 }// namespace reshuffle::internal

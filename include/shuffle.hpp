@@ -107,10 +107,26 @@ namespace reshuffle {
                                                                 bool contains_data);
     }// namespace internal
 
-    template<concepts::ContiguousContainer C>
-    auto shuffle(const C &values, const MPI_Comm &comm) {
-        return internal::shuffle_with_coloring(std::span{values}, comm);
-    }
+    namespace dev {
+        template<concepts::ContiguousContainer C>
+        auto shuffle_with_coloring(const C &local_values, const MPI_Comm &comm,
+                                   const BlockCyclic &old_distribution,
+                                   const BlockCyclic &new_distribution) {
+            const auto rank = internal::get_rank_id(comm);
+
+            const auto old_global_coloring = internal::get_global_coloring(old_distribution);
+            const auto new_global_coloring = internal::get_global_coloring(new_distribution);
+
+            const auto sending_data_to = internal::get_rank_ids_send_data_to(
+                    old_global_coloring, new_global_coloring, rank);
+
+            const auto receiving_data_from = internal::get_ranks_id_receive_data_from(
+                    old_global_coloring, new_global_coloring, rank);
+
+            return internal::exchange_values(local_values, sending_data_to, receiving_data_from,
+                                             comm);
+        }
+    }// namespace dev
 
     template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
@@ -121,22 +137,7 @@ namespace reshuffle {
         internal::check_correct_num_values_provided(old_distribution, std::ranges::size(values),
                                                     rank);
 
-        const auto old_global_coloring = internal::get_global_coloring(old_distribution);
-
-        const auto local_coloring =
-                internal::get_global_and_local_coloring(old_global_coloring, new_distribution, rank)
-                        .local_coloring;
-
-        return internal::shuffle_with_coloring(std::span{values}, comm, local_coloring,
-                                               old_global_coloring);
-    }
-
-    template<concepts::ContiguousContainer C>
-    auto shuffle(const C &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
-        internal::check_rank_only_in_destiny_comm_does_not_have_data(
-                origin_comm, destiny_comm, not std::ranges::empty(values));
-
-        return internal::shuffle_with_coloring(std::span{values}, origin_comm, destiny_comm);
+        return dev::shuffle_with_coloring(values, comm, old_distribution, new_distribution);
     }
 
     template<concepts::ContiguousContainer C>
@@ -167,27 +168,11 @@ namespace reshuffle {
     }
 
     template<concepts::Iterable I>
-        requires(not concepts::ContiguousContainer<I>)
-    auto shuffle(const I &values, const MPI_Comm &comm) {
-        using T = typename I::value_type;
-        const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
-        return shuffle(v_values, comm);
-    }
-
-    template<concepts::Iterable I>
     auto shuffle(const I &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
                  const BlockCyclic &new_distribution) {
         using T = typename I::value_type;
         const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
         return shuffle(v_values, comm, old_distribution, new_distribution);
-    }
-
-    template<concepts::Iterable I>
-        requires(not concepts::ContiguousContainer<I>)
-    auto shuffle(const I &values, const MPI_Comm &origin_comm, const MPI_Comm &destiny_comm) {
-        using T = typename I::value_type;
-        const std::vector<T> v_values(std::ranges::begin(values), std::ranges::end(values));
-        return shuffle(v_values, origin_comm, destiny_comm);
     }
 
     template<concepts::Iterable I>

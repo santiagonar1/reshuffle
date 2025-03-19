@@ -2,11 +2,23 @@
 
 #include "utils.hpp"
 
-#include <algorithm>
 #include <stdexcept>
 #include <string>
 
 namespace reshuffle::internal {
+    auto get_local_coloring(const std::vector<rank_id> &old_global_coloring,
+                            const std::vector<rank_id> &new_global_coloring, const rank_id rank)
+            -> std::vector<rank_id> {
+        auto local_coloring = std::vector<rank_id>{};
+        for (int i = 0; i < old_global_coloring.size(); ++i) {
+            if (old_global_coloring[i] == rank) {
+                local_coloring.push_back(new_global_coloring[i]);
+            }
+        }
+
+        return local_coloring;
+    }
+
     auto get_blocks_2D(const std::array<BlockCyclic, 2> &data_distributions)
             -> std::vector<std::pair<LeftClosedRange, LeftClosedRange>> {
         const auto blocks_x = data_distributions[0].get_blocks();
@@ -20,7 +32,8 @@ namespace reshuffle::internal {
 
     auto get_dimension_from_distribution(const std::array<BlockCyclic, 2> &distribution)
             -> Dimension<2> {
-        return Dimension<2>{distribution[0].get_num_values(), distribution[1].get_num_values()};
+        return Dimension<2>{distribution[0].get_num_total_values(),
+                            distribution[1].get_num_total_values()};
     }
 
     auto get_global_and_local_coloring(const std::vector<rank_id> &global_coloring,
@@ -28,7 +41,7 @@ namespace reshuffle::internal {
             -> ColoringReturn {
 
         throw_if_different(static_cast<int>(global_coloring.size()),
-                           new_distribution.get_num_values(),
+                           new_distribution.get_num_total_values(),
                            std::string{"Mismatch between size of global_coloring and "
                                        "number of values new_distribution"});
 
@@ -46,8 +59,8 @@ namespace reshuffle::internal {
                                        const std::array<BlockCyclic, 2> &new_distributions,
                                        const rank_id rank) -> ColoringReturn {
 
-        const auto global_dimensions = Dimension<2>{new_distributions[0].get_num_values(),
-                                                    new_distributions[1].get_num_values()};
+        const auto global_dimensions = Dimension<2>{new_distributions[0].get_num_total_values(),
+                                                    new_distributions[1].get_num_total_values()};
 
         throw_if_different(static_cast<int>(global_coloring.size()),
                            calc_total_num_values(global_dimensions),
@@ -72,12 +85,28 @@ namespace reshuffle::internal {
     }
 
     auto get_global_coloring(const BlockCyclic &data_distribution) -> std::vector<rank_id> {
-        const auto num_values = data_distribution.get_num_values();
-        const auto dummy_global_coloring = std::vector<rank_id>(num_values);
-        constexpr rank_id dummy_rank = 0;
-        const auto [global_coloring, _] =
-                get_global_and_local_coloring(dummy_global_coloring, data_distribution, dummy_rank);
+        const auto num_values = data_distribution.get_num_total_values();
+        auto global_coloring = std::vector<rank_id>(num_values);
+
+#pragma omp parallel for
+        for (int i = 0; i < num_values; ++i) {
+            global_coloring[i] = data_distribution.get_rank_id(i);
+        }
+
         return global_coloring;
+    }
+
+    auto get_rank_ids_send_data_to(const std::vector<rank_id> &old_global_coloring,
+                                   const std::vector<rank_id> &new_global_coloring,
+                                   const rank_id rank) -> std::vector<rank_id> {
+        return get_local_coloring(old_global_coloring, new_global_coloring, rank);
+    }
+
+    auto get_ranks_id_receive_data_from(const std::vector<rank_id> &old_global_coloring,
+                                        const std::vector<rank_id> &new_global_coloring,
+                                        rank_id rank) -> std::vector<rank_id> {
+        // It's equivalent of getting the sending ranks if the new and old coloring where exchanged
+        return get_rank_ids_send_data_to(new_global_coloring, old_global_coloring, rank);
     }
 
     auto get_global_coloring(const std::array<BlockCyclic, 2> &data_distributions)
