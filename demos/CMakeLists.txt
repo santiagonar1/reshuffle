@@ -1,4 +1,4 @@
-function (compile_demo demo_name)
+function(compile_demo demo_name)
     add_executable(${demo_name}.out ${demo_name}.cpp)
     target_link_libraries(${demo_name}.out
             PRIVATE reshuffle
@@ -16,4 +16,12 @@ if (BUILD_DYN_PROC_DEMOS)
             PRIVATE abseil::abseil
             PRIVATE reshuffle
             PRIVATE MPI::MPI_CXX)
+endif ()
+
+if (TEST_SCALAPACK)
+    add_executable(scalapack_demo.out scalapack_demo.cpp)
+    target_link_libraries(scalapack_demo.out
+            PRIVATE MPI::MPI_CXX
+            PRIVATE LinearAlgebra
+    )
 endif ()
