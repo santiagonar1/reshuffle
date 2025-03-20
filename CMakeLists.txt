@@ -11,6 +11,9 @@ endif ()
 set(CMAKE_CXX_STANDARD 20)
 set(namespace "${PROJECT_NAME}")
 
+# Where to find our CMake modules. Needs to be called before any add_subdirectory for them to have access to the variable
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
@@ -21,6 +24,11 @@ message(STATUS "Found MPI_CXX_COMPILER: ${MPI_CXX_COMPILER}")
 
 option(BUILD_DYN_PROC_DEMOS "Turn on compilation Dyn Proc Demos. Requires special OpenMPI" OFF)
 option(BUILD_TESTING "Build tests" ON)
+option(TEST_SCALAPACK "Build examples and benchmarks of ScaLAPACK" ON)
+
+if (TEST_SCALAPACK)
+    include(FindLinearAlgebraPackages)
+endif ()
 
 enable_testing()
 
@@ -62,6 +70,4 @@ else ()
     message(STATUS "Tests and benchmarks will not be compiled")
 endif ()
 
-# where to find our CMake modules
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(Install)
