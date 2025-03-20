@@ -9,3 +9,12 @@ function(compile_benchmark benchmark_name)
 endfunction()
 
 compile_benchmark(buffer_benchmarks)
+
+if (TEST_SCALAPACK)
+    add_executable(scalapack_benchmark.out scalapack_benchmark.cpp)
+    target_link_libraries(scalapack_benchmark.out
+            PRIVATE MPI::MPI_CXX
+            PRIVATE LinearAlgebra
+            PRIVATE benchmark::benchmark
+    )
+endif ()
