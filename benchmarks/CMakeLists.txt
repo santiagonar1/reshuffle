@@ -1,6 +1,6 @@
 find_package(benchmark REQUIRED)
 
-function (compile_benchmark benchmark_name)
+function(compile_benchmark benchmark_name)
     add_executable(${benchmark_name}.out ${benchmark_name}.cpp)
     target_link_libraries(${benchmark_name}.out
             PRIVATE reshuffle
