@@ -62,7 +62,6 @@ auto time_shuffle(std::vector<double> original_values, std::vector<double> &loca
 }
 
 void shuffle_from_one_to_N_with_distribution(benchmark::State &state) {
-    const auto rank = get_rank_id();
     const auto num_ranks = get_num_ranks();
 
     // Vector size
