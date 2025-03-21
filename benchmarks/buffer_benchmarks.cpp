@@ -25,7 +25,7 @@
 
 #include <reshuffle.hpp>
 
-using SendType = int;
+using SendType = double;
 
 double time_shuffle(const std::vector<SendType> &values,
                     const reshuffle::BlockCyclic &current_distribution,
