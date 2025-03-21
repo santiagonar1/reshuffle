@@ -25,7 +25,9 @@
 
 #include <reshuffle.hpp>
 
-double time_shuffle(const std::vector<int> &values,
+using SendType = int;
+
+double time_shuffle(const std::vector<SendType> &values,
                     const reshuffle::BlockCyclic &current_distribution,
                     const reshuffle::BlockCyclic &new_distribution) {
     // Do the work and time it on each proc
@@ -56,7 +58,7 @@ void shuffle_from_N_to_one(benchmark::State &state) {
     }
 
     const auto values_per_rank = num_values / num_ranks;
-    const auto original_values = std::vector<int>(values_per_rank);
+    const auto original_values = std::vector<SendType>(values_per_rank);
 
     const auto current_distribution = reshuffle::make_block_wise(num_values, num_ranks);
     const auto new_distribution = reshuffle::make_block_wise(num_values, 1);
@@ -70,8 +72,8 @@ void shuffle_from_N_to_one(benchmark::State &state) {
 void shuffle_from_one_to_N_with_distribution(benchmark::State &state) {
     const auto num_values = static_cast<int>(state.range(0));
     const auto original_values = reshuffle::internal::is_root(MPI_COMM_WORLD)
-                                         ? std::vector<int>(num_values)
-                                         : std::vector<int>{};
+                                         ? std::vector<SendType>(num_values)
+                                         : std::vector<SendType>{};
 
     const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
 
@@ -94,7 +96,7 @@ void shuffle_from_N_to_N(benchmark::State &state) {
     }
 
     const auto values_per_rank = num_values / num_ranks;
-    const auto original_values = std::vector<int>(values_per_rank);
+    const auto original_values = std::vector<SendType>(values_per_rank);
 
     const auto current_distribution = reshuffle::make_block_wise(num_values, num_ranks);
     const auto new_distribution = reshuffle::make_block_wise(num_values, num_ranks);
@@ -119,7 +121,7 @@ void shuffle_reduction(benchmark::State &state) {
     }
 
     const auto values_per_rank = num_values / num_ranks;
-    const auto original_values = std::vector<int>(values_per_rank);
+    const auto original_values = std::vector<SendType>(values_per_rank);
 
     const auto current_distribution = reshuffle::make_block_wise(num_values, num_ranks);
     const auto new_distribution = reshuffle::make_block_wise(num_values, num_ranks / 2);
