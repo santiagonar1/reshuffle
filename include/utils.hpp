@@ -96,7 +96,7 @@ namespace reshuffle::internal {
         }
 
         const auto num_values_per_rank = get_num_repetitions(associated_rank_ids, num_ranks - 1);
-        auto grouped_values = std::vector<int>(values.size());
+        auto grouped_values = std::vector<typename C::value_type>(values.size());
         auto positions_by_rank = std::vector<int>(num_ranks);
 
         std::exclusive_scan(num_values_per_rank.begin(), num_values_per_rank.end(),
