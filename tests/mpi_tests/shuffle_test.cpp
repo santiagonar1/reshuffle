@@ -71,6 +71,21 @@ TEST_F(Shuffle, UsesBlockCyclicDistributionToRedistributeValues) {
     EXPECT_THAT(new_values, Eq(_values));
 }
 
+TEST_F(Shuffle, CanGoFromBlockToBlockCyclic) {
+    const auto values = is_root() ? std::vector{1, 2, 3, 4} : std::vector{5, 6, 7, 8};
+    const auto old_distribution = reshuffle::make_block_wise(8, 2);
+    const auto new_distribution = reshuffle::BlockCyclic{2, 8, 2};
+
+    const auto new_values =
+            reshuffle::shuffle(values, MPI_COMM_WORLD, old_distribution, new_distribution);
+
+    if (is_root()) {
+        EXPECT_THAT(new_values, Eq(std::vector{1, 2, 5, 6}));
+    } else {
+        EXPECT_THAT(new_values, Eq(std::vector{3, 4, 7, 8}));
+    }
+}
+
 TEST_F(Shuffle, IfNumValuesNoDivisibleGivesAdditionalDataToInitialRanks) {
     if (is_root()) { _values_only_in_root.push_back(_value); }
 
