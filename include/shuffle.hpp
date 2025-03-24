@@ -127,27 +127,6 @@ namespace reshuffle {
                                                                 bool contains_data);
     }// namespace internal
 
-    namespace dev {
-        template<concepts::ContiguousContainer C>
-        auto shuffle_with_coloring(const C &local_values, const MPI_Comm &comm,
-                                   const BlockCyclic &old_distribution,
-                                   const BlockCyclic &new_distribution) {
-            const auto rank = internal::get_rank_id(comm);
-
-            const auto old_global_coloring = internal::get_global_coloring(old_distribution);
-            const auto new_global_coloring = internal::get_global_coloring(new_distribution);
-
-            const auto sending_data_to = internal::get_rank_ids_send_data_to(
-                    old_global_coloring, new_global_coloring, rank);
-
-            const auto receiving_data_from = internal::get_ranks_id_receive_data_from(
-                    old_global_coloring, new_global_coloring, rank);
-
-            return internal::exchange_values(local_values, sending_data_to, receiving_data_from,
-                                             comm);
-        }
-    }// namespace dev
-
     template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
                  const BlockCyclic &new_distribution) {
