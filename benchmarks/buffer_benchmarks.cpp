@@ -86,7 +86,7 @@ void shuffle_from_one_to_N_with_distribution(benchmark::State &state) {
     }
 }
 
-void shuffle_from_N_to_N(benchmark::State &state) {
+void shuffle_from_N_to_N_same_distribution(benchmark::State &state) {
     const auto num_values = static_cast<int>(state.range(0));
 
     const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
@@ -137,7 +137,7 @@ BENCHMARK(shuffle_from_one_to_N_with_distribution)
         ->UseManualTime()
         ->DenseRange(1000, 100000, 10000);
 BENCHMARK(shuffle_reduction)->UseManualTime()->DenseRange(1000, 10000, 1000);
-BENCHMARK(shuffle_from_N_to_N)->UseManualTime()->DenseRange(1000, 100000, 10000);
+BENCHMARK(shuffle_from_N_to_N_same_distribution)->UseManualTime()->DenseRange(1000, 100000, 10000);
 
 // This reporter does nothing.
 // We can use it to disable output from all but the root process
