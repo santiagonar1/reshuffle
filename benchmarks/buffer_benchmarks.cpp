@@ -107,6 +107,27 @@ void shuffle_from_N_to_N_same_distribution(benchmark::State &state) {
     }
 }
 
+void shuffle_from_N_to_N(benchmark::State &state) {
+    const auto num_values = static_cast<int>(state.range(0));
+
+    const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
+
+    if (num_values % num_ranks != 0) {
+        throw std::runtime_error("Number of values not divisible by number of ranks");
+    }
+
+    const auto values_per_rank = num_values / num_ranks;
+    const auto original_values = std::vector<SendType>(values_per_rank);
+
+    const auto current_distribution = reshuffle::make_block_wise(num_values, num_ranks);
+    const auto new_distribution = reshuffle::BlockCyclic{10, num_values, num_ranks};
+
+    while (state.KeepRunning()) {
+        state.SetIterationTime(
+                time_shuffle(original_values, current_distribution, new_distribution));
+    }
+}
+
 void shuffle_reduction(benchmark::State &state) {
     const auto num_values = static_cast<int>(state.range(0));
 
@@ -138,6 +159,7 @@ BENCHMARK(shuffle_from_one_to_N_with_distribution)
         ->DenseRange(1000, 100000, 10000);
 BENCHMARK(shuffle_reduction)->UseManualTime()->DenseRange(1000, 10000, 1000);
 BENCHMARK(shuffle_from_N_to_N_same_distribution)->UseManualTime()->DenseRange(1000, 100000, 10000);
+BENCHMARK(shuffle_from_N_to_N)->UseManualTime()->DenseRange(1000, 100000, 10000);
 
 // This reporter does nothing.
 // We can use it to disable output from all but the root process

@@ -165,10 +165,65 @@ void shuffle_from_N_to_N_same_distribution(benchmark::State &state) {
     blacs_gridexit_(&context);
 }
 
+void shuffle_from_N_to_N(benchmark::State &state) {
+    const auto num_ranks = get_num_ranks();
+
+    // Vector size
+    auto max_num_values = static_cast<int>(state.range(0));
+    auto num_values = find_multiple(num_ranks, max_num_values);
+    auto num_values_per_rank = num_values / num_ranks;
+
+    // Initialize source vector on rank 0
+    std::vector<double> original_values = std::vector<double>(num_values_per_rank);
+
+    int context;
+    int what = -1, ictxt = 0;
+    blacs_get_(&what, &ictxt, &context);
+
+    // BLACS grid initialization (NUM_RANKSx1 process grid)
+    char order = 'R';
+    int num_procs_row = num_ranks;
+    int num_procs_col = 1;// Changed to 4x1 grid
+    blacs_gridinit_(&context, &order, &num_procs_row, &num_procs_col);
+
+    // Calculate local matrix dimensions
+    int num_local_rows = num_values / num_procs_row;
+
+    // Allocate local arrays
+    std::vector<double> local_vec(num_local_rows, 0.0);// Changed size since npcol = 1
+
+    // Create descriptors for source and distributed vectors
+    std::vector<int> desc_src(9, 0), desc_dist(9, 0);
+    int lld_src = std::max(1, num_values);     // Leading dimension of source vector
+    int lld_dist = std::max(1, num_local_rows);// Leading dimension of distributed vector
+    int info;
+    int block_size = 10;
+
+    // Initialize descriptors
+    int izero = 0, ione = 1;
+
+    // Descriptor source (all values in rank 0)
+    descinit_(desc_src.data(), &num_values, &ione, &num_local_rows, &ione, &izero, &izero, &context,
+              &lld_src, &info);
+
+    // Distributed descriptor (all ranks)
+    descinit_(desc_dist.data(), &num_values, &ione, &block_size, &ione, &izero, &izero, &context,
+              &lld_dist, &info);
+
+    while (state.KeepRunning()) {
+        state.SetIterationTime(
+                time_shuffle(original_values, local_vec, desc_src, desc_dist, num_values));
+    }
+
+    // Cleanup
+    blacs_gridexit_(&context);
+}
+
 BENCHMARK(shuffle_from_one_to_N_with_distribution)
         ->UseManualTime()
         ->DenseRange(1000, 100000, 10000);
 BENCHMARK(shuffle_from_N_to_N_same_distribution)->UseManualTime()->DenseRange(1000, 100000, 10000);
+BENCHMARK(shuffle_from_N_to_N)->UseManualTime()->DenseRange(1000, 100000, 10000);
 
 // This reporter does nothing.
 // We can use it to disable output from all but the root process
