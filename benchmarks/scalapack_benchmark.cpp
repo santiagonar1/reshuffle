@@ -30,7 +30,6 @@ auto time_shuffle(std::vector<double> original_values, std::vector<double> &loca
     double beta = 0.0;
     char trans = 'N';
     int ione = 1;
-    const int rank = get_rank_id();
 
     const auto start = std::chrono::high_resolution_clock::now();
     // Redistribute using pdgeadd
