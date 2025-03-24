@@ -74,9 +74,10 @@ TEST_F(Shuffle, UsesBlockCyclicDistributionToRedistributeValues) {
 TEST_F(Shuffle, IfNumValuesNoDivisibleGivesAdditionalDataToInitialRanks) {
     if (is_root()) { _values_only_in_root.push_back(_value); }
 
-    const auto new_values = reshuffle::shuffle(
-            _values_only_in_root, MPI_COMM_WORLD, reshuffle::make_block_wise(_total_num_values + 1, 1),
-            reshuffle::make_block_wise(_total_num_values + 1, _num_ranks));
+    const auto new_values =
+            reshuffle::shuffle(_values_only_in_root, MPI_COMM_WORLD,
+                               reshuffle::make_block_wise(_total_num_values + 1, 1),
+                               reshuffle::make_block_wise(_total_num_values + 1, _num_ranks));
     if (is_last()) {
         EXPECT_THAT(new_values, Eq(std::vector(_min_elements_per_rank, _value)));
     } else {
