@@ -73,7 +73,8 @@ namespace reshuffle {
     }
 
     auto BlockCyclic::operator==(const BlockCyclic &other) const -> bool {
-        return _num_ranks == other._num_ranks and _total_num_values == other._total_num_values;
+        return _num_ranks == other._num_ranks and _total_num_values == other._total_num_values and
+               _block_size == other._block_size;
     }
 
     auto make_block_wise(const int num_values, const int num_blocks) -> BlockCyclic {

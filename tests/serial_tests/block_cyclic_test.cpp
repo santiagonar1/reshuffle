@@ -107,3 +107,14 @@ TEST(MakeBlockWise, ThrowsIfZeroNumBlocksPassed) {
     EXPECT_THROW(const auto data_distribution = reshuffle::make_block_wise(num_values, 0),
                  std::invalid_argument);
 }
+
+TEST(BlockCylic, DistributionsCanBeCompared) {
+    constexpr auto num_values = 1000;
+    constexpr auto num_ranks = 10;
+    const auto distribution = reshuffle::make_block_wise(num_values, num_ranks);
+    const auto different_distribution = reshuffle::BlockCyclic{10, num_values, num_ranks};
+    const auto same_distribution = reshuffle::make_block_wise(num_values, num_ranks);
+
+    EXPECT_TRUE(distribution != different_distribution);
+    EXPECT_TRUE(distribution == same_distribution);
+}
