@@ -34,19 +34,19 @@ auto time_shuffle(std::vector<double> original_values, std::vector<double> &loca
 
     const auto start = std::chrono::high_resolution_clock::now();
     // Redistribute using pdgeadd
-    pdgeadd_(&trans,                                      // No transpose
-             &num_values,                                 // Number of rows
-             &ione,                                       // Number of columns (1 for vector)
-             &alpha,                                      // α = 1.0
+    pdgeadd_(&trans,     // No transpose
+             &num_values,// Number of rows
+             &ione,      // Number of columns (1 for vector)
+             &alpha,     // α = 1.0
              original_values.empty() ? nullptr : original_values.data(),// Source data
-             &ione,                                       // First row of A
-             &ione,                                       // First column of A
-             descriptor_src.data(),                       // Source descriptor
-             &beta,                                       // β = 0.0
-             local_vector.data(),                         // Target data
-             &ione,                                       // First row of C
-             &ione,                                       // First column of C
-             descriptor_dist.data());                     // Distributed descriptor
+             &ione,                                                     // First row of A
+             &ione,                                                     // First column of A
+             descriptor_src.data(),                                     // Source descriptor
+             &beta,                                                     // β = 0.0
+             local_vector.data(),                                       // Target data
+             &ione,                                                     // First row of C
+             &ione,                                                     // First column of C
+             descriptor_dist.data());                                   // Distributed descriptor
     const auto end = std::chrono::high_resolution_clock::now();
 
     // Now get the max time across all procs:
