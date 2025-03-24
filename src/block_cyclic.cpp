@@ -72,6 +72,10 @@ namespace reshuffle {
         return min_values_per_rank;
     }
 
+    auto BlockCyclic::operator==(const BlockCyclic &other) const -> bool {
+        return _num_ranks == other._num_ranks and _total_num_values == other._total_num_values;
+    }
+
     auto make_block_wise(const int num_values, const int num_blocks) -> BlockCyclic {
         if (num_blocks == 0) { throw std::invalid_argument("num_blocks cannot be zero"); }
         const int block_size = std::ceil(static_cast<double>(num_values) / num_blocks);

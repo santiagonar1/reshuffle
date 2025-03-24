@@ -16,6 +16,8 @@ namespace reshuffle {
         [[nodiscard]] auto get_rank_id(std::size_t index) const -> rank_id;
         [[nodiscard]] auto get_num_ranks() const -> int;
 
+        auto operator==(const BlockCyclic &other) const -> bool;
+
     private:
         const int _num_ranks;
         const int _total_num_values;

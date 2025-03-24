@@ -157,6 +157,8 @@ namespace reshuffle {
         internal::check_correct_num_values_provided(old_distribution, std::ranges::size(values),
                                                     rank);
 
+        if (old_distribution == new_distribution) { return values; }
+
         return internal::shuffle_with_coloring(values, comm, old_distribution, new_distribution);
     }
 
