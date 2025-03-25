@@ -16,7 +16,7 @@ macro(package_add_test TEST_NAME)
             WORKING_DIRECTORY ${PROJECT_DIR}
             PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}"
     )
-    set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
+    set_target_properties(${TEST_NAME} PROPERTIES FOLDER tests)
 endmacro()
 
 file(GLOB SOURCES
