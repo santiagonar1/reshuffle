@@ -4,4 +4,4 @@ CMakeDeps
 [requires]
 gtest/1.16.0
 abseil/20240116.2
-benchmark/1.8.4
+benchmark/1.9.1
