@@ -25,8 +25,8 @@ if (NOT SCALAPACK_LIBRARIES)
 endif ()
 
 # Create an interface library to make it easier to link against all libraries
-add_library(LinearAlgebra INTERFACE)
-target_link_libraries(LinearAlgebra
+add_library(ScalapackLibrary INTERFACE)
+target_link_libraries(ScalapackLibrary
         INTERFACE
         ${SCALAPACK_LIBRARIES}
         ${LAPACK_LIBRARIES}
@@ -34,7 +34,7 @@ target_link_libraries(LinearAlgebra
 )
 
 if (SCALAPACK_INCLUDE_DIRS)
-    target_include_directories(LinearAlgebra
+    target_include_directories(ScalapackLibrary
             INTERFACE
             ${SCALAPACK_INCLUDE_DIRS}
     )
