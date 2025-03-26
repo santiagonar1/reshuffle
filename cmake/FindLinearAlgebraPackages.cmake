@@ -1,5 +1,3 @@
-# cmake/FindLinearAlgebraPackages.cmake
-
 # Find the required basic packages
 find_package(LAPACK REQUIRED)
 find_package(BLAS REQUIRED)
