@@ -25,9 +25,14 @@ message(STATUS "Found MPI_CXX_COMPILER: ${MPI_CXX_COMPILER}")
 option(BUILD_DYN_PROC_DEMOS "Turn on compilation Dyn Proc Demos. Requires special OpenMPI" OFF)
 option(BUILD_TESTING "Build tests" ON)
 option(TEST_SCALAPACK "Build examples and benchmarks of ScaLAPACK" ON)
+option(TEST_COSTA "Build examples and benchmarks of the COSTA library" ON)
 
 if (TEST_SCALAPACK)
     include(FindLinearAlgebraPackages)
+endif ()
+
+if (TEST_COSTA)
+    include(FindCostaPackages)
 endif ()
 
 enable_testing()
