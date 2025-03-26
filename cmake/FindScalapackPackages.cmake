@@ -1,7 +1,3 @@
-# Find the required basic packages
-find_package(LAPACK REQUIRED)
-find_package(BLAS REQUIRED)
-
 # Try pkg-config first for ScaLAPACK
 find_package(PkgConfig QUIET)
 if (PKG_CONFIG_FOUND)
@@ -28,10 +24,7 @@ endif ()
 add_library(ScalapackLibrary INTERFACE)
 target_link_libraries(ScalapackLibrary
         INTERFACE
-        ${SCALAPACK_LIBRARIES}
-        ${LAPACK_LIBRARIES}
-        ${BLAS_LIBRARIES}
-)
+        ${SCALAPACK_LIBRARIES})
 
 if (SCALAPACK_INCLUDE_DIRS)
     target_include_directories(ScalapackLibrary
