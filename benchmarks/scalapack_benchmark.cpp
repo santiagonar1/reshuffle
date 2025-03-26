@@ -11,8 +11,9 @@ void blacs_gridinit_(int *, char *, int *, int *);
 void blacs_gridinfo_(int *, int *, int *, int *, int *);
 void blacs_gridexit_(int *);
 void descinit_(int *, int *, int *, int *, int *, int *, int *, int *, int *, int *);
-void pdgeadd_(char *, int *, int *, double *, double *, int *, int *, int *, double *, double *,
-              int *, int *, int *);
+void pdgemr2d_(const int *m, const int *n, const double *a, const int *ia, const int *ja,
+               const int *desca, double *c, const int *ic, const int *jc, const int *descc,
+               const int *ctxt);
 }
 
 auto find_multiple(int number, int starting_number) -> int;
@@ -22,30 +23,17 @@ auto is_root(const MPI_Comm &comm = MPI_COMM_WORLD) -> bool;
 auto get_rank_id(const MPI_Comm &comm = MPI_COMM_WORLD) -> int;
 auto get_num_ranks(const MPI_Comm &comm = MPI_COMM_WORLD) -> int;
 
-auto time_shuffle(std::vector<double> original_values, std::vector<double> &local_vector,
+auto time_shuffle(std::vector<double> &original_values, std::vector<double> &local_vector,
                   std::vector<int> &descriptor_src, std::vector<int> &descriptor_dist,
-                  int num_values) -> double {
+                  int num_values, int context) -> double {
 
-    double alpha = 1.0;
-    double beta = 0.0;
-    char trans = 'N';
-    int ione = 1;
+    constexpr int ione = 1;
 
     const auto start = std::chrono::high_resolution_clock::now();
-    // Redistribute using pdgeadd
-    pdgeadd_(&trans,     // No transpose
-             &num_values,// Number of rows
-             &ione,      // Number of columns (1 for vector)
-             &alpha,     // α = 1.0
-             original_values.empty() ? nullptr : original_values.data(),// Source data
-             &ione,                                                     // First row of A
-             &ione,                                                     // First column of A
-             descriptor_src.data(),                                     // Source descriptor
-             &beta,                                                     // β = 0.0
-             local_vector.data(),                                       // Target data
-             &ione,                                                     // First row of C
-             &ione,                                                     // First column of C
-             descriptor_dist.data());                                   // Distributed descriptor
+    // Redistribute using pdgemr2d_
+    pdgemr2d_(&num_values, &ione, original_values.empty() ? nullptr : original_values.data(), &ione,
+              &ione, descriptor_src.data(), local_vector.data(), &ione, &ione,
+              descriptor_dist.data(), &context);
     const auto end = std::chrono::high_resolution_clock::now();
 
     // Now get the max time across all procs:
@@ -105,7 +93,7 @@ void shuffle_from_one_to_N_with_distribution(benchmark::State &state) {
 
     while (state.KeepRunning()) {
         state.SetIterationTime(
-                time_shuffle(original_values, local_vec, desc_src, desc_dist, num_values));
+                time_shuffle(original_values, local_vec, desc_src, desc_dist, num_values, context));
     }
 
     // Cleanup
@@ -158,7 +146,7 @@ void shuffle_from_N_to_N_same_distribution(benchmark::State &state) {
 
     while (state.KeepRunning()) {
         state.SetIterationTime(
-                time_shuffle(original_values, local_vec, desc_src, desc_dist, num_values));
+                time_shuffle(original_values, local_vec, desc_src, desc_dist, num_values, context));
     }
 
     // Cleanup
@@ -212,7 +200,7 @@ void shuffle_from_N_to_N(benchmark::State &state) {
 
     while (state.KeepRunning()) {
         state.SetIterationTime(
-                time_shuffle(original_values, local_vec, desc_src, desc_dist, num_values));
+                time_shuffle(original_values, local_vec, desc_src, desc_dist, num_values, context));
     }
 
     // Cleanup

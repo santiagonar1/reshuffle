@@ -10,8 +10,9 @@ void blacs_gridinit_(int *, char *, int *, int *);
 void blacs_gridinfo_(int *, int *, int *, int *, int *);
 void blacs_gridexit_(int *);
 void descinit_(int *, int *, int *, int *, int *, int *, int *, int *, int *, int *);
-void pdgeadd_(char *, int *, int *, double *, double *, int *, int *, int *, double *, double *,
-              int *, int *, int *);
+void pdgemr2d_(const int *m, const int *n, const double *a, const int *ia, const int *ja,
+               const int *desca, double *c, const int *ic, const int *jc, const int *descc,
+               const int *ctxt);
 }
 
 auto find_multiple(int number, int starting_number) -> int;
@@ -40,7 +41,7 @@ int main(int argc, char *argv[]) {
     }
 
     int context;
-    int what = -1; // -1 initializes teh context
+    int what = -1;// -1 initializes teh context
     int ictxt = 0;
     blacs_get_(&what, &ictxt, &context);
 
@@ -78,23 +79,9 @@ int main(int argc, char *argv[]) {
     descinit_(desc_dist.data(), &num_values, &ione, &num_local_rows, &ione, &izero, &izero,
               &context, &lld_dist, &info);
 
-    // Redistribute using pdgeadd
-    double alpha = 1.0;
-    double beta = 0.0;
-    char trans = 'N';
-    pdgeadd_(&trans,                                 // No transpose
-             &num_values,                            // Number of rows
-             &ione,                                  // Number of columns (1 for vector)
-             &alpha,                                 // α = 1.0
-             rank == 0 ? source_vec.data() : nullptr,// Source data
-             &ione,                                  // First row of A
-             &ione,                                  // First column of A
-             desc_src.data(),                        // Source descriptor
-             &beta,                                  // β = 0.0
-             local_vec.data(),                       // Target data
-             &ione,                                  // First row of C
-             &ione,                                  // First column of C
-             desc_dist.data());                      // Distributed descriptor
+    // Redistribute using pxgemr2d
+    pdgemr2d_(&num_values, &ione, source_vec.empty() ? nullptr : source_vec.data(), &ione, &ione,
+              desc_src.data(), local_vec.data(), &ione, &ione, desc_dist.data(), &context);
 
     // Print local parts of the distributed vector
     for (int p = 0; p < num_ranks; p++) {
