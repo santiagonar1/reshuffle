@@ -28,7 +28,7 @@ option(TEST_SCALAPACK "Build examples and benchmarks of ScaLAPACK" ON)
 option(TEST_COSTA "Build examples and benchmarks of the COSTA library" ON)
 
 if (TEST_SCALAPACK)
-    include(FindLinearAlgebraPackages)
+    include(FindScalapackPackages)
 endif ()
 
 if (TEST_COSTA)
