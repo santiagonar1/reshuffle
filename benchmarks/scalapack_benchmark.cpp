@@ -23,9 +23,9 @@ auto is_root(const MPI_Comm &comm = MPI_COMM_WORLD) -> bool;
 auto get_rank_id(const MPI_Comm &comm = MPI_COMM_WORLD) -> int;
 auto get_num_ranks(const MPI_Comm &comm = MPI_COMM_WORLD) -> int;
 
-auto time_shuffle(std::vector<double> &original_values, std::vector<double> &local_vector,
-                  std::vector<int> &descriptor_src, std::vector<int> &descriptor_dist,
-                  int num_values, int context) -> double {
+auto time_shuffle(const std::vector<double> &original_values, std::vector<double> &local_vector,
+                  const std::vector<int> &descriptor_src, const std::vector<int> &descriptor_dist,
+                  const int num_values, const int context) -> double {
 
     constexpr int ione = 1;
 
@@ -52,7 +52,7 @@ void shuffle_from_one_to_N_with_distribution(benchmark::State &state) {
     const auto num_ranks = get_num_ranks();
 
     // Vector size
-    auto max_num_values = static_cast<int>(state.range(0));
+    const auto max_num_values = static_cast<int>(state.range(0));
     auto num_values = find_multiple(num_ranks, max_num_values);
 
     // Initialize source vector on rank 0
@@ -157,12 +157,12 @@ void shuffle_from_N_to_N(benchmark::State &state) {
     const auto num_ranks = get_num_ranks();
 
     // Vector size
-    auto max_num_values = static_cast<int>(state.range(0));
+    const auto max_num_values = static_cast<int>(state.range(0));
     auto num_values = find_multiple(num_ranks, max_num_values);
-    auto num_values_per_rank = num_values / num_ranks;
+    const auto num_values_per_rank = num_values / num_ranks;
 
     // Initialize source vector on rank 0
-    std::vector<double> original_values = std::vector<double>(num_values_per_rank);
+    const std::vector<double> original_values = std::vector<double>(num_values_per_rank);
 
     int context;
     int what = -1, ictxt = 0;
