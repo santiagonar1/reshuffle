@@ -34,19 +34,18 @@ namespace reshuffle {
         auto shuffle_with_coloring(const C &local_values, const MPI_Comm &comm,
                                    const BlockCyclic &old_distribution,
                                    const BlockCyclic &new_distribution) {
-            const auto rank = internal::get_rank_id(comm);
+            const auto rank = get_rank_id(comm);
 
-            const auto old_global_coloring = internal::get_global_coloring(old_distribution);
-            const auto new_global_coloring = internal::get_global_coloring(new_distribution);
+            const auto old_global_coloring = get_global_coloring(old_distribution);
+            const auto new_global_coloring = get_global_coloring(new_distribution);
 
-            const auto sending_data_to = internal::get_rank_ids_send_data_to(
-                    old_global_coloring, new_global_coloring, rank);
+            const auto sending_data_to =
+                    get_rank_ids_send_data_to(old_global_coloring, new_global_coloring, rank);
 
-            const auto receiving_data_from = internal::get_ranks_id_receive_data_from(
-                    old_global_coloring, new_global_coloring, rank);
+            const auto receiving_data_from =
+                    get_ranks_id_receive_data_from(old_global_coloring, new_global_coloring, rank);
 
-            return internal::exchange_values(local_values, sending_data_to, receiving_data_from,
-                                             comm);
+            return exchange_values(local_values, sending_data_to, receiving_data_from, comm);
         }
 
         // TODO: Remove eventually, but right now being used by 2D implementations
