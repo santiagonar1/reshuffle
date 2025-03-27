@@ -44,12 +44,27 @@ TEST(BlockCyclic, AssignsBlocksInRoundRobbinFashion) {
 
 TEST(BlockCyclic, CalculatesTheNumberOfValuesPerRank) {
     constexpr int block_size = 2;
-    constexpr int num_values = 7;
+    constexpr int num_values = 10;
     constexpr int num_ranks = 3;
     const auto data_distribution = reshuffle::BlockCyclic(block_size, num_values, num_ranks);
 
-    EXPECT_THAT(data_distribution.get_num_values_hold_by(0), Eq(3));
-    EXPECT_THAT(data_distribution.get_num_values_hold_by(1), Eq(2));
+    const auto blocks = data_distribution.get_blocks();
+
+    EXPECT_THAT(data_distribution.get_num_values_hold_by(0), Eq(4));
+    EXPECT_THAT(data_distribution.get_num_values_hold_by(1), Eq(4));
+    EXPECT_THAT(data_distribution.get_num_values_hold_by(2), Eq(2));
+}
+
+TEST(BlockCyclic, CalculatesTheNumberOfValuesPerRankIfNumValuesNotDivisible) {
+    constexpr int block_size = 2;
+    constexpr int num_values = 9;
+    constexpr int num_ranks = 3;
+    const auto data_distribution = reshuffle::BlockCyclic(block_size, num_values, num_ranks);
+
+    const auto blocks = data_distribution.get_blocks();
+
+    EXPECT_THAT(data_distribution.get_num_values_hold_by(0), Eq(4));
+    EXPECT_THAT(data_distribution.get_num_values_hold_by(1), Eq(3));
     EXPECT_THAT(data_distribution.get_num_values_hold_by(2), Eq(2));
 }
 

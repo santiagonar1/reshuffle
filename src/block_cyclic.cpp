@@ -64,7 +64,10 @@ namespace reshuffle {
         const auto min_values_per_rank = _block_size * min_blocks_per_rank;
 
         if (rank_id == max_id_with_extra_blocks) {
-            return min_values_per_rank + (_total_num_values % _block_size);
+            const auto remaining_values = _total_num_values % _block_size;
+            const auto num_values_last_block =
+                    remaining_values == 0 ? _block_size : remaining_values;
+            return min_values_per_rank + num_values_last_block;
         }
 
         if (rank_id < max_id_with_extra_blocks) { return min_values_per_rank + _block_size; }
