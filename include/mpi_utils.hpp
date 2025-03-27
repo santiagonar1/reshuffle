@@ -166,14 +166,17 @@ namespace reshuffle::internal {
         std::exclusive_scan(num_values_recv_per_rank.begin(), num_values_recv_per_rank.end(),
                             recv_positions.begin(), 0);
 
+        auto requests = std::vector<MPI_Request>(num_ranks);
         auto recv_buffer = std::vector<std::remove_cv_t<T>>(recv_ids.size());
         for (int i = 0; i < num_ranks; i++) {
-            MPI_Sendrecv(send_buffer.data() + send_positions[i], num_values_send_per_rank[i],
-                         internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0,
-                         recv_buffer.data() + recv_positions[i], num_values_recv_per_rank[i],
-                         internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0, comm,
-                         MPI_STATUS_IGNORE);
+            MPI_Isendrecv(send_buffer.data() + send_positions[i], num_values_send_per_rank[i],
+                          internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0,
+                          recv_buffer.data() + recv_positions[i], num_values_recv_per_rank[i],
+                          internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0, comm,
+                          requests.data() + i);
         }
+
+        MPI_Waitall(num_ranks, requests.data(), MPI_STATUSES_IGNORE);
 
         // 5
         auto recv_buffer_ordered = std::vector<std::remove_cv_t<T>>(recv_ids.size());
