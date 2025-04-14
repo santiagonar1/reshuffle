@@ -63,3 +63,18 @@ TEST(LeftClosedRange, ThrowsIfRightBoundSmallerThanLeftBound) {
 
     EXPECT_THROW(LeftClosedRange(left_bound, right_bound), std::invalid_argument);
 }
+
+TEST(LeftClosedRange, CanCalculateOverlayWithOtherInterval) {
+    const auto interval = LeftClosedRange(4, 7);
+    const auto other_interval = LeftClosedRange(6, 8);
+
+    const auto expected_overlay = LeftClosedRange(6, 7);
+    EXPECT_THAT(interval.get_overlay(other_interval).value(), Eq(expected_overlay));
+}
+
+TEST(LeftClosedRange, ReturnsNoValueIfNoOverlay) {
+    const auto interval = LeftClosedRange(4, 7);
+    const auto other_interval = LeftClosedRange(7, 8);
+
+    EXPECT_FALSE(interval.get_overlay(other_interval).has_value());
+}

@@ -7,7 +7,9 @@
 #include <vector>
 
 #include "coloring.hpp"
+#include "communication_package.hpp"
 #include "concepts.hpp"
+#include "context.hpp"
 #include "dimensions.hpp"
 #include "mpi_utils.hpp"
 #include "rank_id.hpp"
@@ -125,6 +127,35 @@ namespace reshuffle {
                                                                 const MPI_Comm &destiny_comm,
                                                                 bool contains_data);
     }// namespace internal
+
+    namespace dev {
+        namespace internal {
+            auto get_send_and_receive_blocks(const GridOverlay &grid_overlay, rank_id rank)
+                    -> std::pair<std::vector<Block>, std::vector<Block>>;
+        }// namespace internal
+
+        template<typename T>
+        auto shuffle(std::span<const T> local_values, const Context &initial_context,
+                     const Context &final_context) -> std::vector<T> {
+            if (initial_context == final_context) {
+                auto new_values = std::vector<T>(local_values.begin(), local_values.end());
+                return new_values;
+            }
+
+            const auto grid_overlay = initial_context.distribution.get_grid_layout().get_overlay(
+                    final_context.distribution.get_grid_layout());
+
+            // TODO: Group the two communicators
+            MPI_Comm comm = initial_context.comm;
+
+            const auto rank = reshuffle::internal::get_rank_id(comm);
+
+            const auto [blocks_to_send, blocks_to_receive] =
+                    internal::get_send_and_receive_blocks(grid_overlay, rank);
+
+            return internal::exchange_values(local_values, blocks_to_send, blocks_to_receive, comm);
+        }
+    }// namespace dev
 
     template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,

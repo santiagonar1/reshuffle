@@ -1,5 +1,6 @@
 #include "left_closed_range.hpp"
 
+#include <algorithm>
 #include <stdexcept>
 #include <utility>
 
@@ -9,7 +10,10 @@ namespace reshuffle::internal {
         if (left_bound > right_bound) {
             throw std::invalid_argument("The right bound cannot be smaller than the left bound");
         }
-    };
+    }
+
+    LeftClosedRange::LeftClosedRange() : LeftClosedRange(0, 0) {}
+
 
     auto LeftClosedRange::contains(const int value) const -> bool {
         return _interval.first <= value and value < _interval.second;
@@ -18,6 +22,18 @@ namespace reshuffle::internal {
     auto LeftClosedRange::get_left_bound() const -> int { return _interval.first; }
     auto LeftClosedRange::get_right_bound() const -> int { return _interval.second; }
     auto LeftClosedRange::get_length() const -> int { return _interval.second - _interval.first; }
+
+    auto LeftClosedRange::get_overlay(const LeftClosedRange &other) const
+            -> std::optional<LeftClosedRange> {
+        if (other.get_left_bound() >= get_right_bound() or
+            other.get_right_bound() <= get_left_bound()) {
+            return std::nullopt;
+        }
+
+        const auto left_bound = std::max(get_left_bound(), other.get_left_bound());
+        const auto right_bound = std::min(get_right_bound(), other.get_right_bound());
+        return LeftClosedRange{left_bound, right_bound};
+    }
 
     auto LeftClosedRange::operator==(const LeftClosedRange &other) const -> bool {
         return _interval == other._interval;

@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "coloring_utils.hpp"
+#include "communication_package.hpp"
 #include "rank_id.hpp"
 #include "utils.hpp"
 
@@ -189,5 +190,96 @@ namespace reshuffle::internal {
         return recv_buffer_ordered;
     }
 }// namespace reshuffle::internal
+
+namespace reshuffle::dev::internal {
+
+    template<typename T>
+    auto async_send(std::span<T> send_buffer, const std::vector<Block> &grouped_blocks_to_send,
+                    const MPI_Comm &comm) -> std::vector<MPI_Request> {
+        const auto num_ranks_to_send = static_cast<int>(grouped_blocks_to_send.size());
+        auto send_requests = std::vector<MPI_Request>(num_ranks_to_send);
+
+        for (int i = 0; i < num_ranks_to_send; i++) {
+            const auto &block = grouped_blocks_to_send[i];
+            const auto num_values = block.get_interval().get_length();
+            const auto destiny = block.get_owner();
+
+            MPI_Isend(send_buffer.data(), num_values,
+                      reshuffle::internal::to_mpi_datatype<std::remove_cv_t<T>>(), destiny, 0, comm,
+                      &send_requests[i]);
+
+            send_buffer = send_buffer | std::views::drop(num_values);
+        }
+
+        return send_requests;
+    }
+
+    template<typename T>
+    auto async_receive(std::span<T> receive_buffer,
+                       const std::vector<Block> &grouped_blocks_to_receive, const MPI_Comm &comm)
+            -> std::vector<MPI_Request> {
+        const auto num_ranks_to_receive = static_cast<int>(grouped_blocks_to_receive.size());
+        auto receive_requests = std::vector<MPI_Request>(num_ranks_to_receive);
+
+        for (int i = 0; i < num_ranks_to_receive; i++) {
+            const auto &block = grouped_blocks_to_receive[i];
+            const auto num_values = block.get_interval().get_length();
+            const auto source = block.get_owner();
+
+            MPI_Irecv(receive_buffer.data(), num_values,
+                      reshuffle::internal::to_mpi_datatype<std::remove_cv_t<T>>(), source,
+                      MPI_ANY_TAG, comm, &receive_requests[i]);
+
+            receive_buffer = receive_buffer | std::views::drop(num_values);
+        }
+
+        return receive_requests;
+    }
+
+    template<typename T>
+    auto exchange_values(std::span<const T> local_values, const std::vector<Block> &blocks_to_send,
+                         const std::vector<Block> &blocks_to_receive, const MPI_Comm &comm)
+            -> std::vector<T> {
+        auto [send_buffer, grouped_blocks_to_send] =
+                internal::get_send_package(local_values, blocks_to_send);
+        auto [receive_buffer, grouped_blocks_to_receive] =
+                internal::get_receive_package<T>(blocks_to_receive);
+
+        auto send_requests = async_send(std::span{send_buffer}, grouped_blocks_to_send, comm);
+        auto receive_requests =
+                async_receive(std::span{receive_buffer}, grouped_blocks_to_receive, comm);
+
+        const auto num_ranks_to_receive = static_cast<int>(receive_requests.size());
+
+        auto new_local_values = std::vector<T>(receive_buffer.size());
+        for (int i = 0; i < num_ranks_to_receive; i++) {
+            auto source{MPI_PROC_NULL};
+
+            MPI_Waitany(num_ranks_to_receive, receive_requests.data(), &source, MPI_STATUS_IGNORE);
+            const auto &received_block = grouped_blocks_to_receive[source];
+            const auto message_starts = received_block.get_interval().get_left_bound();
+            const auto num_values = static_cast<size_t>(received_block.get_interval().get_length());
+
+            auto blocks_from_source = blocks_to_receive | std::views::filter([source](auto block) {
+                                          return block.get_owner() == source;
+                                      });
+
+            auto received_values = std::span{receive_buffer.begin() + message_starts, num_values};
+            for (const auto &block: blocks_from_source) {
+                const auto num_values_in_block = block.get_interval().get_length();
+                const auto start_local = block.get_interval().get_left_bound();
+
+                std::copy(received_values.begin(), received_values.begin() + num_values_in_block,
+                          new_local_values.begin() + start_local);
+
+                received_values = received_values | std::views::drop(num_values_in_block);
+            }
+        }
+
+        MPI_Waitall(send_requests.size(), send_requests.data(), MPI_STATUSES_IGNORE);
+
+        return new_local_values;
+    }
+}// namespace reshuffle::dev::internal
 
 #endif//RESHUFFLE_MPI_UTILS_HPP

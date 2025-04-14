@@ -86,4 +86,62 @@ namespace reshuffle {
         return BlockCyclic(block_size, num_values, num_blocks);
     }
 
+    namespace dev {
+        namespace internal {
+            auto create_blocks(const int num_values, const int block_size, const int num_processors)
+                    -> std::vector<Block> {
+                std::vector<Block> blocks{};
+
+                for (int i = 0; i < num_values; i += block_size) {
+                    const auto starting_index = i;
+                    const auto last_index = starting_index + block_size;
+                    const auto owner = static_cast<rank_id>(blocks.size()) % num_processors;
+                    blocks.emplace_back(
+                            reshuffle::internal::LeftClosedRange{starting_index, last_index},
+                            owner);
+                }
+
+                if (not blocks.empty()) {
+                    const Block last_block{
+                            reshuffle::internal::LeftClosedRange{
+                                    blocks.back().get_interval().get_left_bound(), num_values},
+                            blocks.back().get_owner()};
+                    blocks.pop_back();
+                    blocks.push_back(last_block);
+                }
+
+                return blocks;
+            }
+        }// namespace internal
+
+        BlockCyclic::BlockCyclic(int num_global_values, int block_size,
+                                 const ProcessorGrid &processor_grid)
+            : _num_global_values(num_global_values), _block_size(block_size),
+              _processor_grid(processor_grid),
+              _grid_layout(internal::create_blocks(num_global_values, block_size,
+                                                   processor_grid.get_num_processors())) {}
+
+        auto BlockCyclic::get_grid_layout() const -> const GridLayout & { return _grid_layout; }
+
+        auto BlockCyclic::get_num_global_values() const -> int { return _num_global_values; }
+
+        auto BlockCyclic::get_processor_grid() const -> const ProcessorGrid & {
+            return _processor_grid;
+        }
+
+        auto BlockCyclic::operator==(const BlockCyclic &other) const -> bool {
+            return _num_global_values == other._num_global_values and
+                   _block_size == other._block_size and _processor_grid == other._processor_grid;
+        }
+
+        auto make_block_wise_distribution(const int num_global_values,
+                                          const ProcessorGrid &processor_grid) -> BlockCyclic {
+            const auto num_processors = processor_grid.get_num_processors();
+            const int block_size =
+                    std::ceil(static_cast<double>(num_global_values) / num_processors);
+            return BlockCyclic{num_global_values, block_size, processor_grid};
+        }
+
+    }// namespace dev
+
 }// namespace reshuffle

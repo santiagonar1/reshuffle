@@ -2,7 +2,10 @@
 #define RESHUFFLE_BLOCK_CYCLIC_HPP
 
 #include "block.hpp"
+#include "grid_layout.hpp"
+#include "processor_grid.hpp"
 #include "rank_id.hpp"
+
 #include <vector>
 
 namespace reshuffle {
@@ -26,6 +29,28 @@ namespace reshuffle {
     };
 
     auto make_block_wise(int num_values, int num_blocks) -> BlockCyclic;
+
+    namespace dev {
+        class BlockCyclic {
+        public:
+            BlockCyclic(int num_global_values, int block_size, const ProcessorGrid &processor_grid);
+
+            [[nodiscard]] auto get_grid_layout() const -> const GridLayout &;
+            [[nodiscard]] auto get_num_global_values() const -> int;
+            [[nodiscard]] auto get_processor_grid() const -> const ProcessorGrid &;
+
+            auto operator==(const BlockCyclic &other) const -> bool;
+
+        private:
+            const int _num_global_values;
+            const int _block_size;
+            const ProcessorGrid _processor_grid;
+            const GridLayout _grid_layout;
+        };
+
+        auto make_block_wise_distribution(int num_global_values,
+                                          const ProcessorGrid &processor_grid) -> BlockCyclic;
+    }// namespace dev
 }// namespace reshuffle
 
 
