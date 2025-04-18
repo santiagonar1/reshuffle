@@ -28,8 +28,8 @@ macro(package_add_mpi_test TEST_NAME)
     # see https://cmake.org/cmake/help/v3.10/module/GoogleTest.html for more options to pass to it
     gtest_discover_tests(${TEST_NAME}
             # set a working directory so your project root so that you can find test data via paths relative to the project root
-            WORKING_DIRECTORY ${PROJECT_DIR}
-            PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}"
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+            PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     )
     set_target_properties(${TEST_NAME} PROPERTIES FOLDER mpi_tests)
 endmacro()
