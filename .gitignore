@@ -5,3 +5,4 @@ conan-deps/*
 install/*
 external/*
 scripts/benchmark_example/*.json
+**/.DS_Store
