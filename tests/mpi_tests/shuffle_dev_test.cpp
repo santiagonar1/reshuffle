@@ -154,6 +154,58 @@ TEST(NewShuffle, CanShuffleFromBlockCyclicToBlockWise) {
     }
 }
 
+TEST(NewShuffle, CanShuffleFromDifferentCommunicators) {
+    constexpr auto num_values_per_rank = 6;
+    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
+    const auto rank = get_rank_id(MPI_COMM_WORLD);
+
+    const auto generator = ValuesGenerator(num_values_per_rank, num_ranks);
+    const auto num_global_values = generator.get_total_num_values();
+
+    const auto values = is_root(MPI_COMM_WORLD) ? generator.get_all_values() : std::vector<int>();
+
+    const auto comm_rank_0 = reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
+    const auto initial_processor_grid = ProcessorGrid(1);
+    const auto initial_distribution =
+            make_block_wise_distribution(num_global_values, initial_processor_grid);
+    const auto initial_context = Context{initial_distribution, comm_rank_0};
+
+    const auto final_processor_grid = ProcessorGrid(num_ranks);
+    const auto final_distribution =
+            make_block_wise_distribution(num_global_values, final_processor_grid);
+    const auto final_context = Context{final_distribution, MPI_COMM_WORLD};
+
+    const auto new_values = shuffle(std::span{values}, initial_context, final_context);
+
+    EXPECT_THAT(new_values, Eq(generator.get_values_for_rank(rank)));
+}
+
+TEST(NewShuffle, IfUsingTwoDifferentCommunicatorsOneMustBeSubCommunicatorOfTheOther) {
+    constexpr auto num_values_per_rank = 6;
+    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
+    const auto rank = get_rank_id(MPI_COMM_WORLD);
+
+    const auto generator = ValuesGenerator(num_values_per_rank, num_ranks);
+    const auto num_global_values = generator.get_total_num_values();
+
+    const auto values = is_root(MPI_COMM_WORLD) ? generator.get_all_values() : std::vector<int>();
+
+    const auto comm_rank_0 = reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
+    const auto initial_processor_grid = ProcessorGrid(1);
+    const auto initial_distribution =
+            make_block_wise_distribution(num_global_values, initial_processor_grid);
+    const auto initial_context = Context{initial_distribution, comm_rank_0};
+
+    const auto comm_rank_1 = reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1));
+    const auto final_processor_grid = ProcessorGrid(1);
+    const auto final_distribution =
+            make_block_wise_distribution(num_global_values, final_processor_grid);
+    const auto final_context = Context{final_distribution, comm_rank_1};
+
+    EXPECT_THROW(auto _ = shuffle(std::span{values}, initial_context, final_context),
+                 std::runtime_error);
+}
+
 
 auto is_root(const MPI_Comm &comm) -> bool { return get_rank_id(comm) == 0; }
 

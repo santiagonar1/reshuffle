@@ -145,8 +145,16 @@ namespace reshuffle {
             const auto grid_overlay = initial_context.distribution.get_grid_layout().get_overlay(
                     final_context.distribution.get_grid_layout());
 
-            // TODO: Group the two communicators
-            MPI_Comm comm = initial_context.comm;
+            // TODO: Deal with partially disjoint communicators
+            auto comm{MPI_COMM_NULL};
+            if (mpi::is_sub_comm(initial_context.comm, final_context.comm)) {
+                comm = initial_context.comm;
+            } else if (mpi::is_sub_comm(final_context.comm, initial_context.comm)) {
+                comm = final_context.comm;
+            } else {
+                throw std::runtime_error("shuffle requires for now one of the communicators to be "
+                                         "a sub_communicator");
+            }
 
             const auto rank = reshuffle::internal::get_rank_id(comm);
 

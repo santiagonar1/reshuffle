@@ -74,3 +74,43 @@ TEST(GetDisplacements, ReturnsTheVectorOfDisplacementsBasedOnNumberOfValuesPerRa
 
     EXPECT_THAT(get_displacements(num_values_per_rank), Eq(std::vector{0, 2, 5}));
 }
+
+TEST(GetSubComm, CreatesAnMPISubcommunicator) {
+    auto comm_rank_0 = reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
+
+    if (is_root(MPI_COMM_WORLD)) {
+        EXPECT_THAT(get_num_ranks(comm_rank_0), Eq(1));
+        MPI_Comm_free(&comm_rank_0);
+    }
+}
+
+TEST(BelongsToComm, ReturnsTrueIfRankInCommunicator) {
+    const auto comm_rank_0 = reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
+
+    if (is_root(MPI_COMM_WORLD)) { EXPECT_TRUE(reshuffle::mpi::belongs_to_comm(comm_rank_0)); }
+}
+
+TEST(BelongsToComm, ReturnsFalseIfRankNotInCommunicator) {
+    const auto comm_rank_1 = reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1));
+
+    if (is_root(MPI_COMM_WORLD)) { EXPECT_FALSE(reshuffle::mpi::belongs_to_comm(comm_rank_1)); }
+}
+
+TEST(BelongsToComm, ReturnsFalseIfMPICommNullPassed) {
+    EXPECT_FALSE(reshuffle::mpi::belongs_to_comm(MPI_COMM_NULL));
+}
+
+TEST(IsSubComm, ReturnsTrueIfSubComm) {
+    const auto comm_rank_0 = reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
+    EXPECT_TRUE(reshuffle::mpi::is_sub_comm(MPI_COMM_WORLD, comm_rank_0));
+}
+
+TEST(IsSubComm, ReturnsFalseIfNotSubComm) {
+    const auto comm_rank_0 = reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
+    const auto comm_rank_1 = reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1));
+    EXPECT_FALSE(reshuffle::mpi::is_sub_comm(comm_rank_0, comm_rank_1));
+}
+
+TEST(IsSubComm, CommunicatorIsSubCommOfItself) {
+    EXPECT_TRUE(reshuffle::mpi::is_sub_comm(MPI_COMM_WORLD, MPI_COMM_WORLD));
+}
