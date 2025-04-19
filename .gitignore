@@ -6,3 +6,4 @@ install/*
 external/*
 scripts/benchmark_example/*.json
 **/.DS_Store
+**/__pycache__
