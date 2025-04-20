@@ -4,12 +4,9 @@
 #include <shuffle.hpp>
 
 using namespace reshuffle::dev;
+using namespace reshuffle::mpi;
 
 using testing::Eq;
-
-auto is_root(const MPI_Comm &comm = MPI_COMM_WORLD) -> bool;
-auto get_rank_id(const MPI_Comm &comm = MPI_COMM_WORLD) -> reshuffle::rank_id;
-auto get_num_ranks(const MPI_Comm &comm = MPI_COMM_WORLD) -> int;
 
 auto generate_values(int from, int to) -> std::vector<int>;
 
@@ -205,22 +202,6 @@ TEST(NewShuffle, IfUsingTwoDifferentCommunicatorsOneMustBeSubCommunicatorOfTheOt
                  std::runtime_error);
 }
 
-
-auto is_root(const MPI_Comm &comm) -> bool { return get_rank_id(comm) == 0; }
-
-auto get_rank_id(const MPI_Comm &comm) -> reshuffle::rank_id {
-    reshuffle::rank_id id{};
-    MPI_Comm_rank(comm, &id);
-
-    return id;
-}
-
-auto get_num_ranks(const MPI_Comm &comm) -> int {
-    int num_ranks{};
-    MPI_Comm_size(comm, &num_ranks);
-
-    return num_ranks;
-}
 
 auto generate_values(int from, int to) -> std::vector<int> {
     auto values_range = std::views::iota(from, to + 1);
