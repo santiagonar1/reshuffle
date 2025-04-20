@@ -132,7 +132,8 @@ namespace reshuffle {
 
     namespace dev {
         namespace internal {
-            auto get_send_and_receive_blocks(const GridOverlay &grid_overlay, rank_id rank)
+            auto get_send_and_receive_blocks(const GridOverlay &grid_overlay, rank_id initial_rank,
+                                             rank_id final_rank)
                     -> std::pair<std::vector<Block>, std::vector<Block>>;
         }// namespace internal
 
@@ -148,22 +149,20 @@ namespace reshuffle {
                     final_context.distribution.get_grid_layout());
 
             // TODO: Deal with partially disjoint communicators
-            auto comm{MPI_COMM_NULL};
-            if (mpi::is_sub_comm(initial_context.comm, final_context.comm)) {
-                comm = initial_context.comm;
-            } else if (mpi::is_sub_comm(final_context.comm, initial_context.comm)) {
-                comm = final_context.comm;
-            } else {
-                throw std::runtime_error("shuffle requires for now one of the communicators to be "
-                                         "a sub_communicator");
-            }
+            const auto intercomm = reshuffle::internal::Intercommunicator(initial_context.comm,
+                                                                          final_context.comm);
 
-            const auto rank = mpi::get_rank_id(comm);
+            const auto comm = intercomm.get_intercommunicator();
+            const auto rank_intercomm = mpi::get_rank_id(comm);
+            const auto rank_initial = intercomm.get_initial_comm_rank(rank_intercomm).value_or(-1);
+            const auto rank_final = intercomm.get_final_comm_rank(rank_intercomm).value_or(-1);
+
 
             const auto [blocks_to_send, blocks_to_receive] =
-                    internal::get_send_and_receive_blocks(grid_overlay, rank);
+                    internal::get_send_and_receive_blocks(grid_overlay, rank_initial, rank_final);
 
-            return internal::exchange_values(local_values, blocks_to_send, blocks_to_receive, comm);
+            return internal::exchange_values(local_values, blocks_to_send, blocks_to_receive,
+                                             intercomm);
         }
     }// namespace dev
 

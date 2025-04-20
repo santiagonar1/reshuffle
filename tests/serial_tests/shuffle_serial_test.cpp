@@ -20,8 +20,8 @@ TEST(GetSendAndReceiveBlocks, UsesAnOverlayToCheckWhatToSendAndWhatToReceive) {
     const auto expected_send_1 = std::vector{Block{{0, 1}, 0}};
     const auto expected_receive_1 = std::vector{Block{{0, 1}, 0}, Block{{1, 2}, 0}};
 
-    const auto [send_blocks_0, receive_blocks_0] = get_send_and_receive_blocks(grid_overlay, 0);
-    const auto [send_blocks_1, receive_blocks_1] = get_send_and_receive_blocks(grid_overlay, 1);
+    const auto [send_blocks_0, receive_blocks_0] = get_send_and_receive_blocks(grid_overlay, 0, 0);
+    const auto [send_blocks_1, receive_blocks_1] = get_send_and_receive_blocks(grid_overlay, 1, 1);
 
     EXPECT_THAT(send_blocks_0, Eq(expected_send_0));
     EXPECT_THAT(receive_blocks_0, Eq(expected_receive_0));

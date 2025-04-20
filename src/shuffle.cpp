@@ -1,18 +1,21 @@
 #include "shuffle.hpp"
 
 namespace reshuffle::dev::internal {
-    auto get_send_and_receive_blocks(const GridOverlay &grid_overlay, const rank_id rank)
+    auto get_send_and_receive_blocks(const GridOverlay &grid_overlay, const rank_id initial_rank,
+                                     const rank_id final_rank)
             -> std::pair<std::vector<Block>, std::vector<Block>> {
         auto send_blocks = std::vector<Block>{};
         auto receive_blocks = std::vector<Block>{};
 
         for (int i = 0; i < grid_overlay.grid.get_blocks().size(); ++i) {
             const auto &block = grid_overlay.grid.get_blocks()[i];
-            if (block.get_owner() == rank) {
+            if (block.get_owner() == initial_rank) {
                 send_blocks.emplace_back(block.get_interval(), grid_overlay.owners_target_grid[i]);
             }
 
-            if (grid_overlay.owners_target_grid[i] == rank) { receive_blocks.emplace_back(block); }
+            if (grid_overlay.owners_target_grid[i] == final_rank) {
+                receive_blocks.emplace_back(block);
+            }
         }
 
         send_blocks = join(send_blocks);

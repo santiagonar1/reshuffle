@@ -105,6 +105,15 @@ namespace reshuffle::mpi {
         return is_sub_comm;
     }
 
+    auto get_contiguous_datatype(MPI_Datatype base_datatype, const int num_consecutive_elements)
+            -> MPI_Datatype {
+        MPI_Datatype contiguous_datatype;
+        MPI_Type_contiguous(num_consecutive_elements, base_datatype, &contiguous_datatype);
+        MPI_Type_commit(&contiguous_datatype);
+
+        return contiguous_datatype;
+    }
+
 }// namespace reshuffle::mpi
 
 namespace reshuffle::internal {
