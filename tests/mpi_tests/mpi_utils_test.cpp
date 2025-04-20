@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include <mpi.h>
+#include <mpi_comm_utils.hpp>
 #include <mpi_utils.hpp>
 
 using namespace reshuffle::internal;

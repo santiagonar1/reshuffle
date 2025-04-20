@@ -11,6 +11,7 @@
 #include "concepts.hpp"
 #include "context.hpp"
 #include "dimensions.hpp"
+#include "mpi_comm_utils.hpp"
 #include "mpi_utils.hpp"
 #include "rank_id.hpp"
 #include "utils.hpp"
