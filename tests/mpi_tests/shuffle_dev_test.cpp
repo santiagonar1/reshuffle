@@ -183,7 +183,6 @@ TEST(NewShuffle, CanShuffleFromDifferentCommunicators) {
 TEST(NewShuffle, IfUsingTwoDifferentCommunicatorsOneMustBeSubCommunicatorOfTheOther) {
     constexpr auto num_values_per_rank = 6;
     const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
-    const auto rank = get_rank_id(MPI_COMM_WORLD);
 
     const auto generator = ValuesGenerator(num_values_per_rank, num_ranks);
     const auto num_global_values = generator.get_total_num_values();
