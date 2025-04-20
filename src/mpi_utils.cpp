@@ -10,6 +10,39 @@ namespace reshuffle::mpi {
             return current_errhandler;
         }
     }// namespace internal
+
+    auto get_rank_id(const MPI_Comm &comm) -> rank_id {
+        int rank{MPI_ERR_RANK};
+
+        if (is_comm_null(comm)) {
+            throw std::invalid_argument("Invalid MPI_COMM_NULL communicator");
+        }
+
+        MPI_Comm_rank(comm, &rank);
+        return rank;
+    }
+
+    // TODO: Used in the previous shuffle, remove once migration to new algorithm has finished
+    auto in_mpi_comm(const MPI_Comm &comm) -> bool { return comm != MPI_COMM_NULL; }
+
+    auto is_root(const MPI_Comm &comm) -> bool {
+        return in_mpi_comm(comm) and get_rank_id(comm) == 0;
+    }
+
+    auto get_num_ranks(const MPI_Comm &comm) -> int {
+        int num_ranks{};
+
+        if (is_comm_null(comm)) {
+            throw std::invalid_argument("Invalid MPI_COMM_NULL communicator");
+        }
+
+        MPI_Comm_size(comm, &num_ranks);
+        return num_ranks;
+    }
+
+    auto is_comm_null(const MPI_Comm &comm) -> bool { return comm == MPI_COMM_NULL; }
+
+
     auto get_sub_comm(MPI_Comm base_comm, const std::vector<rank_id> &ranks) -> MPI_Comm {
         const auto base_group = get_group(base_comm).value();
         MPI_Group sub_group;
@@ -23,7 +56,7 @@ namespace reshuffle::mpi {
     }
 
     auto get_group(MPI_Comm comm) -> std::optional<MPI_Group> {
-        if (comm == MPI_COMM_NULL) { return std::nullopt; }
+        if (is_comm_null(comm)) { return std::nullopt; }
 
         MPI_Group group;
 
@@ -75,37 +108,6 @@ namespace reshuffle::mpi {
 }// namespace reshuffle::mpi
 
 namespace reshuffle::internal {
-    auto get_rank_id(const MPI_Comm &comm) -> rank_id {
-        int rank{MPI_ERR_RANK};
-
-        if (is_comm_null(comm)) {
-            throw std::invalid_argument("Invalid MPI_COMM_NULL communicator");
-        }
-
-        MPI_Comm_rank(comm, &rank);
-        return rank;
-    }
-
-    auto in_mpi_comm(const MPI_Comm &comm) -> bool { return comm != MPI_COMM_NULL; }
-
-    auto is_root(const MPI_Comm &comm) -> bool {
-        return in_mpi_comm(comm) and get_rank_id(comm) == 0;
-    }
-
-    auto get_num_ranks(const MPI_Comm &comm) -> int {
-        int num_ranks{};
-
-        if (is_comm_null(comm)) {
-            throw std::invalid_argument("Invalid MPI_COMM_NULL communicator");
-        }
-
-        MPI_Comm_size(comm, &num_ranks);
-        return num_ranks;
-    }
-
-    auto is_comm_null(const MPI_Comm &comm) -> bool { return comm == MPI_COMM_NULL; }
-
-
     auto get_displacements(const std::vector<int> &num_values_per_rank) -> std::vector<int> {
         std::vector displacements(num_values_per_rank.size(), 0);
         std::partial_sum(num_values_per_rank.begin(), num_values_per_rank.end() - 1,

@@ -13,7 +13,7 @@
 #include "rank_id.hpp"
 #include "utils.hpp"
 
-namespace reshuffle::internal {
+namespace reshuffle::mpi {
     template<typename DATATYPE>
     [[nodiscard]] MPI_Datatype to_mpi_datatype() {
         if (std::is_same_v<DATATYPE, int>) { return MPI_INT; }
@@ -37,6 +37,17 @@ namespace reshuffle::internal {
 
     [[nodiscard]] auto is_comm_null(const MPI_Comm &comm) -> bool;
 
+    [[nodiscard]] auto get_sub_comm(MPI_Comm base_comm, const std::vector<rank_id> &ranks)
+            -> MPI_Comm;
+
+    [[nodiscard]] auto get_group(MPI_Comm comm) -> std::optional<MPI_Group>;
+
+    [[nodiscard]] auto belongs_to_comm(const MPI_Comm &comm) -> bool;
+
+    [[nodiscard]] auto is_sub_comm(MPI_Comm comm, MPI_Comm possible_sub_comm) -> bool;
+}// namespace reshuffle::mpi
+
+namespace reshuffle::internal {
     [[nodiscard]] auto get_displacements(const std::vector<int> &num_values_per_rank)
             -> std::vector<int>;
 
@@ -47,7 +58,7 @@ namespace reshuffle::internal {
             -> std::vector<std::remove_cv_t<Tc>> {
         using T = std::remove_cv_t<Tc>;
 
-        const auto num_ranks = get_num_ranks(comm);
+        const auto num_ranks = mpi::get_num_ranks(comm);
         const auto using_coloring = not global_coloring.empty();
 
         const int num_values{static_cast<int>(std::ranges::size(values))};
@@ -56,13 +67,13 @@ namespace reshuffle::internal {
         int total_num_values =
                 std::accumulate(num_values_per_rank.cbegin(), num_values_per_rank.cend(), 0);
 
-        auto all_values = is_root(comm) ? std::vector<T>(total_num_values) : std::vector<T>{};
+        auto all_values = mpi::is_root(comm) ? std::vector<T>(total_num_values) : std::vector<T>{};
         const auto displacements = get_displacements(num_values_per_rank);
 
         MPI_Gatherv(std::ranges::data(values), num_values, mpi_datatype, all_values.data(),
                     num_values_per_rank.data(), displacements.data(), mpi_datatype, 0, comm);
 
-        if (using_coloring and is_root(comm)) {
+        if (using_coloring and mpi::is_root(comm)) {
             const auto indices = get_global_index_by_rank(global_coloring, num_ranks);
             all_values = reorder_values(all_values, indices);
         }
@@ -75,7 +86,7 @@ namespace reshuffle::internal {
                                       const std::vector<rank_id> &global_coloring = {})
             -> std::vector<std::remove_cv_t<Tc>> {
         using T = std::remove_cv_t<Tc>;
-        MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
+        MPI_Datatype mpi_datatype = mpi::to_mpi_datatype<T>();
 
         return gather_in_root(values, comm, mpi_datatype, global_coloring);
     }
@@ -102,8 +113,8 @@ namespace reshuffle::internal {
         MPI_Comm_rank(comm, &rank);
 
         auto new_num_values_per_rank =
-                is_root(comm) ? internal::calc_num_values_per_rank(num_ranks, coloring)
-                              : std::vector<int>(num_ranks);
+                mpi::is_root(comm) ? internal::calc_num_values_per_rank(num_ranks, coloring)
+                                   : std::vector<int>(num_ranks);
 
         MPI_Bcast(new_num_values_per_rank.data(), static_cast<int>(new_num_values_per_rank.size()),
                   MPI_INT, 0, comm);
@@ -127,7 +138,7 @@ namespace reshuffle::internal {
                                          const std::vector<rank_id> &coloring)
             -> std::vector<std::remove_cv_t<Tc>> {
         using T = std::remove_cv_t<Tc>;
-        MPI_Datatype mpi_datatype = internal::to_mpi_datatype<T>();
+        MPI_Datatype mpi_datatype = mpi::to_mpi_datatype<T>();
 
         return scatter_from_root(values, comm, mpi_datatype, coloring);
     }
@@ -147,7 +158,7 @@ namespace reshuffle::internal {
         //       3. Store all values in a receiver buffer
         //  5. Order the receiver buffer to match the expected order of values
 
-        const auto num_ranks = get_num_ranks(comm);
+        const auto num_ranks = mpi::get_num_ranks(comm);
 
         // 1
         const auto num_values_send_per_rank = get_num_repetitions(sending_ids, num_ranks - 1);
@@ -171,9 +182,9 @@ namespace reshuffle::internal {
         auto recv_buffer = std::vector<std::remove_cv_t<T>>(recv_ids.size());
         for (int i = 0; i < num_ranks; i++) {
             MPI_Isendrecv(send_buffer.data() + send_positions[i], num_values_send_per_rank[i],
-                          internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0,
+                          mpi::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0,
                           recv_buffer.data() + recv_positions[i], num_values_recv_per_rank[i],
-                          internal::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0, comm,
+                          mpi::to_mpi_datatype<std::remove_cv_t<T>>(), i, 0, comm,
                           requests.data() + i);
         }
 
@@ -191,14 +202,6 @@ namespace reshuffle::internal {
     }
 }// namespace reshuffle::internal
 
-namespace reshuffle::mpi {
-    [[nodiscard]] auto get_sub_comm(MPI_Comm base_comm, const std::vector<rank_id> &ranks)
-            -> MPI_Comm;
-    [[nodiscard]] auto get_group(MPI_Comm comm) -> std::optional<MPI_Group>;
-    [[nodiscard]] auto belongs_to_comm(const MPI_Comm &comm) -> bool;
-    [[nodiscard]] auto is_sub_comm(MPI_Comm comm, MPI_Comm possible_sub_comm) -> bool;
-}// namespace reshuffle::mpi
-
 namespace reshuffle::dev::internal {
 
     template<typename T>
@@ -212,9 +215,8 @@ namespace reshuffle::dev::internal {
             const auto num_values = block.get_interval().get_length();
             const auto destiny = block.get_owner();
 
-            MPI_Isend(send_buffer.data(), num_values,
-                      reshuffle::internal::to_mpi_datatype<std::remove_cv_t<T>>(), destiny, 0, comm,
-                      &send_requests[i]);
+            MPI_Isend(send_buffer.data(), num_values, mpi::to_mpi_datatype<std::remove_cv_t<T>>(),
+                      destiny, 0, comm, &send_requests[i]);
 
             send_buffer = send_buffer | std::views::drop(num_values);
         }
@@ -235,8 +237,8 @@ namespace reshuffle::dev::internal {
             const auto source = block.get_owner();
 
             MPI_Irecv(receive_buffer.data(), num_values,
-                      reshuffle::internal::to_mpi_datatype<std::remove_cv_t<T>>(), source,
-                      MPI_ANY_TAG, comm, &receive_requests[i]);
+                      mpi::to_mpi_datatype<std::remove_cv_t<T>>(), source, MPI_ANY_TAG, comm,
+                      &receive_requests[i]);
 
             receive_buffer = receive_buffer | std::views::drop(num_values);
         }

@@ -30,7 +30,7 @@ double time_shuffle(const std::vector<SendType> &local_values, const Context &in
 void shuffle_from_N_to_one(benchmark::State &state) {
     const auto num_global_values = static_cast<int>(state.range(0));
 
-    const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
+    const auto num_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
 
     if (num_global_values % num_ranks != 0) {
         throw std::runtime_error("Number of values not divisible by number of ranks");
@@ -57,13 +57,13 @@ void shuffle_from_N_to_one(benchmark::State &state) {
 void shuffle_from_one_to_N_with_distribution(benchmark::State &state) {
     const auto num_global_values = static_cast<int>(state.range(0));
 
-    const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
+    const auto num_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
 
     if (num_global_values % num_ranks != 0) {
         throw std::runtime_error("Number of values not divisible by number of ranks");
     }
 
-    const auto original_values = reshuffle::internal::is_root(MPI_COMM_WORLD)
+    const auto original_values = reshuffle::mpi::is_root(MPI_COMM_WORLD)
                                          ? std::vector<SendType>(num_global_values)
                                          : std::vector<SendType>{};
 
@@ -85,7 +85,7 @@ void shuffle_from_one_to_N_with_distribution(benchmark::State &state) {
 void shuffle_from_N_to_N_same_distribution(benchmark::State &state) {
     const auto num_global_values = static_cast<int>(state.range(0));
 
-    const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
+    const auto num_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
 
     if (num_global_values % num_ranks != 0) {
         throw std::runtime_error("Number of values not divisible by number of ranks");
@@ -107,7 +107,7 @@ void shuffle_from_N_to_N_same_distribution(benchmark::State &state) {
 void shuffle_from_N_to_N(benchmark::State &state) {
     const auto num_global_values = static_cast<int>(state.range(0));
 
-    const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
+    const auto num_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
 
     if (num_global_values % num_ranks != 0) {
         throw std::runtime_error("Number of values not divisible by number of ranks");
@@ -133,7 +133,7 @@ void shuffle_from_N_to_N(benchmark::State &state) {
 void shuffle_reduction(benchmark::State &state) {
     const auto num_global_values = static_cast<int>(state.range(0));
 
-    const auto num_ranks = reshuffle::internal::get_num_ranks(MPI_COMM_WORLD);
+    const auto num_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
 
     if (num_global_values % num_ranks != 0) {
         throw std::runtime_error("Number of values not divisible by number of ranks");
@@ -187,7 +187,7 @@ int main(int argc, char **argv) {
 
     benchmark::Initialize(&argc, argv);
 
-    if (reshuffle::internal::is_root(MPI_COMM_WORLD))
+    if (reshuffle::mpi::is_root(MPI_COMM_WORLD))
         // root process will use a reporter from the usual set provided by
         // ::benchmark
         benchmark::RunSpecifiedBenchmarks();

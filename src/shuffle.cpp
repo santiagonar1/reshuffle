@@ -68,7 +68,7 @@ namespace reshuffle::internal {
                                                             const MPI_Comm &destiny_comm,
                                                             const bool contains_data) {
         const auto is_rank_only_in_destiny_comm =
-                in_mpi_comm(destiny_comm) and not in_mpi_comm(origin_comm);
+                mpi::in_mpi_comm(destiny_comm) and not mpi::in_mpi_comm(origin_comm);
 
         if (is_rank_only_in_destiny_comm and contains_data) {
             throw std::invalid_argument("A rank only in destiny communicator contains data");

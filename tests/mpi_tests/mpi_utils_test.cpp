@@ -5,6 +5,8 @@
 #include <mpi_utils.hpp>
 
 using namespace reshuffle::internal;
+using namespace reshuffle::mpi;
+
 using testing::Eq;
 
 TEST(ToMPIDatatype, ConvertsDatatypeToMPIDatatype) {

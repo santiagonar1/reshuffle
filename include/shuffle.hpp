@@ -19,15 +19,16 @@ namespace reshuffle {
     namespace internal {
         template<typename Tc, std::size_t N>
         auto split_equally(const std::span<Tc, N> values, const MPI_Comm &comm) {
-            if (not is_root(comm) and not std::ranges::empty(values)) {
+            if (not mpi::is_root(comm) and not std::ranges::empty(values)) {
                 throw std::invalid_argument("Only the root should have values!");
             }
 
             const int num_values = static_cast<int>(values.size());
-            const auto num_ranks = get_num_ranks(comm);
+            const auto num_ranks = mpi::get_num_ranks(comm);
             const auto new_distribution = make_block_wise(num_values, num_ranks);
-            const auto new_global_coloring =
-                    is_root(comm) ? get_global_coloring(new_distribution) : std::vector<rank_id>{};
+            const auto new_global_coloring = mpi::is_root(comm)
+                                                     ? get_global_coloring(new_distribution)
+                                                     : std::vector<rank_id>{};
 
             return scatter_from_root(values, comm, new_global_coloring);
         }
@@ -36,7 +37,7 @@ namespace reshuffle {
         auto shuffle_with_coloring(const C &local_values, const MPI_Comm &comm,
                                    const BlockCyclic &old_distribution,
                                    const BlockCyclic &new_distribution) {
-            const auto rank = get_rank_id(comm);
+            const auto rank = mpi::get_rank_id(comm);
 
             const auto old_global_coloring = get_global_coloring(old_distribution);
             const auto new_global_coloring = get_global_coloring(new_distribution);
@@ -94,12 +95,12 @@ namespace reshuffle {
             auto all_coloring = std::vector<rank_id>{};
             auto all_values = std::vector<T>{};
 
-            if (in_mpi_comm(origin_comm)) {
+            if (mpi::in_mpi_comm(origin_comm)) {
                 all_coloring = gather_in_root(std::span{local_coloring}, origin_comm);
                 all_values = gather_in_root(values, origin_comm, old_global_coloring);
             }
 
-            if (not in_mpi_comm(destiny_comm)) { return std::vector<T>{}; }
+            if (not mpi::in_mpi_comm(destiny_comm)) { return std::vector<T>{}; }
 
             // We need an additional variable in case rank 0 had no values to start with, but others
             // did, and those provided coloring.
@@ -156,7 +157,7 @@ namespace reshuffle {
                                          "a sub_communicator");
             }
 
-            const auto rank = reshuffle::internal::get_rank_id(comm);
+            const auto rank = mpi::get_rank_id(comm);
 
             const auto [blocks_to_send, blocks_to_receive] =
                     internal::get_send_and_receive_blocks(grid_overlay, rank);
@@ -168,7 +169,7 @@ namespace reshuffle {
     template<concepts::ContiguousContainer C>
     auto shuffle(const C &values, const MPI_Comm &comm, const BlockCyclic &old_distribution,
                  const BlockCyclic &new_distribution) {
-        const auto rank = internal::get_rank_id(comm);
+        const auto rank = mpi::get_rank_id(comm);
 
         internal::check_distributions_have_same_num_values(old_distribution, new_distribution);
         internal::check_correct_num_values_provided(old_distribution, std::ranges::size(values),
@@ -186,8 +187,8 @@ namespace reshuffle {
         internal::check_rank_only_in_destiny_comm_does_not_have_data(
                 origin_comm, destiny_comm, not std::ranges::empty(values));
 
-        if (internal::in_mpi_comm(origin_comm)) {
-            const auto rank = internal::get_rank_id(origin_comm);
+        if (mpi::in_mpi_comm(origin_comm)) {
+            const auto rank = mpi::get_rank_id(origin_comm);
             internal::check_correct_num_values_provided(old_distribution, std::ranges::size(values),
                                                         rank);
         }
@@ -195,8 +196,8 @@ namespace reshuffle {
         const auto old_global_coloring = internal::get_global_coloring(old_distribution);
         auto local_coloring = std::vector<rank_id>{};
 
-        if (internal::in_mpi_comm(origin_comm)) {
-            const auto rank = internal::get_rank_id(origin_comm);
+        if (mpi::in_mpi_comm(origin_comm)) {
+            const auto rank = mpi::get_rank_id(origin_comm);
             local_coloring = internal::get_global_and_local_coloring(old_global_coloring,
                                                                      new_distribution, rank)
                                      .local_coloring;
@@ -228,7 +229,7 @@ namespace reshuffle {
                  const std::array<BlockCyclic, 2> &new_distribution) {
         using T = typename M::value_type::value_type;
 
-        const auto rank = internal::get_rank_id(comm);
+        const auto rank = mpi::get_rank_id(comm);
         const auto num_values = internal::num_elements(values);
 
         internal::check_distributions_have_same_num_values(old_distribution, new_distribution);
@@ -260,25 +261,24 @@ namespace reshuffle {
         internal::check_rank_only_in_destiny_comm_does_not_have_data(
                 origin_comm, destiny_comm, not std::ranges::empty(values));
 
-        if (internal::in_mpi_comm(origin_comm)) {
-            const auto rank = internal::get_rank_id(origin_comm);
+        if (mpi::in_mpi_comm(origin_comm)) {
+            const auto rank = mpi::get_rank_id(origin_comm);
             const auto num_values = internal::num_elements(values);
 
             internal::check_correct_num_values_provided(old_distribution, num_values, rank);
         }
 
         const auto old_global_coloring = internal::get_global_coloring(old_distribution);
-        const auto rank =
-                internal::in_mpi_comm(destiny_comm) ? internal::get_rank_id(destiny_comm) : -1;
+        const auto rank = mpi::in_mpi_comm(destiny_comm) ? mpi::get_rank_id(destiny_comm) : -1;
 
-        const auto local_coloring = internal::in_mpi_comm(destiny_comm)
+        const auto local_coloring = mpi::in_mpi_comm(destiny_comm)
                                             ? internal::get_global_and_local_coloring(
                                                       old_global_coloring, new_distribution, rank)
                                                       .local_coloring
                                             : std::vector<rank_id>{};
 
         const auto subdomain_dimensions =
-                internal::in_mpi_comm(destiny_comm)
+                mpi::in_mpi_comm(destiny_comm)
                         ? internal::get_block_dimension(new_distribution, rank)
                         : internal::Dimension<2>{0, 0};
 
