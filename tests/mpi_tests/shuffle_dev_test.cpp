@@ -36,6 +36,29 @@ private:
     const std::vector<int> _values;
 };
 
+enum class CommSelector {
+    ONLY_RANK_0,
+    ONLY_RANK_1,
+    ALL_RANKS,
+};
+
+enum class DataLocationSelector {
+    ONLY_RANK_0,
+    ONLY_RANK_1,
+    ALL_RANKS,
+};
+
+[[nodiscard]] auto create_communicator(const CommSelector &comm_selector) -> MPI_Comm;
+[[nodiscard]] auto create_context(const DataLocationSelector &data_location,
+                                  const CommSelector &comm_selector, int num_global_values)
+        -> Context;
+[[nodiscard]] auto create_context(const DataLocationSelector &data_location, MPI_Comm comm,
+                                  int num_global_values) -> Context;
+[[nodiscard]] auto is_disjoint(const DataLocationSelector &data_location,
+                               const CommSelector &comm_selector) -> bool;
+[[nodiscard]] auto is_rank_with_data_outside_comm(const DataLocationSelector &data_location,
+                                                  const CommSelector &comm_selector) -> bool;
+
 TEST(NewShuffle, CanShuffleFromOneToMany) {
     constexpr auto num_values_per_rank = 6;
     const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
@@ -46,15 +69,10 @@ TEST(NewShuffle, CanShuffleFromOneToMany) {
 
     const auto values = is_root(MPI_COMM_WORLD) ? generator.get_all_values() : std::vector<int>();
 
-    const auto initial_processor_grid = ProcessorGrid(1);
-    const auto initial_distribution =
-            make_block_wise_distribution(num_global_values, initial_processor_grid);
-    const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
-
-    const auto final_processor_grid = ProcessorGrid(num_ranks);
-    const auto final_distribution =
-            make_block_wise_distribution(num_global_values, final_processor_grid);
-    const auto final_context = Context{final_distribution, MPI_COMM_WORLD};
+    const auto initial_context = create_context(DataLocationSelector::ONLY_RANK_0,
+                                                CommSelector::ALL_RANKS, num_global_values);
+    const auto final_context = create_context(DataLocationSelector::ALL_RANKS,
+                                              CommSelector::ALL_RANKS, num_global_values);
 
     const auto new_values = shuffle(std::span{values}, initial_context, final_context);
 
@@ -71,15 +89,10 @@ TEST(NewShuffle, CanShuffleFromManyToOne) {
 
     const auto values = generator.get_values_for_rank(rank);
 
-    const auto initial_processor_grid = ProcessorGrid(num_ranks);
-    const auto initial_distribution =
-            make_block_wise_distribution(num_global_values, initial_processor_grid);
-    const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
-
-    const auto final_processor_grid = ProcessorGrid(1);
-    const auto final_distribution =
-            make_block_wise_distribution(num_global_values, final_processor_grid);
-    const auto final_context = Context{final_distribution, MPI_COMM_WORLD};
+    const auto initial_context = create_context(DataLocationSelector::ALL_RANKS,
+                                                CommSelector::ALL_RANKS, num_global_values);
+    const auto final_context = create_context(DataLocationSelector::ONLY_RANK_0,
+                                              CommSelector::ALL_RANKS, num_global_values);
 
     const auto new_values = shuffle(std::span{values}, initial_context, final_context);
 
@@ -100,10 +113,8 @@ TEST(NewShuffle, CanShuffleFromBlockWiseToBlockCyclic) {
 
     const auto values = generator.get_values_for_rank(rank);
 
-    const auto initial_processor_grid = ProcessorGrid(num_ranks);
-    const auto initial_distribution =
-            make_block_wise_distribution(num_global_values, initial_processor_grid);
-    const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
+    const auto initial_context = create_context(DataLocationSelector::ALL_RANKS,
+                                                CommSelector::ALL_RANKS, num_global_values);
 
     const auto final_processor_grid = ProcessorGrid(num_ranks);
     const auto final_distribution = BlockCyclic{num_global_values, 4, final_processor_grid};
@@ -135,10 +146,8 @@ TEST(NewShuffle, CanShuffleFromBlockCyclicToBlockWise) {
     const auto initial_distribution = BlockCyclic{num_global_values, 4, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
-    const auto final_processor_grid = ProcessorGrid(num_ranks);
-    const auto final_distribution =
-            make_block_wise_distribution(num_global_values, final_processor_grid);
-    const auto final_context = Context{final_distribution, MPI_COMM_WORLD};
+    const auto final_context = create_context(DataLocationSelector::ALL_RANKS,
+                                              CommSelector::ALL_RANKS, num_global_values);
 
     const auto new_values = shuffle(std::span{values}, initial_context, final_context);
 
@@ -161,16 +170,10 @@ TEST(NewShuffle, CanShuffleFromDifferentCommunicators) {
 
     const auto values = is_root(MPI_COMM_WORLD) ? generator.get_all_values() : std::vector<int>();
 
-    const auto comm_rank_0 = reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
-    const auto initial_processor_grid = ProcessorGrid(1);
-    const auto initial_distribution =
-            make_block_wise_distribution(num_global_values, initial_processor_grid);
-    const auto initial_context = Context{initial_distribution, comm_rank_0};
-
-    const auto final_processor_grid = ProcessorGrid(num_ranks);
-    const auto final_distribution =
-            make_block_wise_distribution(num_global_values, final_processor_grid);
-    const auto final_context = Context{final_distribution, MPI_COMM_WORLD};
+    const auto initial_context = create_context(DataLocationSelector::ONLY_RANK_0,
+                                                CommSelector::ONLY_RANK_0, num_global_values);
+    const auto final_context = create_context(DataLocationSelector::ALL_RANKS,
+                                              CommSelector::ALL_RANKS, num_global_values);
 
     const auto new_values = shuffle(std::span{values}, initial_context, final_context);
 
@@ -186,17 +189,10 @@ TEST(NewShuffle, IfUsingTwoDifferentCommunicatorsOneMustBeSubCommunicatorOfTheOt
 
     const auto values = is_root(MPI_COMM_WORLD) ? generator.get_all_values() : std::vector<int>();
 
-    const auto comm_rank_0 = reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
-    const auto initial_processor_grid = ProcessorGrid(1);
-    const auto initial_distribution =
-            make_block_wise_distribution(num_global_values, initial_processor_grid);
-    const auto initial_context = Context{initial_distribution, comm_rank_0};
-
-    const auto comm_rank_1 = reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1));
-    const auto final_processor_grid = ProcessorGrid(1);
-    const auto final_distribution =
-            make_block_wise_distribution(num_global_values, final_processor_grid);
-    const auto final_context = Context{final_distribution, comm_rank_1};
+    const auto initial_context = create_context(DataLocationSelector::ONLY_RANK_0,
+                                                CommSelector::ONLY_RANK_0, num_global_values);
+    const auto final_context = create_context(DataLocationSelector::ONLY_RANK_1,
+                                              CommSelector::ONLY_RANK_1, num_global_values);
 
     EXPECT_THROW(auto _ = shuffle(std::span{values}, initial_context, final_context),
                  std::runtime_error);
@@ -212,16 +208,10 @@ TEST(NewShuffle, IfUsingTwoDifferentCommunicatorsTheyCanStartAtDifferentRanks) {
 
     const auto values = is_root(MPI_COMM_WORLD) ? std::vector<int>() : generator.get_all_values();
 
-    const auto comm_rank_1 = reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1));
-    const auto initial_processor_grid = ProcessorGrid(1);
-    const auto initial_distribution =
-            make_block_wise_distribution(num_global_values, initial_processor_grid);
-    const auto initial_context = Context{initial_distribution, comm_rank_1};
-
-    const auto final_processor_grid = ProcessorGrid(num_ranks);
-    const auto final_distribution =
-            make_block_wise_distribution(num_global_values, final_processor_grid);
-    const auto final_context = Context{final_distribution, MPI_COMM_WORLD};
+    const auto initial_context = create_context(DataLocationSelector::ONLY_RANK_1,
+                                                CommSelector::ONLY_RANK_1, num_global_values);
+    const auto final_context = create_context(DataLocationSelector::ALL_RANKS,
+                                              CommSelector::ALL_RANKS, num_global_values);
 
     const auto new_values = shuffle(std::span{values}, initial_context, final_context);
 
@@ -231,4 +221,57 @@ TEST(NewShuffle, IfUsingTwoDifferentCommunicatorsTheyCanStartAtDifferentRanks) {
 auto generate_values(int from, int to) -> std::vector<int> {
     auto values_range = std::views::iota(from, to + 1);
     return {values_range.begin(), values_range.end()};
+}
+
+auto create_communicator(const CommSelector &comm_selector) -> MPI_Comm {
+    switch (comm_selector) {
+        case CommSelector::ONLY_RANK_0:
+            return get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
+        case CommSelector::ONLY_RANK_1:
+            return get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1));
+        case CommSelector::ALL_RANKS:
+            return MPI_COMM_WORLD;
+        default:
+            throw std::runtime_error("Invalid CommSelector");
+    }
+}
+
+auto create_context(const DataLocationSelector &data_location, const CommSelector &comm_selector,
+                    const int num_global_values) -> Context {
+    if (is_rank_with_data_outside_comm(data_location, comm_selector)) {
+        throw std::runtime_error("Want to allocate data in rank outside of communicator");
+    }
+
+    const auto comm = create_communicator(comm_selector);
+    return create_context(data_location, comm, num_global_values);
+}
+
+auto create_context(const DataLocationSelector &data_location, const MPI_Comm comm,
+                    const int num_global_values) -> Context {
+    switch (data_location) {
+        case DataLocationSelector::ONLY_RANK_0:
+        case DataLocationSelector::ONLY_RANK_1:
+            return Context{make_block_wise_distribution(num_global_values, ProcessorGrid(1)), comm};
+        case DataLocationSelector::ALL_RANKS:
+            return Context{make_block_wise_distribution(num_global_values, ProcessorGrid(2)), comm};
+        default:
+            throw std::runtime_error("Invalid DataLocationSelector");
+    }
+}
+
+auto is_disjoint(const DataLocationSelector &data_location, const CommSelector &comm_selector)
+        -> bool {
+    const auto disjoint = (comm_selector == CommSelector::ONLY_RANK_0 and
+                           data_location == DataLocationSelector::ONLY_RANK_1) or
+                          (comm_selector == CommSelector::ONLY_RANK_1 and
+                           data_location == DataLocationSelector::ONLY_RANK_0);
+    return disjoint;
+}
+
+auto is_rank_with_data_outside_comm(const DataLocationSelector &data_location,
+                                    const CommSelector &comm_selector) -> bool {
+    const auto data_outside_boundaries_comm = (comm_selector == CommSelector::ONLY_RANK_0 or
+                                               comm_selector == CommSelector::ONLY_RANK_1) and
+                                              data_location == DataLocationSelector::ALL_RANKS;
+    return is_disjoint(data_location, comm_selector) or data_outside_boundaries_comm;
 }
