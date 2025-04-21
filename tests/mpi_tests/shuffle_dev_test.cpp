@@ -8,7 +8,7 @@ using namespace reshuffle::mpi;
 
 using testing::Eq;
 
-auto generate_values(int from, int to) -> std::vector<int>;
+[[nodiscard]] auto generate_values(int from, int to) -> std::vector<int>;
 
 class ValuesGenerator {
 public:
