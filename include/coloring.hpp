@@ -30,7 +30,7 @@ namespace reshuffle::internal {
     auto get_block_dimension(const BlockCyclic &data_distribution, rank_id rank) -> int;
 
     auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions, rank_id rank)
-            -> Dimension<2>;
+            -> Dimensions<2>;
 
     auto get_rank_ids_send_data_to(const std::vector<rank_id> &old_global_coloring,
                                    const std::vector<rank_id> &new_global_coloring, rank_id rank)

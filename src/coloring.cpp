@@ -31,8 +31,8 @@ namespace reshuffle::internal {
     }
 
     auto get_dimension_from_distribution(const std::array<BlockCyclic, 2> &distribution)
-            -> Dimension<2> {
-        return Dimension<2>{distribution[0].get_num_total_values(),
+            -> Dimensions<2> {
+        return Dimensions<2>{distribution[0].get_num_total_values(),
                             distribution[1].get_num_total_values()};
     }
 
@@ -59,7 +59,7 @@ namespace reshuffle::internal {
                                        const std::array<BlockCyclic, 2> &new_distributions,
                                        const rank_id rank) -> ColoringReturn {
 
-        const auto global_dimensions = Dimension<2>{new_distributions[0].get_num_total_values(),
+        const auto global_dimensions = Dimensions<2>{new_distributions[0].get_num_total_values(),
                                                     new_distributions[1].get_num_total_values()};
 
         throw_if_different(static_cast<int>(global_coloring.size()),
@@ -129,15 +129,15 @@ namespace reshuffle::internal {
     }
 
     auto get_block_dimension(const std::array<BlockCyclic, 2> &data_distributions,
-                             const rank_id rank) -> Dimension<2> {
+                             const rank_id rank) -> Dimensions<2> {
         const auto block_pairs = get_blocks_2D(data_distributions);
 
-        if (rank >= block_pairs.size()) { return Dimension<2>{{0, 0}}; }
+        if (rank >= block_pairs.size()) { return Dimensions<2>{{0, 0}}; }
 
         const auto &[fst, snd] = block_pairs[rank];
         const auto num_values_x = fst.get_length();
         const auto num_values_y = snd.get_length();
 
-        return Dimension<2>{{num_values_x, num_values_y}};
+        return Dimensions<2>{{num_values_x, num_values_y}};
     }
 }// namespace reshuffle::internal

@@ -21,7 +21,7 @@ namespace reshuffle::internal {
     }
 
     template<typename T>
-    [[nodiscard]] auto to_matrix(const std::vector<T> &values, const Dimension<2> &dimension)
+    [[nodiscard]] auto to_matrix(const std::vector<T> &values, const Dimensions<2> &dimension)
             -> std::vector<std::vector<T>> {
         using Matrix = std::vector<std::vector<T>>;
 

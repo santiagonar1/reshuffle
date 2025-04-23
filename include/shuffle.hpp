@@ -280,7 +280,7 @@ namespace reshuffle {
         const auto subdomain_dimensions =
                 mpi::in_mpi_comm(destiny_comm)
                         ? internal::get_block_dimension(new_distribution, rank)
-                        : internal::Dimension<2>{0, 0};
+                        : internal::Dimensions<2>{0, 0};
 
         auto buffer = std::vector<T>(std::ranges::join_view(values).begin(),
                                      std::ranges::join_view(values).end());

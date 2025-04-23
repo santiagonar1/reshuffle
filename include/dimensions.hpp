@@ -6,10 +6,10 @@
 
 namespace reshuffle::internal {
     template<std::size_t N>
-    using Dimension = std::array<int, N>;
+    using Dimensions = std::array<int, N>;
 
     template<std::size_t N>
-    auto calc_total_num_values(const Dimension<N> &d) -> int {
+    auto calc_total_num_values(const Dimensions<N> &d) -> int {
         return std::accumulate(d.cbegin(), d.cend(), 1, std::multiplies());
     }
 }// namespace reshuffle

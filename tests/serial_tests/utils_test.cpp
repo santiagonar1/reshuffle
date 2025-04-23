@@ -16,7 +16,7 @@ TEST(CartesianProduct, CalculatesTheCartesianProductOfTwoVectors) {
 }
 
 TEST(ToMatrix, ConstructsAMatrixFromA1DArray) {
-    constexpr auto dimensions = Dimension<2>{2, 2};
+    constexpr auto dimensions = Dimensions<2>{2, 2};
     const auto v = std::vector{1, 2, 3, 4};
 
     EXPECT_THAT(to_matrix(v, dimensions), Eq(std::vector{std::vector{1, 2}, std::vector{3, 4}}));
