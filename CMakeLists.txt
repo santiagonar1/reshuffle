@@ -8,7 +8,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     endif ()
 endif ()
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(namespace "${PROJECT_NAME}")
 
 # Where to find our CMake modules. Needs to be called before any add_subdirectory for them to have access to the variable
