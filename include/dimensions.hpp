@@ -4,7 +4,7 @@
 #include <array>
 #include <numeric>
 
-namespace reshuffle::internal {
+namespace reshuffle {
     template<std::size_t N>
     using Dimensions = std::array<int, N>;
 

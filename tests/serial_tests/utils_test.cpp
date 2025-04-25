@@ -3,9 +3,11 @@
 
 #include <utils.hpp>
 
+using namespace reshuffle::internal;
+using namespace reshuffle;
+
 using testing::Eq;
 using testing::FieldsAre;
-using namespace reshuffle::internal;
 
 TEST(CartesianProduct, CalculatesTheCartesianProductOfTwoVectors) {
     const auto v1 = std::vector{1, 2};
