@@ -115,7 +115,7 @@ namespace reshuffle {
         }// namespace internal
 
         BlockCyclic::BlockCyclic(int num_global_values, int block_size,
-                                 const ProcessorGrid &processor_grid)
+                                 const ProcessorGrid<1> &processor_grid)
             : _num_global_values(num_global_values), _block_size(block_size),
               _processor_grid(processor_grid),
               _grid_layout(internal::create_blocks(num_global_values, block_size,
@@ -125,7 +125,7 @@ namespace reshuffle {
 
         auto BlockCyclic::get_num_global_values() const -> int { return _num_global_values; }
 
-        auto BlockCyclic::get_processor_grid() const -> const ProcessorGrid & {
+        auto BlockCyclic::get_processor_grid() const -> const ProcessorGrid<1> & {
             return _processor_grid;
         }
 
@@ -135,7 +135,7 @@ namespace reshuffle {
         }
 
         auto make_block_wise_distribution(const int num_global_values,
-                                          const ProcessorGrid &processor_grid) -> BlockCyclic {
+                                          const ProcessorGrid<1> &processor_grid) -> BlockCyclic {
             const auto num_processors = processor_grid.get_num_processors();
             const int block_size =
                     std::ceil(static_cast<double>(num_global_values) / num_processors);

@@ -33,23 +33,24 @@ namespace reshuffle {
     namespace dev {
         class BlockCyclic {
         public:
-            BlockCyclic(int num_global_values, int block_size, const ProcessorGrid &processor_grid);
+            BlockCyclic(int num_global_values, int block_size,
+                        const ProcessorGrid<1> &processor_grid);
 
             [[nodiscard]] auto get_grid_layout() const -> const GridLayout &;
             [[nodiscard]] auto get_num_global_values() const -> int;
-            [[nodiscard]] auto get_processor_grid() const -> const ProcessorGrid &;
+            [[nodiscard]] auto get_processor_grid() const -> const ProcessorGrid<1> &;
 
             auto operator==(const BlockCyclic &other) const -> bool;
 
         private:
             const int _num_global_values;
             const int _block_size;
-            const ProcessorGrid _processor_grid;
+            const ProcessorGrid<1> _processor_grid;
             const GridLayout _grid_layout;
         };
 
         auto make_block_wise_distribution(int num_global_values,
-                                          const ProcessorGrid &processor_grid) -> BlockCyclic;
+                                          const ProcessorGrid<1> &processor_grid) -> BlockCyclic;
     }// namespace dev
 }// namespace reshuffle
 
