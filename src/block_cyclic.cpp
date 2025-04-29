@@ -118,10 +118,10 @@ namespace reshuffle {
                                  const ProcessorGrid<1> &processor_grid)
             : _num_global_values(num_global_values), _block_size(block_size),
               _processor_grid(processor_grid),
-              _grid_layout(internal::create_blocks(num_global_values, block_size,
-                                                   processor_grid.get_num_processors())) {}
+              _grid_layout({internal::create_blocks(num_global_values, block_size,
+                                                    processor_grid.get_num_processors())}) {}
 
-        auto BlockCyclic::get_grid_layout() const -> const GridLayout & { return _grid_layout; }
+        auto BlockCyclic::get_grid_layout() const -> const GridLayout<1> & { return _grid_layout; }
 
         auto BlockCyclic::get_num_global_values() const -> int { return _num_global_values; }
 

@@ -36,7 +36,7 @@ namespace reshuffle {
             BlockCyclic(int num_global_values, int block_size,
                         const ProcessorGrid<1> &processor_grid);
 
-            [[nodiscard]] auto get_grid_layout() const -> const GridLayout &;
+            [[nodiscard]] auto get_grid_layout() const -> const GridLayout<1> &;
             [[nodiscard]] auto get_num_global_values() const -> int;
             [[nodiscard]] auto get_processor_grid() const -> const ProcessorGrid<1> &;
 
@@ -46,7 +46,7 @@ namespace reshuffle {
             const int _num_global_values;
             const int _block_size;
             const ProcessorGrid<1> _processor_grid;
-            const GridLayout _grid_layout;
+            const GridLayout<1> _grid_layout;
         };
 
         auto make_block_wise_distribution(int num_global_values,

@@ -132,8 +132,8 @@ namespace reshuffle {
 
     namespace dev {
         namespace internal {
-            auto get_send_and_receive_blocks(const GridOverlay &grid_overlay, rank_id initial_rank,
-                                             rank_id final_rank)
+            auto get_send_and_receive_blocks(const GridOverlay<1> &grid_overlay,
+                                             rank_id initial_rank, rank_id final_rank)
                     -> std::pair<std::vector<Block>, std::vector<Block>>;
         }// namespace internal
 
@@ -146,7 +146,8 @@ namespace reshuffle {
             }
 
             const auto grid_overlay = initial_context.distribution.get_grid_layout().get_overlay(
-                    final_context.distribution.get_grid_layout());
+                    final_context.distribution.get_grid_layout(),
+                    final_context.distribution.get_processor_grid());
 
             // TODO: Deal with partially disjoint communicators
             const auto intercomm = reshuffle::internal::Intercommunicator(initial_context.comm,

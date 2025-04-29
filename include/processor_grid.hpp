@@ -1,7 +1,9 @@
 #ifndef PROCESSOR_GRID_HPP
 #define PROCESSOR_GRID_HPP
 
+#include "coordinates.hpp"
 #include "dimensions.hpp"
+#include "rank_id.hpp"
 
 namespace reshuffle::dev {
     template<std::size_t N>
@@ -10,6 +12,11 @@ namespace reshuffle::dev {
         explicit ProcessorGrid(const Dimensions<N> &dimensions);
 
         [[nodiscard]] auto get_num_processors() const -> int;
+        [[nodiscard]] auto get_dimensions() const -> Dimensions<N>;
+        [[nodiscard]] auto
+        get_processor_id(const ::reshuffle::internal::Coordinates<N> &coordinates) const -> rank_id;
+        [[nodiscard]] auto get_processor_coordinates(rank_id processor) const
+                -> ::reshuffle::internal::Coordinates<N>;
 
         auto operator==(const ProcessorGrid &other) const -> bool;
 
@@ -27,6 +34,24 @@ namespace reshuffle::dev {
     auto ProcessorGrid<N>::get_num_processors() const -> int {
         return _num_processors;
     }
+
+    template<std::size_t N>
+    auto ProcessorGrid<N>::get_dimensions() const -> Dimensions<N> {
+        return _dimensions;
+    }
+
+    template<std::size_t N>
+    auto ProcessorGrid<N>::get_processor_id(
+            const ::reshuffle::internal::Coordinates<N> &coordinates) const -> rank_id {
+        return ::reshuffle::internal::map_indices(coordinates, _dimensions);
+    }
+
+    template<std::size_t N>
+    auto ProcessorGrid<N>::get_processor_coordinates(rank_id processor) const
+            -> ::reshuffle::internal::Coordinates<N> {
+        return ::reshuffle::internal::map_index(processor, _dimensions);
+    }
+
 
     template<std::size_t N>
     auto ProcessorGrid<N>::operator==(const ProcessorGrid<N> &other) const -> bool {

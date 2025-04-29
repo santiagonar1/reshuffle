@@ -12,7 +12,8 @@ TEST(GetSendAndReceiveBlocks, UsesAnOverlayToCheckWhatToSendAndWhatToReceive) {
     const auto blocks =
             std::vector{Block{{0, 2}, 0}, Block{{2, 3}, 0}, Block{{3, 4}, 1}, Block{{4, 5}, 0}};
     const auto owners_target_grid = std::vector{0, 1, 0, 1};
-    const auto grid_overlay = GridOverlay{GridLayout{blocks}, owners_target_grid};
+    const auto grid_overlay =
+            GridOverlay{GridLayout{std::array{blocks}}, std::array{owners_target_grid}};
 
     const auto expected_send_0 = std::vector{Block{{0, 2}, 0}, Block{{2, 3}, 1}, Block{{3, 4}, 1}};
     const auto expected_receive_0 = std::vector{Block{{0, 2}, 0}, Block{{2, 3}, 1}};
