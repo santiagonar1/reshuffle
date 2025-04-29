@@ -138,8 +138,8 @@ namespace reshuffle {
         }// namespace internal
 
         template<typename T>
-        auto shuffle(std::span<const T> local_values, const Context &initial_context,
-                     const Context &final_context) -> std::vector<T> {
+        auto shuffle(std::span<const T> local_values, const Context<1> &initial_context,
+                     const Context<1> &final_context) -> std::vector<T> {
             if (initial_context == final_context) {
                 auto new_values = std::vector<T>(local_values.begin(), local_values.end());
                 return new_values;

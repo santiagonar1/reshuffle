@@ -8,8 +8,8 @@ using namespace reshuffle::dev;
 
 using SendType = double;
 
-double time_shuffle(const std::vector<SendType> &local_values, const Context &initial_context,
-                    const Context &final_context) {
+double time_shuffle(const std::vector<SendType> &local_values, const Context<1> &initial_context,
+                    const Context<1> &final_context) {
     // Do the work and time it on each proc
     const auto start = std::chrono::high_resolution_clock::now();
     const auto _ = shuffle(std::span{local_values}, initial_context, final_context);

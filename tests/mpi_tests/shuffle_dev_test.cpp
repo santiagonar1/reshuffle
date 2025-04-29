@@ -51,9 +51,9 @@ enum class DataLocationSelector {
 [[nodiscard]] auto create_communicator(const CommSelector &comm_selector) -> MPI_Comm;
 [[nodiscard]] auto create_context(const DataLocationSelector &data_location,
                                   const CommSelector &comm_selector, int num_global_values)
-        -> Context;
+        -> Context<1>;
 [[nodiscard]] auto create_context(const DataLocationSelector &data_location, MPI_Comm comm,
-                                  int num_global_values) -> Context;
+                                  int num_global_values) -> Context<1>;
 [[nodiscard]] auto is_disjoint(const DataLocationSelector &data_location,
                                const CommSelector &comm_selector) -> bool;
 [[nodiscard]] auto is_rank_with_data_outside_comm(const DataLocationSelector &data_location,
@@ -237,7 +237,7 @@ auto create_communicator(const CommSelector &comm_selector) -> MPI_Comm {
 }
 
 auto create_context(const DataLocationSelector &data_location, const CommSelector &comm_selector,
-                    const int num_global_values) -> Context {
+                    const int num_global_values) -> Context<1> {
     if (is_rank_with_data_outside_comm(data_location, comm_selector)) {
         throw std::runtime_error("Want to allocate data in rank outside of communicator");
     }
@@ -247,7 +247,7 @@ auto create_context(const DataLocationSelector &data_location, const CommSelecto
 }
 
 auto create_context(const DataLocationSelector &data_location, const MPI_Comm comm,
-                    const int num_global_values) -> Context {
+                    const int num_global_values) -> Context<1> {
     switch (data_location) {
         case DataLocationSelector::ONLY_RANK_0:
         case DataLocationSelector::ONLY_RANK_1:
