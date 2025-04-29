@@ -26,6 +26,8 @@ namespace reshuffle::dev {
         return _interval == other._interval && _owner == other._owner;
     }
 
+    auto Block::operator=(const Block &other) -> Block & = default;
+
     auto join(const std::vector<Block> &blocks) -> std::vector<Block> {
         if (blocks.empty()) { return {}; }
 

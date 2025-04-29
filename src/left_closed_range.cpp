@@ -38,4 +38,7 @@ namespace reshuffle::internal {
     auto LeftClosedRange::operator==(const LeftClosedRange &other) const -> bool {
         return _interval == other._interval;
     }
+
+    auto LeftClosedRange::operator=(const LeftClosedRange &other) -> LeftClosedRange & = default;
+
 }// namespace reshuffle::internal

@@ -18,6 +18,7 @@ namespace reshuffle::internal {
                 -> std::optional<LeftClosedRange>;
 
         auto operator==(const LeftClosedRange &other) const -> bool;
+        auto operator=(const LeftClosedRange &other) -> LeftClosedRange &;
 
     private:
         std::pair<int, int> _interval;

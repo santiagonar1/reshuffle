@@ -23,6 +23,7 @@ namespace reshuffle {
             [[nodiscard]] auto get_overlay(const Block &other) const -> std::optional<Block>;
 
             [[nodiscard]] auto operator==(const Block &other) const -> bool;
+            auto operator=(const Block &other) -> Block &;
 
         private:
             internal::LeftClosedRange _interval;
