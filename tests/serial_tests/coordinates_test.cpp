@@ -22,14 +22,14 @@ TEST(MapIndices, MapsAMultiDimensionCoordinateTo1D) {
 }
 
 TEST(MapIndices, UsesRowMajorFormat) {
-    const auto dimensions = Dimensions{2, 4};
+    const auto dimensions = Dimensions{4, 2};
 
     EXPECT_THAT(map_indices(Coordinates{0, 3}, dimensions), Eq(3));
     EXPECT_THAT(map_indices(Coordinates{1, 0}, dimensions), Eq(4));
 }
 
 TEST(MapIndices, EachCoordianteIndexIsBoundedByTheRespectiveDimension) {
-    const auto dimensions = Dimensions{2, 4};
+    const auto dimensions = Dimensions{4, 2};
     const auto coordinates_too_many_rows = Coordinates{2, 0};
     const auto coordinates_too_many_columns = Coordinates{0, 4};
 
@@ -40,17 +40,19 @@ TEST(MapIndices, EachCoordianteIndexIsBoundedByTheRespectiveDimension) {
 }
 
 TEST(MapIndex, MapsA1DIndexIntoAMultiDimensionalCoordinate) {
-    const auto dimensions = Dimensions{2, 4};
+    const auto dimensions = Dimensions{4, 2};
 
     EXPECT_THAT(map_index(0, dimensions), Eq(Coordinates{0, 0}));
+    EXPECT_THAT(map_index(3, dimensions), Eq(Coordinates{0, 3}));
+    EXPECT_THAT(map_index(4, dimensions), Eq(Coordinates{1, 0}));
 }
 
 TEST(MapIndex, UsesRowMajorFormat) {
-    const auto dimensions = Dimensions{2, 4};
+    const auto dimensions = Dimensions{4, 2};
 
     EXPECT_THAT(map_index(0, dimensions), Eq(Coordinates{0, 0}));
     EXPECT_THAT(map_index(1, dimensions), Eq(Coordinates{0, 1}));
-    EXPECT_THAT(map_index(dimensions[1], dimensions), Eq(Coordinates{1, 0}));
+    EXPECT_THAT(map_index(dimensions[0], dimensions), Eq(Coordinates{1, 0}));
 }
 
 TEST(MapIndex, ThrowsIf1DIndexOutsideOfNumValuesHeldByDimensions) {
