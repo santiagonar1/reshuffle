@@ -117,7 +117,7 @@ TEST(NewShuffle, CanShuffleFromBlockWiseToBlockCyclic) {
                                                 CommSelector::ALL_RANKS, num_global_values);
 
     const auto final_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto final_distribution = BlockCyclic{num_global_values, 4, final_processor_grid};
+    const auto final_distribution = BlockCyclic{{num_global_values}, {4}, final_processor_grid};
     const auto final_context = Context{final_distribution, MPI_COMM_WORLD};
 
     const auto new_values = shuffle(std::span{values}, initial_context, final_context);
@@ -143,7 +143,7 @@ TEST(NewShuffle, CanShuffleFromBlockCyclicToBlockWise) {
     const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
 
     const auto initial_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto initial_distribution = BlockCyclic{num_global_values, 4, initial_processor_grid};
+    const auto initial_distribution = BlockCyclic{{num_global_values}, {4}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_context = create_context(DataLocationSelector::ALL_RANKS,
@@ -251,10 +251,11 @@ auto create_context(const DataLocationSelector &data_location, const MPI_Comm co
     switch (data_location) {
         case DataLocationSelector::ONLY_RANK_0:
         case DataLocationSelector::ONLY_RANK_1:
-            return Context{make_block_wise_distribution(num_global_values, ProcessorGrid<1>{{1}}),
+            return Context{make_block_wise_distribution({num_global_values}, ProcessorGrid<1>{{1}}),
                            comm};
         case DataLocationSelector::ALL_RANKS:
-            return Context{make_block_wise_distribution(num_global_values, ProcessorGrid<1>{{2}}), comm};
+            return Context{make_block_wise_distribution({num_global_values}, ProcessorGrid<1>{{2}}),
+                           comm};
         default:
             throw std::runtime_error("Invalid DataLocationSelector");
     }

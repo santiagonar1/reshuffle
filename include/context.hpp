@@ -7,7 +7,7 @@
 
 namespace reshuffle::dev {
     struct Context {
-        const BlockCyclic distribution;
+        const BlockCyclic<1> distribution;
         // For some reason, if I do this a reference this segfaults even when
         // called with MPI_COMM_WORLD
         const MPI_Comm comm;
