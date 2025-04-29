@@ -49,7 +49,8 @@ namespace reshuffle::dev {
         return joined_blocks;
     }
 
-    auto get_num_elements_per_processor(const std::vector<Block> &blocks) -> std::map<rank_id, int> {
+    auto get_num_elements_per_processor(const std::vector<Block> &blocks)
+            -> std::map<rank_id, int> {
         auto num_elements_per_process = std::map<rank_id, int>{};
         for (const auto &block: blocks) {
             const auto owner = block.get_owner();
