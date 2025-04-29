@@ -41,4 +41,9 @@ namespace reshuffle::internal {
 
     auto LeftClosedRange::operator=(const LeftClosedRange &other) -> LeftClosedRange & = default;
 
+    auto LeftClosedRange::operator<=>(const LeftClosedRange &other) const -> std::strong_ordering {
+        return _interval.second <=> other._interval.second;
+    }
+
+
 }// namespace reshuffle::internal

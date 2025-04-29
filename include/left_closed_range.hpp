@@ -19,6 +19,7 @@ namespace reshuffle::internal {
 
         auto operator==(const LeftClosedRange &other) const -> bool;
         auto operator=(const LeftClosedRange &other) -> LeftClosedRange &;
+        [[nodiscard]] auto operator<=>(const LeftClosedRange &other) const -> std::strong_ordering;
 
     private:
         std::pair<int, int> _interval;

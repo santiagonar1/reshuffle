@@ -1,5 +1,6 @@
 #include "block.hpp"
 
+#include <compare>
 #include <map>
 #include <ranges>
 
@@ -27,6 +28,11 @@ namespace reshuffle::dev {
     }
 
     auto Block::operator=(const Block &other) -> Block & = default;
+
+    auto Block::operator<=>(const Block &other) const -> std::strong_ordering {
+        return _interval <=> other._interval;
+    }
+
 
     auto join(const std::vector<Block> &blocks) -> std::vector<Block> {
         if (blocks.empty()) { return {}; }

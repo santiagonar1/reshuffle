@@ -24,6 +24,8 @@ namespace reshuffle {
 
             [[nodiscard]] auto operator==(const Block &other) const -> bool;
             auto operator=(const Block &other) -> Block &;
+            [[nodiscard]] auto operator<=>(const Block &other) const -> std::strong_ordering;
+
 
         private:
             internal::LeftClosedRange _interval;
