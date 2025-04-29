@@ -219,14 +219,17 @@ namespace reshuffle::dev {
             const ::reshuffle::internal::Coordinates<N> &block_coordinates) const
             -> ::reshuffle::internal::Coordinates<N> {
         auto processor_coordinates = ::reshuffle::internal::Coordinates<N>{};
-        // Note: we use N - 1 - dim for block, because the first coordinate is relative to
-        // to the last vector, and so on.
+        // Note: we use the reversed block, because the first coordinate is relative to
+        // to the last vector. For example, the block (x, y) belongs to processor (0, 1) if
+        // the x-th block in the first dimension belongs to 1, and the y-th block in the second
+        // dimension belongs to 0
+        auto reversed_blocks = _blocks | std::views::reverse;
         for (int dim = 0; dim < N; ++dim) {
             if (block_coordinates[dim] < 0 or
-                block_coordinates[dim] >= _blocks[N - 1 - dim].size()) {
+                block_coordinates[dim] >= reversed_blocks[dim].size()) {
                 throw std::out_of_range("block_coordinates out of range");
             }
-            processor_coordinates[dim] = _blocks[N - 1 - dim][block_coordinates[dim]].get_owner();
+            processor_coordinates[dim] = reversed_blocks[dim][block_coordinates[dim]].get_owner();
         }
         return processor_coordinates;
     }
