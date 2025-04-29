@@ -15,7 +15,7 @@
 
 namespace reshuffle::dev {
     template<std::size_t N>
-    struct GridOverlay;
+    class GridOverlay;
 
     template<std::size_t N>
     class GridLayout {
@@ -47,9 +47,28 @@ namespace reshuffle::dev {
     };
 
     template<std::size_t N>
-    struct GridOverlay {
-        GridLayout<N> grid;
-        std::array<std::vector<rank_id>, N> owners_target_grid;
+    class GridOverlay {
+    public:
+        GridOverlay(GridLayout<N> grid, std::array<std::vector<rank_id>, N> owners_target_grid)
+            : _grid(std::move(grid)),
+              _coordinates_owners_target_grid(internal::get_cartesian_product(owners_target_grid)),
+              _owners_target_grid(std::move(owners_target_grid)) {}
+
+        [[nodiscard]] auto get_grid() const -> const GridLayout<N> & { return _grid; }
+        [[nodiscard]] auto get_owners_target_grid() const
+                -> const std::array<std::vector<rank_id>, N> & {
+            return _owners_target_grid;
+        }
+        [[nodiscard]] auto get_coordinates_owners_target_grid() const
+                -> const std::vector<reshuffle::internal::Coordinates<N>> & {
+            return _coordinates_owners_target_grid;
+        }
+
+    private:
+        const GridLayout<N> _grid;
+        // Here the order matters, as _coordinates_owners_target_grid needs to be initialized before _owners_target_gid
+        const std::vector<reshuffle::internal::Coordinates<N>> _coordinates_owners_target_grid;
+        const std::array<std::vector<rank_id>, N> _owners_target_grid;
     };
 
     template<std::size_t N>
@@ -139,8 +158,8 @@ namespace reshuffle::dev {
             const auto one_dim_overlay =
                     get_overlay_imp(GridLayout<1>{std::array{blocks_origin}},
                                     GridLayout<1>{std::array{blocks_target}}, num_processors);
-            blocks_overlay[i] = one_dim_overlay.grid.get_blocks()[0];
-            owners_target_grid[i] = one_dim_overlay.owners_target_grid[0];
+            blocks_overlay[i] = one_dim_overlay.get_grid().get_blocks()[0];
+            owners_target_grid[i] = one_dim_overlay.get_owners_target_grid()[0];
             ++i;
         }
 

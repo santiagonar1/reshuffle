@@ -105,7 +105,9 @@ TEST(GridLayout, CalculatesTheOverlayOfTwoGrids) {
     const auto target_blocks = std::vector{{Block{{0, 1}, 0}, Block{{1, 2}, 1}, Block{{2, 4}, 1}}};
     const auto target_grid = GridLayout(std::array{target_blocks});
 
-    const auto [grid_overlay, owners_target_grid] = grid.get_overlay(target_grid, processor_grid);
+    const auto overlay = grid.get_overlay(target_grid, processor_grid);
+    const auto &grid_overlay = overlay.get_grid();
+    const auto &owners_target_grid = overlay.get_owners_target_grid();
 
     const auto expected_blocks_overlay =
             std::vector{Block{{0, 1}, 0}, Block{{1, 2}, 0}, Block{{2, 4}, 1}};
@@ -132,7 +134,9 @@ TEST(GridLayout, CalculatesTheOverlayOfTwoGridsIn2D) {
 
     const auto target_grid = GridLayout(std::array{x_target_blocks, y_target_blocks});
 
-    const auto [grid_overlay, owners_target_grid] = grid.get_overlay(target_grid, processor_grid);
+    const auto overlay = grid.get_overlay(target_grid, processor_grid);
+    const auto &grid_overlay = overlay.get_grid();
+    const auto &owners_target_grid = overlay.get_owners_target_grid();
 
     const auto x_expected_blocks_overlay =
             std::vector{Block{{0, 1}, 0}, Block{{1, 2}, 0}, Block{{2, 4}, 1}};
@@ -155,7 +159,9 @@ TEST(GridLayout, OverlayCalculationProducesSameIntervalsButDifferentOwnersIfGrid
     const auto target_blocks = std::vector{{Block{{0, 1}, 0}, Block{{1, 2}, 1}, Block{{2, 4}, 1}}};
     const auto target_grid = GridLayout(std::array{target_blocks});
 
-    const auto [grid_overlay, owners_grid] = target_grid.get_overlay(grid, processor_grid);
+    const auto overlay = target_grid.get_overlay(grid, processor_grid);
+    const auto &grid_overlay = overlay.get_grid();
+    const auto &owners_target_grid = overlay.get_owners_target_grid();
 
     const auto expected_blocks_overlay =
             std::vector{Block{{0, 1}, 0}, Block{{1, 2}, 1}, Block{{2, 4}, 1}};
@@ -163,7 +169,7 @@ TEST(GridLayout, OverlayCalculationProducesSameIntervalsButDifferentOwnersIfGrid
 
 
     EXPECT_THAT(grid_overlay.get_blocks(), Eq(std::array{expected_blocks_overlay}));
-    EXPECT_THAT(owners_grid, Eq(std::array{expected_owners_target_grid}));
+    EXPECT_THAT(owners_target_grid, Eq(std::array{expected_owners_target_grid}));
 }
 
 TEST(GridLayout, OverlayNeedsGridToHaveSameGlobalIntervalStartAndEnd) {
@@ -191,9 +197,11 @@ TEST(GridLayout, OverlayWorksFromManyToOne) {
     const auto grid = GridLayout(std::array{origin_blocks});
 
     const auto target_blocks = std::vector{{Block{{0, 12}, 0}}};
-    const auto other_grid = GridLayout(std::array{target_blocks});
+    const auto target_grid = GridLayout(std::array{target_blocks});
 
-    const auto [grid_overlay, owners_target_grid] = grid.get_overlay(other_grid, processor_grid);
+    const auto overlay = grid.get_overlay(target_grid, processor_grid);
+    const auto &grid_overlay = overlay.get_grid();
+    const auto &owners_target_grid = overlay.get_owners_target_grid();
 
     EXPECT_THAT(grid_overlay.get_blocks(), Eq(grid.get_blocks()));
     EXPECT_THAT(owners_target_grid[0], Eq(std::vector{0, 0, 0}));

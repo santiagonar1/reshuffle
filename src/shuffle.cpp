@@ -9,15 +9,15 @@ namespace reshuffle::dev::internal {
         auto receive_blocks = std::vector<Block>{};
 
         // TODO: change to accept multiple dimensions, for now assuming only one
-        const auto blocks = grid_overlay.grid.get_blocks().at(0);
+        const auto blocks = grid_overlay.get_grid().get_blocks().at(0);
         for (int i = 0; i < blocks.size(); ++i) {
             const auto &block = blocks[i];
             if (block.get_owner() == initial_rank) {
                 send_blocks.emplace_back(block.get_interval(),
-                                         grid_overlay.owners_target_grid[0][i]);
+                                         grid_overlay.get_owners_target_grid()[0][i]);
             }
 
-            if (grid_overlay.owners_target_grid[0][i] == final_rank) {
+            if (grid_overlay.get_owners_target_grid()[0][i] == final_rank) {
                 receive_blocks.emplace_back(block);
             }
         }
