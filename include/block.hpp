@@ -15,6 +15,7 @@ namespace reshuffle {
     namespace dev {
         class Block {
         public:
+            Block();
             Block(internal::LeftClosedRange interval, rank_id owner);
 
             [[nodiscard]] auto get_interval() const -> const internal::LeftClosedRange &;
@@ -24,8 +25,8 @@ namespace reshuffle {
             [[nodiscard]] auto operator==(const Block &other) const -> bool;
 
         private:
-            const internal::LeftClosedRange _interval;
-            const rank_id _owner;
+            internal::LeftClosedRange _interval;
+            rank_id _owner;
         };
 
         // Takes a group of disjoint blocks and transform them in a series of

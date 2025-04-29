@@ -4,6 +4,9 @@
 #include <ranges>
 
 namespace reshuffle::dev {
+
+    Block::Block() : _interval{0, 0}, _owner{-1} {};
+
     Block::Block(internal::LeftClosedRange interval, const rank_id owner)
         : _interval{std::move(interval)}, _owner{owner} {};
 
