@@ -32,6 +32,8 @@ namespace reshuffle::dev {
         [[nodiscard]] auto get_local_grid(rank_id rank,
                                           const ProcessorGrid<N> &processor_grid) const
                 -> GridLayout;
+        [[nodiscard]] auto get_multidimensional_blocks() const
+                -> const std::vector<MultidimensionalBlock<N>> &;
 
     private:
         [[nodiscard]] auto get_processor_coordinates(
@@ -212,6 +214,12 @@ namespace reshuffle::dev {
                                [](const auto &block_vector) { return join(block_vector); });
 
         return GridLayout{std::move(local_blocks)};
+    }
+
+    template<std::size_t N>
+    auto GridLayout<N>::get_multidimensional_blocks() const
+            -> const std::vector<MultidimensionalBlock<N>> & {
+        return _multidimensional_blocks;
     }
 
     template<std::size_t N>
