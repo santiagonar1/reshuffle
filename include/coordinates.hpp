@@ -15,6 +15,13 @@ namespace reshuffle::internal {
     using Coordinates = std::array<int, N>;
 
     template<std::size_t N>
+    [[nodiscard]] constexpr auto get_invalid_coordinates() -> Coordinates<N> {
+        Coordinates<N> invalid_coordinates{};
+        for (int i = 0; i < N; ++i) { invalid_coordinates[i] = -1; }
+        return invalid_coordinates;
+    }
+
+    template<std::size_t N>
     [[nodiscard]] auto map_indices(const Coordinates<N> &coordinates,
                                    const Dimensions<N> &dimensions) -> int {
         const auto start = static_cast<int>(coordinates.size()) - 1;
