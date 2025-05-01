@@ -207,6 +207,24 @@ TEST(GridLayout, OverlayWorksFromManyToOne) {
     EXPECT_THAT(owners_target_grid[0], Eq(std::vector{0, 0, 0}));
 }
 
+TEST(GridLayout, OverlayWorksFroOneToMany) {
+    const auto origin_blocks = std::vector{Block{{0, 12}, 0}};
+    const auto grid = GridLayout(std::array{origin_blocks});
+
+    const auto target_processor_grid = ProcessorGrid<1>{{2}};
+    const auto target_blocks = std::vector{Block{{0, 6}, 0}, Block{{6, 12}, 1}};
+    const auto target_grid = GridLayout(std::array{target_blocks});
+
+    const auto overlay = grid.get_overlay(target_grid, target_processor_grid);
+    const auto &grid_overlay = overlay.get_grid();
+    const auto &owners_target_grid = overlay.get_owners_target_grid();
+
+    const auto expected_blocks = std::vector{Block{{0, 6}, 0}, Block{{6, 12}, 0}};
+
+    EXPECT_THAT(grid_overlay.get_blocks(), Eq(std::array{expected_blocks}));
+    EXPECT_THAT(owners_target_grid[0], Eq(std::vector{0, 1}));
+}
+
 TEST(GridLayout, CanReturnTheLocalGridOfAProcessor) {
     const auto processor_grid = ProcessorGrid<1>{{2}};
     const auto blocks = std::vector{Block{{0, 1}, 0}, Block{{1, 4}, 1}, Block{{4, 6}, 0}};
