@@ -190,6 +190,7 @@ namespace reshuffle::dev {
     }
 
     namespace internal {
+        // TODO: Move to MultidimensionalBlock.hpp
         template<std::size_t N>
         auto unpack_multidimensional_blocks(
                 const std::vector<MultidimensionalBlock<N>> &multidimensional_blocks)
@@ -221,6 +222,8 @@ namespace reshuffle::dev {
         // From now on, array of vectors
         auto local_blocks = internal::unpack_multidimensional_blocks(local_multidimensional_blocks);
 
+        // TODO: Remove duplicates and then join is something I am also doing in shuffle. Maybe
+        // create helper function for this.
         std::ranges::transform(local_blocks, local_blocks.begin(), [](const auto &block_vector) {
             auto result = block_vector;
             std::ranges::sort(result);
