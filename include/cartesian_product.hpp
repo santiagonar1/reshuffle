@@ -24,8 +24,11 @@ namespace reshuffle::dev::internal {
             -> std::vector<std::array<T, 2>> {
         auto result = std::vector<std::array<T, 2>>{};
 
-        for (const auto &v1: blocks[0]) {
-            for (const auto &v2: blocks[1]) { result.emplace_back(std::array{v1, v2}); }
+        // We assume a row-major ordering through the code, which implies that we first move in the
+        // x-axis (i.e., horizontal) than in the y-axis (vertical). Since we assume that the first
+        // block corresponds to x and the second to y, we need to modify first v1 and then v2.
+        for (const auto &v2: blocks[1]) {
+            for (const auto &v1: blocks[0]) { result.emplace_back(std::array{v1, v2}); }
         }
 
         return result;
@@ -36,17 +39,16 @@ namespace reshuffle::dev::internal {
             -> std::vector<std::array<T, 3>> {
         auto result = std::vector<std::array<T, 3>>{};
 
-        for (const auto &v1: blocks[0]) {
+        for (const auto &v3: blocks[2]) {
             for (const auto &v2: blocks[1]) {
-                for (const auto &v3: blocks[2]) { result.emplace_back(std::array{v1, v2, v3}); }
+                for (const auto &v1: blocks[0]) { result.emplace_back(std::array{v1, v2, v3}); }
             }
         }
 
         return result;
     }
 
-}// namespace reshuffle
-
+}// namespace reshuffle::dev::internal
 
 
 #endif//CARTESIAN_PRODUCT_HPP
