@@ -15,10 +15,8 @@ namespace reshuffle::internal {
           _initial_comm{initial_comm}, _final_comm{final_comm} {
         const auto rank_intercomm = mpi::get_rank_id(_intercommunicator);
 
-        constexpr auto invalid_rank = -1;
-
-        auto rank_first_comm{invalid_rank};
-        auto rank_second_comm{invalid_rank};
+        auto rank_first_comm{INVALID_RANK_ID};
+        auto rank_second_comm{INVALID_RANK_ID};
 
         if (mpi::belongs_to_comm(initial_comm)) {
             rank_first_comm = mpi::get_rank_id(initial_comm);
@@ -36,12 +34,12 @@ namespace reshuffle::internal {
                       info_rank_datatype, _intercommunicator);
 
         for (const auto &[rank_first_comm, rank_second_comm, rank_intercomm]: info_all_ranks) {
-            if (rank_first_comm != invalid_rank) {
+            if (rank_first_comm != INVALID_RANK_ID) {
                 _intercomm_to_initial_comm[rank_intercomm] = rank_first_comm;
                 _initial_comm_to_intercomm[rank_first_comm] = rank_intercomm;
             }
 
-            if (rank_second_comm != invalid_rank) {
+            if (rank_second_comm != INVALID_RANK_ID) {
                 _intercomm_to_final_comm[rank_intercomm] = rank_second_comm;
                 _final_comm_to_intercomm[rank_second_comm] = rank_intercomm;
             }
