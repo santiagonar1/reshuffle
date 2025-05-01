@@ -1,34 +1,5 @@
 #include "shuffle.hpp"
 
-namespace reshuffle::dev::internal {
-    // TODO: change to accept multiple dimensions, for now assuming only one
-    auto get_send_and_receive_blocks(const GridOverlay<1> &grid_overlay, const rank_id initial_rank,
-                                     const rank_id final_rank)
-            -> std::pair<std::vector<Block>, std::vector<Block>> {
-        auto send_blocks = std::vector<Block>{};
-        auto receive_blocks = std::vector<Block>{};
-
-        // TODO: change to accept multiple dimensions, for now assuming only one
-        const auto blocks = grid_overlay.get_grid().get_blocks().at(0);
-        for (int i = 0; i < blocks.size(); ++i) {
-            const auto &block = blocks[i];
-            if (block.get_owner() == initial_rank) {
-                send_blocks.emplace_back(block.get_interval(),
-                                         grid_overlay.get_owners_target_grid()[0][i]);
-            }
-
-            if (grid_overlay.get_owners_target_grid()[0][i] == final_rank) {
-                receive_blocks.emplace_back(block);
-            }
-        }
-
-        send_blocks = join(send_blocks);
-        receive_blocks = join(receive_blocks);
-
-        return {send_blocks, receive_blocks};
-    }
-}// namespace reshuffle::dev::internal
-
 namespace reshuffle::internal {
     void check_distributions_have_same_num_values(const BlockCyclic &d1, const BlockCyclic &d2) {
         if (not have_same_num_values(d1, d2)) {
