@@ -33,10 +33,8 @@ TEST(MapIndices, EachCoordianteIndexIsBoundedByTheRespectiveDimension) {
     const auto coordinates_too_many_rows = Coordinates{2, 0};
     const auto coordinates_too_many_columns = Coordinates{0, 4};
 
-    EXPECT_THROW(auto _ = map_indices(coordinates_too_many_rows, dimensions),
-                 std::invalid_argument);
-    EXPECT_THROW(auto _ = map_indices(coordinates_too_many_columns, dimensions),
-                 std::invalid_argument);
+    EXPECT_FALSE(map_indices(coordinates_too_many_rows, dimensions).has_value());
+    EXPECT_FALSE(map_indices(coordinates_too_many_columns, dimensions).has_value());
 }
 
 TEST(MapIndex, MapsA1DIndexIntoAMultiDimensionalCoordinate) {
@@ -55,9 +53,9 @@ TEST(MapIndex, UsesRowMajorFormat) {
     EXPECT_THAT(map_index(dimensions[0], dimensions), Eq(Coordinates{1, 0}));
 }
 
-TEST(MapIndex, ThrowsIf1DIndexOutsideOfNumValuesHeldByDimensions) {
+TEST(MapIndex, ReturnsNoValueIf1DIndexOutsideOfNumValuesHeldByDimensions) {
     const auto dimensions = Dimensions{2, 4};
     const auto num_values = calc_total_num_values(dimensions);
 
-    EXPECT_THROW(auto _ = map_index(num_values, dimensions), std::invalid_argument);
+    EXPECT_FALSE(map_index(num_values, dimensions).has_value());
 }

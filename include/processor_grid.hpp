@@ -43,13 +43,15 @@ namespace reshuffle::dev {
     template<std::size_t N>
     auto ProcessorGrid<N>::get_processor_id(
             const ::reshuffle::internal::Coordinates<N> &coordinates) const -> rank_id {
-        return ::reshuffle::internal::map_indices(coordinates, _dimensions);
+        return ::reshuffle::internal::map_indices(coordinates, _dimensions)
+                .value_or(INVALID_RANK_ID);
     }
 
     template<std::size_t N>
     auto ProcessorGrid<N>::get_processor_coordinates(rank_id processor) const
             -> ::reshuffle::internal::Coordinates<N> {
-        return ::reshuffle::internal::map_index(processor, _dimensions);
+        return ::reshuffle::internal::map_index(processor, _dimensions)
+                .value_or(::reshuffle::internal::get_invalid_coordinates<N>());
     }
 
 

@@ -23,7 +23,7 @@ namespace reshuffle::internal {
 
     template<std::size_t N>
     [[nodiscard]] auto map_indices(const Coordinates<N> &coordinates,
-                                   const Dimensions<N> &dimensions) -> int {
+                                   const Dimensions<N> &dimensions) -> std::optional<int> {
         const auto start = static_cast<int>(coordinates.size()) - 1;
 
         int offset = 0;
@@ -41,9 +41,7 @@ namespace reshuffle::internal {
         for (const auto reversed = dimensions | std::views::reverse;
              const auto &[coordinate, dimension]:
              std::views::zip(coordinates, reversed) | std::views::reverse) {
-            if (coordinate == dimension) {
-                throw std::invalid_argument("Coordinate should be smaller than the dimension");
-            }
+            if (coordinate == dimension) { return std::nullopt; }
             offset += stride * coordinate;
             stride *= dimension;
         }
@@ -52,14 +50,13 @@ namespace reshuffle::internal {
     }
 
     template<std::size_t N>
-    [[nodiscard]] auto map_index(int index, const Dimensions<N> &dimensions) -> Coordinates<N> {
+    [[nodiscard]] auto map_index(int index, const Dimensions<N> &dimensions)
+            -> std::optional<Coordinates<N>> {
 
-        if (index < 0) { throw std::invalid_argument("Index cannot be negative"); }
+        if (index < 0) { return std::nullopt; }
 
         const auto max_index = calc_total_num_values(dimensions) - 1;
-        if (index > max_index) {
-            throw std::invalid_argument("Index exceeds the total size of the dimensions");
-        }
+        if (index > max_index) { return std::nullopt; }
 
         // In a "normal" linear algebra fashion, when we have a 2x1 matrix, we have a matrix
         // with 2 rows and 1 column. Nonetheless, in this project, we want to use Dimensions to
@@ -77,11 +74,6 @@ namespace reshuffle::internal {
             const auto &dimension = std::get<1>(elements);
             coordinate = index % dimension;
             index /= dimension;
-        }
-
-        // Check if the index was too large for the given dimensions
-        if (index > 0) {
-            throw std::invalid_argument("Index exceeds the total size of the dimensions");
         }
 
         return coordinates;

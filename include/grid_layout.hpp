@@ -87,7 +87,8 @@ namespace reshuffle::dev {
                                    const ProcessorGrid<N> &processor_grid) const -> rank_id {
         const auto processor_coordinates = get_processor_coordinates(block_coordinates);
         return ::reshuffle::internal::map_indices(processor_coordinates,
-                                                  processor_grid.get_dimensions());
+                                                  processor_grid.get_dimensions())
+                .value();
     }
 
 
