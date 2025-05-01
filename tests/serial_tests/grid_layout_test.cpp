@@ -239,6 +239,37 @@ TEST(GridLayout, CanReturnTheLocalGridOfAProcessor) {
                 Eq(expected_blocks_local_grid_1));
 }
 
+TEST(GridLayout, CanReturnTheLocalGridOfAProcessorIn2D) {
+    constexpr auto num_processors_x = 2;
+    constexpr auto num_processors_y = 2;
+
+    const auto processor_grid = ProcessorGrid<2>{{num_processors_x, num_processors_y}};
+    const auto x_blocks = get_blocks(num_processors_x);
+    const auto y_blocks = get_blocks(num_processors_y);
+
+    const auto grid_layout = GridLayout(std::array{x_blocks, y_blocks});
+
+    const auto expected_blocks_local_grid_0 =
+            std::array{std::vector{Block{{0, 1}, 0}}, std::vector{Block{{0, 1}, 0}}};
+    const auto expected_blocks_local_grid_1 =
+            std::array{std::vector{Block{{0, 1}, 1}}, std::vector{Block{{0, 1}, 0}}};
+    const auto expected_blocks_local_grid_2 =
+            std::array{std::vector{Block{{0, 1}, 0}}, std::vector{Block{{0, 1}, 1}}};
+    const auto expected_blocks_local_grid_3 =
+            std::array{std::vector{Block{{0, 1}, 1}}, std::vector{Block{{0, 1}, 1}}};
+
+    const auto result = grid_layout.get_local_grid(1, processor_grid).get_blocks();
+
+    EXPECT_THAT(grid_layout.get_local_grid(0, processor_grid).get_blocks(),
+                Eq(expected_blocks_local_grid_0));
+    EXPECT_THAT(grid_layout.get_local_grid(1, processor_grid).get_blocks(),
+                Eq(expected_blocks_local_grid_1));
+    EXPECT_THAT(grid_layout.get_local_grid(2, processor_grid).get_blocks(),
+                Eq(expected_blocks_local_grid_2));
+    EXPECT_THAT(grid_layout.get_local_grid(3, processor_grid).get_blocks(),
+                Eq(expected_blocks_local_grid_3));
+}
+
 auto get_blocks(int num_blocks) -> std::vector<Block> {
     std::vector<Block> blocks{};
     blocks.reserve(num_blocks);

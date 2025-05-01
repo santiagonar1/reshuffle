@@ -205,12 +205,7 @@ namespace reshuffle::dev {
                                        const ProcessorGrid<N> &processor_grid) const -> GridLayout {
 
         const auto filter_fn = [rank, &processor_grid](const auto &block_tuple) {
-            const auto owner_coordinates = std::apply(
-                    [](const auto &...blocks) {
-                        return ::reshuffle::internal::Coordinates{blocks.get_owner()...};
-                    },
-                    block_tuple);
-
+            const auto owner_coordinates = get_owner_coordinates(block_tuple);
             return processor_grid.get_processor_id(owner_coordinates) == rank;
         };
 
