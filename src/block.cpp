@@ -15,7 +15,7 @@ namespace reshuffle::dev {
 
     auto Block::get_owner() const -> rank_id { return _owner; }
 
-    [[nodiscard]] auto Block::get_overlay(const Block &other) const -> std::optional<Block> {
+    auto Block::get_overlay(const Block &other) const -> std::optional<Block> {
         const auto interval_overlay = _interval.get_overlay(other._interval);
 
         if (not interval_overlay.has_value()) { return std::nullopt; }
