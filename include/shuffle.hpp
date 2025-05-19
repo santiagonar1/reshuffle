@@ -136,10 +136,10 @@ namespace reshuffle {
             // I have not changed it yet to avoid having to modify the exchange, but that should
             // be my next modification
             template<std::size_t N>
-            auto
-            get_send_and_receive_blocks(const GridOverlay<N> &grid_overlay,
-                                        const reshuffle::internal::Coordinates<N> &initial_rank,
-                                        const reshuffle::internal::Coordinates<N> &final_rank)
+            auto get_send_and_receive_blocks(
+                    const GridOverlay<N> &grid_overlay,
+                    const reshuffle::internal::Coordinates<N> &rank_initial_grid,
+                    const reshuffle::internal::Coordinates<N> &rank_final_grid)
                     -> std::pair<std::array<std::vector<Block>, N>,
                                  std::array<std::vector<Block>, N>> {
                 auto send_blocks = std::array<std::vector<Block>, N>{};
@@ -155,7 +155,7 @@ namespace reshuffle {
                             get_owner_coordinates(multidimensional_blocks[i]);
                     const auto &owner_target_grid = coordinate_owners_target[i];
 
-                    if (owner_initial_grid == initial_rank) {
+                    if (owner_initial_grid == rank_initial_grid) {
                         for (int dim = 0; dim < N; ++dim) {
                             const auto &block = multidimensional_blocks[i][dim];
                             send_blocks[dim].emplace_back(block.get_interval(),
@@ -163,7 +163,7 @@ namespace reshuffle {
                         }
                     }
 
-                    if (owner_target_grid == final_rank) {
+                    if (owner_target_grid == rank_final_grid) {
                         for (int dim = 0; dim < N; ++dim) {
                             const auto &block = multidimensional_blocks[i][dim];
                             receive_blocks[dim].emplace_back(block);
@@ -219,19 +219,20 @@ namespace reshuffle {
 
             const auto comm = intercomm.get_intercommunicator();
             const auto rank_intercomm = mpi::get_rank_id(comm);
-            const auto rank_initial = intercomm.get_initial_comm_rank(rank_intercomm).value_or(-1);
-            const auto rank_final = intercomm.get_final_comm_rank(rank_intercomm).value_or(-1);
+            const auto rank_initial_grid =
+                    intercomm.get_initial_comm_rank(rank_intercomm).value_or(-1);
+            const auto rank_final_grid = intercomm.get_final_comm_rank(rank_intercomm).value_or(-1);
 
             const auto initial_processor_grid = initial_context.distribution.get_processor_grid();
             const auto final_processor_grid = final_context.distribution.get_processor_grid();
 
-            const auto initial_rank_coordinates =
-                    initial_processor_grid.get_processor_coordinates(rank_initial);
-            const auto final_rank_coordinates =
-                    final_processor_grid.get_processor_coordinates(rank_final);
+            const auto rank_coordinates_initial_grid =
+                    initial_processor_grid.get_processor_coordinates(rank_initial_grid);
+            const auto rank_coordinates_final_grid =
+                    final_processor_grid.get_processor_coordinates(rank_final_grid);
 
             const auto [blocks_to_send, blocks_to_receive] = internal::get_send_and_receive_blocks(
-                    grid_overlay, initial_rank_coordinates, final_rank_coordinates);
+                    grid_overlay, rank_coordinates_initial_grid, rank_coordinates_final_grid);
 
             return internal::exchange_values(local_values, blocks_to_send[0], blocks_to_receive[0],
                                              intercomm);
