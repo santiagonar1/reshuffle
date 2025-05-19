@@ -78,3 +78,15 @@ TEST(LeftClosedRange, ReturnsNoValueIfNoOverlay) {
 
     EXPECT_FALSE(interval.get_overlay(other_interval).has_value());
 }
+
+TEST(LeftClosedRange, IsIterable) {
+    const auto interval = LeftClosedRange(4, 7);
+
+    auto values = std::vector<int>{};
+
+    for (const auto value: interval) { values.push_back(value); }
+
+    const auto expected = std::vector{4, 5, 6};
+
+    EXPECT_THAT(values, Eq(expected));
+}

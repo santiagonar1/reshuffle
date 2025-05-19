@@ -14,6 +14,9 @@ namespace reshuffle::internal {
 
     LeftClosedRange::LeftClosedRange() : LeftClosedRange(0, 0) {}
 
+    auto LeftClosedRange::begin() const -> iterator { return iterator(_interval.first); }
+    auto LeftClosedRange::end() const -> iterator { return iterator(_interval.second); }
+
 
     auto LeftClosedRange::contains(const int value) const -> bool {
         return _interval.first <= value and value < _interval.second;
