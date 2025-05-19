@@ -269,7 +269,7 @@ TEST(GridLayout, CanReturnTheLocalGridOfAProcessorIn2D) {
                 Eq(expected_blocks_local_grid_3));
 }
 
-auto get_blocks(int num_blocks) -> std::vector<Block> {
+auto get_blocks(const int num_blocks) -> std::vector<Block> {
     std::vector<Block> blocks{};
     blocks.reserve(num_blocks);
     for (int i = 0; i < num_blocks; ++i) { blocks.push_back(Block{{i, i + 1}, i}); }
