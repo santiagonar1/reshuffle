@@ -2,6 +2,7 @@
 #define MULTIDIMENSIONAL_BLOCK_HPP
 
 #include "block.hpp"
+#include "coordinates.hpp"
 
 namespace reshuffle::dev {
     template<std::size_t N>
