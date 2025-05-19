@@ -23,6 +23,13 @@ TEST(Block, OverlayHasNoValueIfNoOverlay) {
     EXPECT_FALSE(block.get_overlay(other_block).has_value());
 }
 
+TEST(Block, ReturnsTheNumberOfElementsInTheBlock) {
+    const auto block = Block{{0, 2}, 0};
+
+    const auto expected = block.get_interval().get_length();
+    EXPECT_THAT(block.get_num_elements(), Eq(expected));
+}
+
 TEST(Join, CreatesFromADisjointVectorOfBlocksAUnifiedList) {
     const auto blocks = std::vector{Block{{0, 2}, 0}, Block{{3, 4}, 1}, Block{{7, 8}, 0}};
     const auto expected = std::vector{Block{{0, 2}, 0}, Block{{2, 3}, 1}, Block{{3, 4}, 0}};

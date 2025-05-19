@@ -23,6 +23,9 @@ namespace reshuffle::dev {
         return Block{interval_overlay.value(), _owner};
     }
 
+    auto Block::get_num_elements() const -> int { return _interval.get_length(); }
+
+
     auto Block::operator==(const Block &other) const -> bool {
         return _interval == other._interval && _owner == other._owner;
     }

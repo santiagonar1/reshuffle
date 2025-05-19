@@ -21,6 +21,7 @@ namespace reshuffle {
             [[nodiscard]] auto get_interval() const -> const internal::LeftClosedRange &;
             [[nodiscard]] auto get_owner() const -> rank_id;
             [[nodiscard]] auto get_overlay(const Block &other) const -> std::optional<Block>;
+            [[nodiscard]] auto get_num_elements() const -> int;
 
             [[nodiscard]] auto operator==(const Block &other) const -> bool;
             auto operator=(const Block &other) -> Block &;

@@ -16,6 +16,15 @@ namespace reshuffle::dev {
         }
         return owner_coordinates;
     }
+
+    template<std::size_t N>
+    auto get_num_elements(const MultidimensionalBlock<N> &multidimensional_block) -> int {
+        auto num_elements = 1;
+        for (int i = 0; i < N; ++i) {
+            num_elements *= multidimensional_block[i].get_num_elements();
+        }
+        return num_elements;
+    }
 }// namespace reshuffle::dev
 
 #endif//MULTIDIMENSIONAL_BLOCK_HPP
