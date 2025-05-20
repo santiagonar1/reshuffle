@@ -6,11 +6,6 @@
 #include <ranges>
 
 namespace reshuffle::internal {
-    struct Coordinates2D {
-        int x_coordinate{};
-        int y_coordinate{};
-    };
-
     template<std::size_t N>
     using Coordinates = std::array<int, N>;
 

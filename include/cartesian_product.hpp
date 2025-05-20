@@ -1,10 +1,7 @@
 #ifndef CARTESIAN_PRODUCT_HPP
 #define CARTESIAN_PRODUCT_HPP
 
-#include <iterator>
 #include <ranges>
-#include <tuple>
-#include <utility>
 
 namespace reshuffle::dev::internal {
 

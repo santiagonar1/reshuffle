@@ -8,7 +8,6 @@ function(compile_benchmark benchmark_name)
             PRIVATE benchmark::benchmark)
 endfunction()
 
-compile_benchmark(buffer_benchmarks)
 compile_benchmark(new_reshuffle_benchmark)
 
 if (TEST_SCALAPACK)

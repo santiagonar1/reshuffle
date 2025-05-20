@@ -3,7 +3,6 @@
 
 #include "rank_id.hpp"
 
-
 #include <map>
 #include <mpi.h>
 

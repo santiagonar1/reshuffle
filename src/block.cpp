@@ -8,8 +8,8 @@ namespace reshuffle::dev {
 
     Block::Block() : _interval{0, 0}, _owner{-1} {};
 
-    Block::Block(internal::LeftClosedRange interval, const rank_id owner)
-        : _interval{std::move(interval)}, _owner{owner} {};
+    Block::Block(const internal::LeftClosedRange &interval, const rank_id owner)
+        : _interval{interval}, _owner{owner} {};
 
     auto Block::get_interval() const -> const internal::LeftClosedRange & { return _interval; }
 

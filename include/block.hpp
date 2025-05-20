@@ -9,51 +9,48 @@
 
 #include <map>
 
-namespace reshuffle {
-    using Block = internal::LeftClosedRange;
 
-    namespace dev {
-        class Block {
-        public:
-            Block();
-            Block(internal::LeftClosedRange interval, rank_id owner);
+namespace reshuffle::dev {
+    class Block {
+    public:
+        Block();
+        Block(const ::reshuffle::internal::LeftClosedRange &interval, rank_id owner);
 
-            [[nodiscard]] auto get_interval() const -> const internal::LeftClosedRange &;
-            [[nodiscard]] auto get_owner() const -> rank_id;
-            [[nodiscard]] auto get_overlay(const Block &other) const -> std::optional<Block>;
-            [[nodiscard]] auto get_num_elements() const -> int;
+        [[nodiscard]] auto get_interval() const -> const ::reshuffle::internal::LeftClosedRange &;
+        [[nodiscard]] auto get_owner() const -> rank_id;
+        [[nodiscard]] auto get_overlay(const Block &other) const -> std::optional<Block>;
+        [[nodiscard]] auto get_num_elements() const -> int;
 
-            [[nodiscard]] auto operator==(const Block &other) const -> bool;
-            auto operator=(const Block &other) -> Block &;
-            [[nodiscard]] auto operator<=>(const Block &other) const -> std::strong_ordering;
+        [[nodiscard]] auto operator==(const Block &other) const -> bool;
+        auto operator=(const Block &other) -> Block &;
+        [[nodiscard]] auto operator<=>(const Block &other) const -> std::strong_ordering;
 
 
-        private:
-            internal::LeftClosedRange _interval;
-            rank_id _owner;
-        };
+    private:
+        ::reshuffle::internal::LeftClosedRange _interval;
+        rank_id _owner;
+    };
 
-        // Takes a group of disjoint blocks and transform them in a series of
-        // contiguous blocks
-        auto join(const std::vector<Block> &blocks) -> std::vector<Block>;
+    // Takes a group of disjoint blocks and transform them in a series of
+    // contiguous blocks
+    auto join(const std::vector<Block> &blocks) -> std::vector<Block>;
 
-        auto get_num_elements_per_processor(const std::vector<Block> &blocks)
-                -> std::map<rank_id, int>;
+    auto get_num_elements_per_processor(const std::vector<Block> &blocks) -> std::map<rank_id, int>;
 
-        auto group_by_processor(const std::vector<Block> &blocks) -> std::vector<Block>;
+    auto group_by_processor(const std::vector<Block> &blocks) -> std::vector<Block>;
 
-        template<typename T>
-        auto extract_data(std::span<const T> data, const Block &block) -> std::span<const T> {
-            const auto start = block.get_interval().get_left_bound();
-            const auto finish = start + block.get_interval().get_length();
+    template<typename T>
+    auto extract_data(std::span<const T> data, const Block &block) -> std::span<const T> {
+        const auto start = block.get_interval().get_left_bound();
+        const auto finish = start + block.get_interval().get_length();
 
-            if (start >= data.size() or finish > data.size()) {
-                throw std::out_of_range("Block is out of bounds");
-            }
-
-            return {data.begin() + start, data.begin() + finish};
+        if (start >= data.size() or finish > data.size()) {
+            throw std::out_of_range("Block is out of bounds");
         }
-    }// namespace dev
-}// namespace reshuffle
+
+        return {data.begin() + start, data.begin() + finish};
+    }
+}// namespace reshuffle::dev
+
 
 #endif//RESHUFFLE_BLOCK_HPP

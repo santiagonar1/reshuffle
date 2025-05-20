@@ -31,16 +31,6 @@ TEST(GetRankId, ThrowsIfCommIsNull) {
     EXPECT_THROW(auto _ = get_rank_id(MPI_COMM_NULL), std::invalid_argument);
 }
 
-TEST(InMPIComm, ReturnsTrueIfCommIsNotNull) {
-    const auto comm{MPI_COMM_WORLD};
-    EXPECT_TRUE(in_mpi_comm(comm));
-}
-
-TEST(InMPIComm, ReturnsFalseIfCommIsNull) {
-    const auto comm{MPI_COMM_NULL};
-    EXPECT_FALSE(in_mpi_comm(comm));
-}
-
 TEST(IsRoot, ReturnsTrueForRankZero) {
     auto rank{MPI_ERR_RANK};
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -71,12 +61,6 @@ TEST(GetNumRanks, ThrowsIfCommIsNull) {
 TEST(IsCommNull, ReturnsTrueIfCommIsNull) { EXPECT_TRUE(is_comm_null(MPI_COMM_NULL)); }
 
 TEST(IsCommNull, ReturnsFalseIfCommNotNull) { EXPECT_FALSE(is_comm_null(MPI_COMM_WORLD)); }
-
-TEST(GetDisplacements, ReturnsTheVectorOfDisplacementsBasedOnNumberOfValuesPerRank) {
-    const auto num_values_per_rank = std::vector{2, 3, 4};
-
-    EXPECT_THAT(get_displacements(num_values_per_rank), Eq(std::vector{0, 2, 5}));
-}
 
 TEST(GetSubComm, CreatesAnMPISubcommunicator) {
     auto comm_rank_0 = reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));

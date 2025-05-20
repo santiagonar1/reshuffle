@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <mpi.h>
-#include <numeric>
 #include <span>
 #include <vector>
 
@@ -24,8 +23,6 @@ namespace reshuffle::mpi {
     }
 
     [[nodiscard]] auto get_rank_id(const MPI_Comm &comm) -> rank_id;
-
-    [[nodiscard]] auto in_mpi_comm(const MPI_Comm &comm) -> bool;
 
     [[nodiscard]] auto is_root(const MPI_Comm &comm) -> bool;
 

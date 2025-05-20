@@ -22,11 +22,8 @@ namespace reshuffle::mpi {
         return rank;
     }
 
-    // TODO: Used in the previous shuffle, remove once migration to new algorithm has finished
-    auto in_mpi_comm(const MPI_Comm &comm) -> bool { return comm != MPI_COMM_NULL; }
-
     auto is_root(const MPI_Comm &comm) -> bool {
-        return in_mpi_comm(comm) and get_rank_id(comm) == 0;
+        return belongs_to_comm(comm) and get_rank_id(comm) == 0;
     }
 
     auto get_num_ranks(const MPI_Comm &comm) -> int {
