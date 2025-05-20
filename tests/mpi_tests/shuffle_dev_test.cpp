@@ -59,7 +59,7 @@ enum class DataLocationSelector {
 [[nodiscard]] auto is_rank_with_data_outside_comm(const DataLocationSelector &data_location,
                                                   const CommSelector &comm_selector) -> bool;
 
-TEST(NewShuffle, CanShuffleFromOneToMany) {
+TEST(Shuffle, CanShuffleFromOneToMany) {
     constexpr auto num_values_per_rank = 6;
     const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
     const auto rank = get_rank_id(MPI_COMM_WORLD);
@@ -81,7 +81,7 @@ TEST(NewShuffle, CanShuffleFromOneToMany) {
     EXPECT_THAT(new_values, Eq(generator.get_values_for_rank(rank)));
 }
 
-TEST(NewShuffle, CanShuffleFromOneToManyIn2DVerticalSplit) {
+TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplit) {
     const auto values =
             is_root(MPI_COMM_WORLD) ? std::vector{0, 1, 2, 3, 4, 5} : std::vector<int>();
     constexpr auto num_global_rows = 2;
@@ -112,7 +112,7 @@ TEST(NewShuffle, CanShuffleFromOneToManyIn2DVerticalSplit) {
     }
 }
 
-TEST(NewShuffle, CanShuffleFromOneToManyIn2DVerticalSplitVectorOfVectors) {
+TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplitVectorOfVectors) {
     const auto values = is_root(MPI_COMM_WORLD)
                                 ? std::vector{std::vector{0, 1, 2}, std::vector{3, 4, 5}}
                                 : std::vector<std::vector<int>>();
@@ -143,7 +143,7 @@ TEST(NewShuffle, CanShuffleFromOneToManyIn2DVerticalSplitVectorOfVectors) {
     }
 }
 
-TEST(NewShuffle, CanShuffleFromOneToManyIn2DHorizontalSplit) {
+TEST(Shuffle, CanShuffleFromOneToManyIn2DHorizontalSplit) {
     const auto values =
             is_root(MPI_COMM_WORLD) ? std::vector{0, 1, 2, 3, 4, 5} : std::vector<int>();
     constexpr auto num_global_rows = 2;
@@ -174,7 +174,7 @@ TEST(NewShuffle, CanShuffleFromOneToManyIn2DHorizontalSplit) {
     }
 }
 
-TEST(NewShuffle, CanShuffleFromManyToOne) {
+TEST(Shuffle, CanShuffleFromManyToOne) {
     constexpr auto num_values_per_rank = 6;
     const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
     const auto rank = get_rank_id(MPI_COMM_WORLD);
@@ -200,7 +200,7 @@ TEST(NewShuffle, CanShuffleFromManyToOne) {
     }
 }
 
-TEST(NewShuffle, CanShuffleFromManyToOneIn2DVerticalSplit) {
+TEST(Shuffle, CanShuffleFromManyToOneIn2DVerticalSplit) {
     const auto values = is_root(MPI_COMM_WORLD) ? std::vector{0, 1, 3, 4} : std::vector{2, 5};
     constexpr auto num_global_rows = 2;
     constexpr auto num_global_columns = 3;
@@ -230,7 +230,7 @@ TEST(NewShuffle, CanShuffleFromManyToOneIn2DVerticalSplit) {
     }
 }
 
-TEST(NewShuffle, CanShuffleFromManyToOneIn2DHorizontalSplit) {
+TEST(Shuffle, CanShuffleFromManyToOneIn2DHorizontalSplit) {
     const auto values = is_root(MPI_COMM_WORLD) ? std::vector{0, 1, 2} : std::vector{3, 4, 5};
     constexpr auto num_global_rows = 2;
     constexpr auto num_global_columns = 3;
@@ -260,7 +260,7 @@ TEST(NewShuffle, CanShuffleFromManyToOneIn2DHorizontalSplit) {
     }
 }
 
-TEST(NewShuffle, CanShuffleFromBlockWiseToBlockCyclic) {
+TEST(Shuffle, CanShuffleFromBlockWiseToBlockCyclic) {
     constexpr auto num_values_per_rank = 6;
     const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
     const auto rank = get_rank_id(MPI_COMM_WORLD);
@@ -295,7 +295,7 @@ TEST(NewShuffle, CanShuffleFromBlockWiseToBlockCyclic) {
     }
 }
 
-TEST(NewShuffle, CanShuffleFromBlockWiseToBlockCyclicIn2D) {
+TEST(Shuffle, CanShuffleFromBlockWiseToBlockCyclicIn2D) {
     const auto values = is_root(MPI_COMM_WORLD) ? std::vector{0, 1, 2} : std::vector{3, 4, 5};
     constexpr auto num_global_rows = 2;
     constexpr auto num_global_columns = 3;
@@ -323,7 +323,7 @@ TEST(NewShuffle, CanShuffleFromBlockWiseToBlockCyclicIn2D) {
     }
 }
 
-TEST(NewShuffle, CanShuffleFromBlockCyclicToBlockWise) {
+TEST(Shuffle, CanShuffleFromBlockCyclicToBlockWise) {
     constexpr auto num_global_values = 12;
     const auto values = is_root(MPI_COMM_WORLD) ? std::vector{1, 2, 3, 4, 9, 10, 11, 12}
                                                 : std::vector{5, 6, 7, 8};
@@ -349,7 +349,7 @@ TEST(NewShuffle, CanShuffleFromBlockCyclicToBlockWise) {
     }
 }
 
-TEST(NewShuffle, CanShuffleFromBlockCyclicToBlockWiseIn2D) {
+TEST(Shuffle, CanShuffleFromBlockCyclicToBlockWiseIn2D) {
     const auto values = is_root(MPI_COMM_WORLD) ? std::vector{0, 2, 3, 5} : std::vector{1, 4};
     constexpr auto num_global_rows = 2;
     constexpr auto num_global_columns = 3;
@@ -380,7 +380,7 @@ TEST(NewShuffle, CanShuffleFromBlockCyclicToBlockWiseIn2D) {
     }
 }
 
-TEST(NewShuffle, CanShuffleFromDifferentCommunicators) {
+TEST(Shuffle, CanShuffleFromDifferentCommunicators) {
     constexpr auto num_values_per_rank = 6;
     const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
     const auto rank = get_rank_id(MPI_COMM_WORLD);
@@ -402,7 +402,7 @@ TEST(NewShuffle, CanShuffleFromDifferentCommunicators) {
     EXPECT_THAT(new_values, Eq(generator.get_values_for_rank(rank)));
 }
 
-TEST(NewShuffle, CanShuffleFromDifferentCommunicatorsIn2D) {
+TEST(Shuffle, CanShuffleFromDifferentCommunicatorsIn2D) {
     const auto values =
             is_root(MPI_COMM_WORLD) ? std::vector{0, 1, 2, 3, 4, 5} : std::vector<int>();
     constexpr auto num_global_rows = 2;
@@ -432,7 +432,7 @@ TEST(NewShuffle, CanShuffleFromDifferentCommunicatorsIn2D) {
     }
 }
 
-TEST(NewShuffle, IfUsingTwoDifferentCommunicatorsOneMustBeSubCommunicatorOfTheOther) {
+TEST(Shuffle, IfUsingTwoDifferentCommunicatorsOneMustBeSubCommunicatorOfTheOther) {
     constexpr auto num_values_per_rank = 6;
     const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
 
@@ -451,7 +451,7 @@ TEST(NewShuffle, IfUsingTwoDifferentCommunicatorsOneMustBeSubCommunicatorOfTheOt
                  std::runtime_error);
 }
 
-TEST(NewShuffle, IfUsingTwoDifferentCommunicatorsTheyCanStartAtDifferentRanks) {
+TEST(Shuffle, IfUsingTwoDifferentCommunicatorsTheyCanStartAtDifferentRanks) {
     constexpr auto num_values_per_rank = 6;
     const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
     const auto rank = get_rank_id(MPI_COMM_WORLD);
