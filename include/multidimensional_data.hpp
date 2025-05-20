@@ -7,7 +7,7 @@
 #include "multidimensional_block.hpp"
 #include "processor_grid.hpp"
 
-namespace reshuffle::dev {
+namespace reshuffle::internal {
     template<typename T, typename Extents>
     [[nodiscard]] auto get_1D_data(std::mdspan<const T, Extents> data) -> std::vector<T> {
         return std::vector<T>(data.data_handle(), data.data_handle() + data.size());
@@ -161,6 +161,6 @@ namespace reshuffle::dev {
         return blocks_grouped_by_owner;
     }
 
-}// namespace reshuffle::dev
+}// namespace reshuffle::internal
 
 #endif//MULTIDIMENSIONAL_DATA_HPP

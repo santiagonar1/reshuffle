@@ -5,7 +5,7 @@
 #include "dimensions.hpp"
 #include "rank_id.hpp"
 
-namespace reshuffle::dev {
+namespace reshuffle {
     template<std::size_t N>
     class ProcessorGrid {
     public:
@@ -13,10 +13,10 @@ namespace reshuffle::dev {
 
         [[nodiscard]] auto get_num_processors() const -> int;
         [[nodiscard]] auto get_dimensions() const -> Dimensions<N>;
-        [[nodiscard]] auto
-        get_processor_id(const ::reshuffle::internal::Coordinates<N> &coordinates) const -> rank_id;
+        [[nodiscard]] auto get_processor_id(const internal::Coordinates<N> &coordinates) const
+                -> rank_id;
         [[nodiscard]] auto get_processor_coordinates(rank_id processor) const
-                -> ::reshuffle::internal::Coordinates<N>;
+                -> internal::Coordinates<N>;
 
         auto operator==(const ProcessorGrid &other) const -> bool;
 
@@ -41,17 +41,16 @@ namespace reshuffle::dev {
     }
 
     template<std::size_t N>
-    auto ProcessorGrid<N>::get_processor_id(
-            const ::reshuffle::internal::Coordinates<N> &coordinates) const -> rank_id {
-        return ::reshuffle::internal::map_indices(coordinates, _dimensions)
-                .value_or(INVALID_RANK_ID);
+    auto ProcessorGrid<N>::get_processor_id(const internal::Coordinates<N> &coordinates) const
+            -> rank_id {
+        return internal::map_indices(coordinates, _dimensions).value_or(INVALID_RANK_ID);
     }
 
     template<std::size_t N>
     auto ProcessorGrid<N>::get_processor_coordinates(rank_id processor) const
-            -> ::reshuffle::internal::Coordinates<N> {
-        return ::reshuffle::internal::map_index(processor, _dimensions)
-                .value_or(::reshuffle::internal::get_invalid_coordinates<N>());
+            -> internal::Coordinates<N> {
+        return internal::map_index(processor, _dimensions)
+                .value_or(internal::get_invalid_coordinates<N>());
     }
 
 
@@ -59,6 +58,6 @@ namespace reshuffle::dev {
     auto ProcessorGrid<N>::operator==(const ProcessorGrid<N> &other) const -> bool {
         return _num_processors == other._num_processors and _dimensions == other._dimensions;
     }
-}// namespace reshuffle::dev
+}// namespace reshuffle
 
 #endif//PROCESSOR_GRID_HPP

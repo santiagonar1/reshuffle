@@ -1,6 +1,6 @@
 #include "communication_package.hpp"
 
-namespace reshuffle::dev::internal {
+namespace reshuffle::internal {
     auto get_starting_positions(const std::vector<Block> &blocks) -> std::map<rank_id, int> {
         auto starting_positions = std::map<rank_id, int>{};
         for (const auto &block: blocks) {
@@ -11,4 +11,4 @@ namespace reshuffle::dev::internal {
 
         return starting_positions;
     }
-}// namespace reshuffle::dev::internal
+}// namespace reshuffle::internal

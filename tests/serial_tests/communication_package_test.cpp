@@ -3,8 +3,8 @@
 
 #include <communication_package.hpp>
 
-using namespace reshuffle::dev::internal;
-using namespace reshuffle::dev;
+using namespace reshuffle::internal;
+using namespace reshuffle;
 
 using testing::Eq;
 

@@ -3,7 +3,7 @@
 
 #include <ranges>
 
-namespace reshuffle::dev::internal {
+namespace reshuffle::internal {
 
     template<typename T>
     [[nodiscard]] auto get_cartesian_product(const std::array<std::vector<T>, 1> &blocks)
@@ -42,7 +42,7 @@ namespace reshuffle::dev::internal {
         return result;
     }
 
-}// namespace reshuffle::dev::internal
+}// namespace reshuffle::internal
 
 
 #endif//CARTESIAN_PRODUCT_HPP

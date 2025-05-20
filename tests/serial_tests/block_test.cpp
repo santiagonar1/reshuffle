@@ -3,7 +3,7 @@
 
 #include <block.hpp>
 
-using namespace reshuffle::dev;
+using namespace reshuffle::internal;
 
 using testing::Eq;
 

@@ -10,7 +10,7 @@
 
 #include <mdspan>
 
-namespace reshuffle::dev::internal {
+namespace reshuffle::internal {
     template<typename T>
     struct CommunicationPackage {
         std::vector<T> buffer;
@@ -65,6 +65,6 @@ namespace reshuffle::dev::internal {
         return {receive_buffer, blocks_to_receive_grouped_by_owner};
     }
 
-}// namespace reshuffle::dev::internal
+}// namespace reshuffle::internal
 
 #endif//COMMUNICATION_PACKAGE_HPP

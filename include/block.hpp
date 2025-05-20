@@ -10,13 +10,13 @@
 #include <map>
 
 
-namespace reshuffle::dev {
+namespace reshuffle::internal {
     class Block {
     public:
         Block();
-        Block(const ::reshuffle::internal::LeftClosedRange &interval, rank_id owner);
+        Block(const LeftClosedRange &interval, rank_id owner);
 
-        [[nodiscard]] auto get_interval() const -> const ::reshuffle::internal::LeftClosedRange &;
+        [[nodiscard]] auto get_interval() const -> const LeftClosedRange &;
         [[nodiscard]] auto get_owner() const -> rank_id;
         [[nodiscard]] auto get_overlay(const Block &other) const -> std::optional<Block>;
         [[nodiscard]] auto get_num_elements() const -> int;
@@ -27,7 +27,7 @@ namespace reshuffle::dev {
 
 
     private:
-        ::reshuffle::internal::LeftClosedRange _interval;
+        LeftClosedRange _interval;
         rank_id _owner;
     };
 

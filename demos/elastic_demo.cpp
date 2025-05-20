@@ -21,21 +21,20 @@ int main() {
     const auto original_buffer = std::vector(num_elements, get_rank());
     const auto total_num_values = num_elements * available_ranks;
 
-    const auto origin_context =
-            reshuffle::dev::Context{reshuffle::dev::make_block_wise_distribution(
-                                            reshuffle::Dimensions{total_num_values},
-                                            reshuffle::dev::ProcessorGrid<1>{{available_ranks}}),
-                                    MPI_COMM_WORLD};
+    const auto origin_context = reshuffle::Context{
+            reshuffle::make_block_wise_distribution(reshuffle::Dimensions{total_num_values},
+                                                    reshuffle::ProcessorGrid<1>{{available_ranks}}),
+            MPI_COMM_WORLD};
     for (int active_ranks = 1; active_ranks <= available_ranks; active_ranks++) {
         auto comm = simulate_adaptation(active_ranks);
         const auto destiny_context =
-                reshuffle::dev::Context{reshuffle::dev::make_block_wise_distribution(
-                                                reshuffle::Dimensions{total_num_values},
-                                                reshuffle::dev::ProcessorGrid<1>{{active_ranks}}),
-                                        MPI_COMM_WORLD};
+                reshuffle::Context{reshuffle::make_block_wise_distribution(
+                                           reshuffle::Dimensions{total_num_values},
+                                           reshuffle::ProcessorGrid<1>{{active_ranks}}),
+                                   MPI_COMM_WORLD};
         const auto buffer =
-                reshuffle::dev::shuffle(std::mdspan{original_buffer.data(), original_buffer.size()},
-                                        origin_context, destiny_context)
+                reshuffle::shuffle(std::mdspan{original_buffer.data(), original_buffer.size()},
+                                   origin_context, destiny_context)
                         .first;
 
         if (is_rank_active(active_ranks)) {

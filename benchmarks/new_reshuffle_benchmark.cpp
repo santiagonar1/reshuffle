@@ -4,7 +4,7 @@
 
 #include <reshuffle.hpp>
 
-using namespace reshuffle::dev;
+using namespace reshuffle;
 
 using SendType = double;
 

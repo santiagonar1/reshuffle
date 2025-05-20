@@ -4,14 +4,14 @@
 #include "block.hpp"
 #include "coordinates.hpp"
 
-namespace reshuffle::dev {
+namespace reshuffle::internal {
     template<std::size_t N>
     using MultidimensionalBlock = std::array<Block, N>;
 
     template<std::size_t N>
     auto get_owner_coordinates(const MultidimensionalBlock<N> &multidimensional_block)
-            -> reshuffle::internal::Coordinates<N> {
-        auto owner_coordinates = reshuffle::internal::Coordinates<N>{};
+            -> Coordinates<N> {
+        auto owner_coordinates = Coordinates<N>{};
         for (int i = 0; i < N; ++i) {
             owner_coordinates[i] = multidimensional_block[i].get_owner();
         }
@@ -26,6 +26,6 @@ namespace reshuffle::dev {
         }
         return num_elements;
     }
-}// namespace reshuffle::dev
+}// namespace reshuffle::internal
 
 #endif//MULTIDIMENSIONAL_BLOCK_HPP

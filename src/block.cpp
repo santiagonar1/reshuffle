@@ -4,14 +4,14 @@
 #include <map>
 #include <ranges>
 
-namespace reshuffle::dev {
+namespace reshuffle::internal {
 
     Block::Block() : _interval{0, 0}, _owner{-1} {};
 
-    Block::Block(const internal::LeftClosedRange &interval, const rank_id owner)
+    Block::Block(const LeftClosedRange &interval, const rank_id owner)
         : _interval{interval}, _owner{owner} {};
 
-    auto Block::get_interval() const -> const internal::LeftClosedRange & { return _interval; }
+    auto Block::get_interval() const -> const LeftClosedRange & { return _interval; }
 
     auto Block::get_owner() const -> rank_id { return _owner; }
 

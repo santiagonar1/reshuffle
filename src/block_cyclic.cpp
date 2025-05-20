@@ -1,6 +1,6 @@
 #include "block_cyclic.hpp"
 
-namespace reshuffle::dev::internal {
+namespace reshuffle::internal {
     auto create_blocks(const int num_values, const int block_size, const int num_processors)
             -> std::vector<Block> {
         std::vector<Block> blocks{};
@@ -24,4 +24,4 @@ namespace reshuffle::dev::internal {
 
         return blocks;
     }
-}// namespace reshuffle::dev::internal
+}// namespace reshuffle::internal

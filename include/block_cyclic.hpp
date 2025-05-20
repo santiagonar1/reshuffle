@@ -4,13 +4,12 @@
 #include "block.hpp"
 #include "grid_layout.hpp"
 #include "processor_grid.hpp"
-#include "rank_id.hpp"
 
 #include <cmath>
 #include <vector>
 
 
-namespace reshuffle::dev {
+namespace reshuffle {
 
     namespace internal {
         auto create_blocks(int num_values, int block_size, int num_processors)
@@ -35,7 +34,7 @@ namespace reshuffle::dev {
         BlockCyclic(const Dimensions<N> &num_global_values, const Dimensions<N> &block_sizes,
                     const ProcessorGrid<N> &processor_grid);
 
-        [[nodiscard]] auto get_grid_layout() const -> const GridLayout<N> &;
+        [[nodiscard]] auto get_grid_layout() const -> const internal::GridLayout<N> &;
         [[nodiscard]] auto get_num_global_values(int dimension) const -> int;
         [[nodiscard]] auto get_processor_grid() const -> const ProcessorGrid<N> &;
 
@@ -45,7 +44,7 @@ namespace reshuffle::dev {
         const Dimensions<N> _num_global_values;
         const Dimensions<N> _block_sizes;
         const ProcessorGrid<N> _processor_grid;
-        const GridLayout<N> _grid_layout;
+        const internal::GridLayout<N> _grid_layout;
     };
 
     template<std::size_t N>
@@ -57,7 +56,7 @@ namespace reshuffle::dev {
           _grid_layout({internal::create_blocks(num_global_values, block_sizes, processor_grid)}) {}
 
     template<std::size_t N>
-    auto BlockCyclic<N>::get_grid_layout() const -> const GridLayout<N> & {
+    auto BlockCyclic<N>::get_grid_layout() const -> const internal::GridLayout<N> & {
         return _grid_layout;
     }
 
@@ -87,7 +86,7 @@ namespace reshuffle::dev {
         }
         return BlockCyclic{num_global_values, block_sizes, processor_grid};
     }
-}// namespace reshuffle::dev
+}// namespace reshuffle
 
 
 #endif//RESHUFFLE_BLOCK_CYCLIC_HPP

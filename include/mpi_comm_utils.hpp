@@ -9,12 +9,11 @@
 #include "intercommunicator.hpp"
 #include "mpi_utils.hpp"
 
-namespace reshuffle::dev::internal {
+namespace reshuffle::internal {
 
     template<typename T>
     auto async_send(std::span<T> send_buffer, const std::vector<Block> &grouped_blocks_to_send,
-                    const reshuffle::internal::Intercommunicator &intercomm)
-            -> std::vector<MPI_Request> {
+                    const Intercommunicator &intercomm) -> std::vector<MPI_Request> {
         const auto num_ranks_to_send = static_cast<int>(grouped_blocks_to_send.size());
         auto send_requests = std::vector<MPI_Request>(num_ranks_to_send);
         const auto comm = intercomm.get_intercommunicator();
@@ -26,8 +25,7 @@ namespace reshuffle::dev::internal {
             // Thus, this should never fail. If it throws, something went wrong.
             const auto rank_id_destiny_final_comm = block.get_owner();
             const auto destiny = intercomm.get_intercomm_rank(
-                    rank_id_destiny_final_comm,
-                    reshuffle::internal::Intercommunicator::SelectCommunicator::FINAL_COMM);
+                    rank_id_destiny_final_comm, Intercommunicator::SelectCommunicator::FINAL_COMM);
 
             MPI_Isend(send_buffer.data(), num_values, mpi::to_mpi_datatype<std::remove_cv_t<T>>(),
                       destiny, 0, comm, &send_requests[i]);
@@ -41,8 +39,7 @@ namespace reshuffle::dev::internal {
     template<typename T>
     auto async_receive(std::span<T> receive_buffer,
                        const std::vector<Block> &grouped_blocks_to_receive,
-                       const reshuffle::internal::Intercommunicator &intercomm)
-            -> std::vector<MPI_Request> {
+                       const Intercommunicator &intercomm) -> std::vector<MPI_Request> {
         const auto num_ranks_to_receive = static_cast<int>(grouped_blocks_to_receive.size());
         auto receive_requests = std::vector<MPI_Request>(num_ranks_to_receive);
         const auto comm = intercomm.get_intercommunicator();
@@ -55,7 +52,7 @@ namespace reshuffle::dev::internal {
             const auto rank_id_source_initial_comm = block.get_owner();
             const auto source = intercomm.get_intercomm_rank(
                     rank_id_source_initial_comm,
-                    reshuffle::internal::Intercommunicator::SelectCommunicator::INITIAL_COMM);
+                    Intercommunicator::SelectCommunicator::INITIAL_COMM);
 
             MPI_Irecv(receive_buffer.data(), num_values,
                       mpi::to_mpi_datatype<std::remove_cv_t<T>>(), source, MPI_ANY_TAG, comm,
@@ -86,7 +83,7 @@ namespace reshuffle::dev::internal {
                          const std::array<std::vector<Block>, Extents::rank()> &blocks_to_receive,
                          const ProcessorGrid<Extents::rank()> &initial_processor_grid,
                          const ProcessorGrid<Extents::rank()> &final_processor_grid,
-                         const reshuffle::internal::Intercommunicator &intercomm)
+                         const Intercommunicator &intercomm)
             -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> {
 
         constexpr auto N = Extents::rank();
@@ -94,14 +91,12 @@ namespace reshuffle::dev::internal {
         const auto dimensions = get_dimensions(blocks_to_receive);
 
         // TODO: See if I can omit this by making get_send_receive_package return MultidimensionalBlocks
-        const auto multidimensional_blocks_to_send =
-                reshuffle::dev::internal::get_cartesian_product(blocks_to_send);
-        const auto multidimensional_blocks_to_receive =
-                reshuffle::dev::internal::get_cartesian_product(blocks_to_receive);
+        const auto multidimensional_blocks_to_send = get_cartesian_product(blocks_to_send);
+        const auto multidimensional_blocks_to_receive = get_cartesian_product(blocks_to_receive);
 
-        auto [send_buffer, grouped_blocks_to_send] = internal::get_send_package(
+        auto [send_buffer, grouped_blocks_to_send] = get_send_package(
                 local_values, multidimensional_blocks_to_send, final_processor_grid);
-        auto [receive_buffer, grouped_blocks_to_receive] = internal::get_receive_package<T, N>(
+        auto [receive_buffer, grouped_blocks_to_receive] = get_receive_package<T, N>(
                 multidimensional_blocks_to_receive, initial_processor_grid);
 
         auto send_requests = async_send(std::span{send_buffer}, grouped_blocks_to_send, intercomm);
@@ -141,6 +136,6 @@ namespace reshuffle::dev::internal {
 
         return {new_local_values, dimensions};
     }
-}// namespace reshuffle::dev::internal
+}// namespace reshuffle::internal
 
 #endif//MPI_COMM_UTILS_HPP

@@ -12,7 +12,7 @@
 #include "mpi_utils.hpp"
 
 
-namespace reshuffle::dev {
+namespace reshuffle {
     namespace internal {
 
         // TODO: move to utils after old code has been removed
@@ -29,10 +29,9 @@ namespace reshuffle::dev {
         // I have not changed it yet to avoid having to modify the exchange, but that should
         // be my next modification
         template<std::size_t N>
-        auto
-        get_send_and_receive_blocks(const GridOverlay<N> &grid_overlay,
-                                    const reshuffle::internal::Coordinates<N> &rank_initial_grid,
-                                    const reshuffle::internal::Coordinates<N> &rank_final_grid)
+        auto get_send_and_receive_blocks(const GridOverlay<N> &grid_overlay,
+                                         const Coordinates<N> &rank_initial_grid,
+                                         const Coordinates<N> &rank_final_grid)
                 -> std::pair<std::array<std::vector<Block>, N>, std::array<std::vector<Block>, N>> {
             auto send_blocks = std::array<std::vector<Block>, N>{};
             auto receive_blocks = std::array<std::vector<Block>, N>{};
@@ -75,43 +74,44 @@ namespace reshuffle::dev {
 
             return {send_blocks, receive_blocks};
         }
+
+        template<typename T, typename Extents>
+        auto get_dimensions(std::mdspan<const T, Extents> local_values)
+                -> Dimensions<Extents::rank()> {
+            constexpr auto N = Extents::rank();
+
+            if (local_values.empty()) { return Dimensions<N>{}; }
+
+            auto dimensions = Dimensions<N>{};
+            for (int i = 0; i < N; ++i) { dimensions[i] = local_values.extent(i); }
+
+            return dimensions;
+        }
+
+        template<typename T>
+        auto get_dimensions(const std::vector<std::vector<T>> &local_values) -> Dimensions<2> {
+            if (local_values.empty()) { return Dimensions<2>{}; }
+
+            auto dimensions = Dimensions<2>{};
+            dimensions[0] = local_values.size();
+            dimensions[1] = local_values[0].size();
+
+            return dimensions;
+        }
+
+        template<typename T>
+        auto get_dimensions(const std::vector<std::vector<std::vector<T>>> &local_values)
+                -> Dimensions<3> {
+            if (local_values.empty()) { return Dimensions<3>{}; }
+
+            auto dimensions = Dimensions<3>{};
+            dimensions[0] = local_values.size();
+            dimensions[1] = local_values[0].size();
+            dimensions[2] = local_values[0][0].size();
+
+            return dimensions;
+        }
     }// namespace internal
-
-    template<typename T, typename Extents>
-    auto get_dimensions(std::mdspan<const T, Extents> local_values) -> Dimensions<Extents::rank()> {
-        constexpr auto N = Extents::rank();
-
-        if (local_values.empty()) { return Dimensions<N>{}; }
-
-        auto dimensions = Dimensions<N>{};
-        for (int i = 0; i < N; ++i) { dimensions[i] = local_values.extent(i); }
-
-        return dimensions;
-    }
-
-    template<typename T>
-    auto get_dimensions(const std::vector<std::vector<T>> &local_values) -> Dimensions<2> {
-        if (local_values.empty()) { return Dimensions<2>{}; }
-
-        auto dimensions = Dimensions<2>{};
-        dimensions[0] = local_values.size();
-        dimensions[1] = local_values[0].size();
-
-        return dimensions;
-    }
-
-    template<typename T>
-    auto get_dimensions(const std::vector<std::vector<std::vector<T>>> &local_values)
-            -> Dimensions<3> {
-        if (local_values.empty()) { return Dimensions<3>{}; }
-
-        auto dimensions = Dimensions<3>{};
-        dimensions[0] = local_values.size();
-        dimensions[1] = local_values[0].size();
-        dimensions[2] = local_values[0][0].size();
-
-        return dimensions;
-    }
 
     template<typename T, typename Extents>
     auto shuffle(std::mdspan<const T, Extents> local_values,
@@ -121,7 +121,7 @@ namespace reshuffle::dev {
         requires(Extents::rank() <= 3)
     {
         if (initial_context == final_context) {
-            return {get_1D_data(local_values), get_dimensions(local_values)};
+            return {internal::get_1D_data(local_values), internal::get_dimensions(local_values)};
         }
 
         const auto grid_overlay = initial_context.distribution.get_grid_layout().get_overlay(
@@ -130,7 +130,7 @@ namespace reshuffle::dev {
 
         // TODO: Deal with partially disjoint communicators
         const auto intercomm =
-                reshuffle::internal::Intercommunicator(initial_context.comm, final_context.comm);
+                internal::Intercommunicator(initial_context.comm, final_context.comm);
 
         const auto comm = intercomm.get_intercommunicator();
         const auto rank_intercomm = mpi::get_rank_id(comm);
@@ -156,11 +156,11 @@ namespace reshuffle::dev {
     auto shuffle(std::vector<std::vector<T>> local_values, const Context<2> &initial_context,
                  const Context<2> &final_context) -> std::pair<std::vector<T>, Dimensions<2>> {
         auto flat_data = local_values | std::views::join | std::ranges::to<std::vector>();
-        const auto dimensions = get_dimensions(local_values);
+        const auto dimensions = internal::get_dimensions(local_values);
         return shuffle(std::mdspan(std::as_const(flat_data).data(), dimensions), initial_context,
                        final_context);
     }
-}// namespace reshuffle::dev
+}// namespace reshuffle
 
 
 #endif//RESHUFFLE_SHUFFLE_HPP

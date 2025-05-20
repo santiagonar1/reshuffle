@@ -3,7 +3,7 @@
 
 #include <processor_grid.hpp>
 
-using namespace reshuffle::dev;
+using namespace reshuffle;
 
 using testing::Eq;
 

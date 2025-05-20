@@ -13,7 +13,7 @@
 #include <vector>
 
 
-namespace reshuffle::dev {
+namespace reshuffle::internal {
     template<std::size_t N>
     class GridOverlay;
 
@@ -23,9 +23,8 @@ namespace reshuffle::dev {
         explicit GridLayout(std::array<std::vector<Block>, N> blocks);
 
         [[nodiscard]] auto get_blocks() const -> const std::array<std::vector<Block>, N> &;
-        [[nodiscard]] auto
-        get_block_owner(const ::reshuffle::internal::Coordinates<N> &block_coordinates,
-                        const ProcessorGrid<N> &processor_grid) const -> rank_id;
+        [[nodiscard]] auto get_block_owner(const Coordinates<N> &block_coordinates,
+                                           const ProcessorGrid<N> &processor_grid) const -> rank_id;
         [[nodiscard]] auto get_overlay(const GridLayout &target_grid,
                                        const ProcessorGrid<N> &target_processor_grid) const
                 -> GridOverlay<N>;
@@ -36,9 +35,8 @@ namespace reshuffle::dev {
                 -> const std::vector<MultidimensionalBlock<N>> &;
 
     private:
-        [[nodiscard]] auto get_processor_coordinates(
-                const ::reshuffle::internal::Coordinates<N> &block_coordinates) const
-                -> ::reshuffle::internal::Coordinates<N>;
+        [[nodiscard]] auto get_processor_coordinates(const Coordinates<N> &block_coordinates) const
+                -> Coordinates<N>;
 
 
         // Here the order matters, as _multidimensional_blocks needs to be initialized before _blocks.
@@ -51,7 +49,7 @@ namespace reshuffle::dev {
     public:
         GridOverlay(GridLayout<N> grid, std::array<std::vector<rank_id>, N> owners_target_grid)
             : _grid(std::move(grid)),
-              _coordinates_owners_target_grid(internal::get_cartesian_product(owners_target_grid)),
+              _coordinates_owners_target_grid(get_cartesian_product(owners_target_grid)),
               _owners_target_grid(std::move(owners_target_grid)) {}
 
         [[nodiscard]] auto get_grid() const -> const GridLayout<N> & { return _grid; }
@@ -60,21 +58,20 @@ namespace reshuffle::dev {
             return _owners_target_grid;
         }
         [[nodiscard]] auto get_coordinates_owners_target_grid() const
-                -> const std::vector<reshuffle::internal::Coordinates<N>> & {
+                -> const std::vector<Coordinates<N>> & {
             return _coordinates_owners_target_grid;
         }
 
     private:
         const GridLayout<N> _grid;
         // Here the order matters, as _coordinates_owners_target_grid needs to be initialized before _owners_target_gid
-        const std::vector<reshuffle::internal::Coordinates<N>> _coordinates_owners_target_grid;
+        const std::vector<Coordinates<N>> _coordinates_owners_target_grid;
         const std::array<std::vector<rank_id>, N> _owners_target_grid;
     };
 
     template<std::size_t N>
     GridLayout<N>::GridLayout(std::array<std::vector<Block>, N> blocks)
-        : _multidimensional_blocks(internal::get_cartesian_product(blocks)),
-          _blocks(std::move(blocks)) {}
+        : _multidimensional_blocks(get_cartesian_product(blocks)), _blocks(std::move(blocks)) {}
 
     template<std::size_t N>
     auto GridLayout<N>::get_blocks() const -> const std::array<std::vector<Block>, N> & {
@@ -82,13 +79,10 @@ namespace reshuffle::dev {
     }
 
     template<std::size_t N>
-    auto
-    GridLayout<N>::get_block_owner(const ::reshuffle::internal::Coordinates<N> &block_coordinates,
-                                   const ProcessorGrid<N> &processor_grid) const -> rank_id {
+    auto GridLayout<N>::get_block_owner(const Coordinates<N> &block_coordinates,
+                                        const ProcessorGrid<N> &processor_grid) const -> rank_id {
         const auto processor_coordinates = get_processor_coordinates(block_coordinates);
-        return ::reshuffle::internal::map_indices(processor_coordinates,
-                                                  processor_grid.get_dimensions())
-                .value();
+        return map_indices(processor_coordinates, processor_grid.get_dimensions()).value();
     }
 
 
@@ -189,15 +183,14 @@ namespace reshuffle::dev {
         return result;
     }
 
-    namespace internal {
-        // TODO: Move to MultidimensionalBlock.hpp
-        template<std::size_t N>
-        auto unpack_multidimensional_blocks(
-                const std::vector<MultidimensionalBlock<N>> &multidimensional_blocks)
-                -> std::array<std::vector<Block>, N> {
-            return tuple_elements_to_vectors(multidimensional_blocks);
-        }
-    }// namespace internal
+
+    // TODO: Move to MultidimensionalBlock.hpp
+    template<std::size_t N>
+    auto unpack_multidimensional_blocks(
+            const std::vector<MultidimensionalBlock<N>> &multidimensional_blocks)
+            -> std::array<std::vector<Block>, N> {
+        return tuple_elements_to_vectors(multidimensional_blocks);
+    }
 
 
     template<std::size_t N>
@@ -241,10 +234,9 @@ namespace reshuffle::dev {
     }
 
     template<std::size_t N>
-    auto GridLayout<N>::get_processor_coordinates(
-            const ::reshuffle::internal::Coordinates<N> &block_coordinates) const
-            -> ::reshuffle::internal::Coordinates<N> {
-        auto processor_coordinates = ::reshuffle::internal::Coordinates<N>{};
+    auto GridLayout<N>::get_processor_coordinates(const Coordinates<N> &block_coordinates) const
+            -> Coordinates<N> {
+        auto processor_coordinates = Coordinates<N>{};
         // Note: we use the reversed block, because the first coordinate is relative to
         // to the last vector. For example, the block (x, y) belongs to processor (0, 1) if
         // the x-th block in the first dimension belongs to 1, and the y-th block in the second
@@ -259,6 +251,6 @@ namespace reshuffle::dev {
         }
         return processor_coordinates;
     }
-}// namespace reshuffle::dev
+}// namespace reshuffle::internal
 
 #endif//GRID_LAYOUT_HPP

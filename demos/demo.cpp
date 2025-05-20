@@ -38,22 +38,22 @@ int main() {
     auto dimensions = reshuffle::Dimensions<2>{num_rows, num_columns};
 
     const std::vector contexts = {
-            reshuffle::dev::Context{reshuffle::dev::make_block_wise_distribution(
-                                            reshuffle::Dimensions<2>{num_rows, num_columns},
-                                            reshuffle::dev::ProcessorGrid<2>{{1, 1}}),
-                                    MPI_COMM_WORLD},
-            reshuffle::dev::Context{reshuffle::dev::make_block_wise_distribution(
-                                            reshuffle::Dimensions<2>{num_rows, num_columns},
-                                            reshuffle::dev::ProcessorGrid<2>{{4, 1}}),
-                                    MPI_COMM_WORLD},
-            reshuffle::dev::Context{reshuffle::dev::make_block_wise_distribution(
-                                            reshuffle::Dimensions<2>{num_rows, num_columns},
-                                            reshuffle::dev::ProcessorGrid<2>{{1, 4}}),
-                                    MPI_COMM_WORLD},
-            reshuffle::dev::Context{reshuffle::dev::make_block_wise_distribution(
-                                            reshuffle::Dimensions<2>{num_rows, num_columns},
-                                            reshuffle::dev::ProcessorGrid<2>{{2, 2}}),
-                                    MPI_COMM_WORLD},
+            reshuffle::Context{reshuffle::make_block_wise_distribution(
+                                       reshuffle::Dimensions<2>{num_rows, num_columns},
+                                       reshuffle::ProcessorGrid<2>{{1, 1}}),
+                               MPI_COMM_WORLD},
+            reshuffle::Context{reshuffle::make_block_wise_distribution(
+                                       reshuffle::Dimensions<2>{num_rows, num_columns},
+                                       reshuffle::ProcessorGrid<2>{{4, 1}}),
+                               MPI_COMM_WORLD},
+            reshuffle::Context{reshuffle::make_block_wise_distribution(
+                                       reshuffle::Dimensions<2>{num_rows, num_columns},
+                                       reshuffle::ProcessorGrid<2>{{1, 4}}),
+                               MPI_COMM_WORLD},
+            reshuffle::Context{reshuffle::make_block_wise_distribution(
+                                       reshuffle::Dimensions<2>{num_rows, num_columns},
+                                       reshuffle::ProcessorGrid<2>{{2, 2}}),
+                               MPI_COMM_WORLD},
     };
 
     if (is_root()) {
@@ -70,8 +70,8 @@ int main() {
 
     for (int i = 1; i < contexts.size(); ++i) {
         const auto [new_matrix, new_dimensions] =
-                reshuffle::dev::shuffle(std::mdspan{std::as_const(matrix).data(), dimensions},
-                                        contexts[i - 1], contexts[i]);
+                reshuffle::shuffle(std::mdspan{std::as_const(matrix).data(), dimensions},
+                                   contexts[i - 1], contexts[i]);
         matrix = new_matrix;
         dimensions = new_dimensions;
         if (is_root()) {

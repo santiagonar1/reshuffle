@@ -3,7 +3,7 @@
 
 #include <grid_layout.hpp>
 
-using namespace reshuffle::dev;
+using namespace reshuffle;
 using namespace reshuffle::internal;
 
 using testing::Eq;

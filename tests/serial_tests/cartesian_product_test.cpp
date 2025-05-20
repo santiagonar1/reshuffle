@@ -3,7 +3,7 @@
 
 #include <cartesian_product.hpp>
 
-using namespace reshuffle::dev::internal;
+using namespace reshuffle::internal;
 
 using testing::Eq;
 

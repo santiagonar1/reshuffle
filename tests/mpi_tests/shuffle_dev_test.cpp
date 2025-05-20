@@ -3,7 +3,7 @@
 
 #include <shuffle.hpp>
 
-using namespace reshuffle::dev;
+using namespace reshuffle;
 using namespace reshuffle::mpi;
 
 using testing::Eq;
@@ -118,8 +118,6 @@ TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplitVectorOfVectors) {
                                 : std::vector<std::vector<int>>();
     constexpr auto num_global_rows = 2;
     constexpr auto num_global_columns = 3;
-    const auto num_rows = is_root(MPI_COMM_WORLD) ? num_global_rows : 0;
-    const auto num_columns = is_root(MPI_COMM_WORLD) ? num_global_columns : 0;
 
 
     const auto comm = create_communicator(CommSelector::ALL_RANKS);

@@ -5,7 +5,7 @@
 
 #include "block_cyclic.hpp"
 
-namespace reshuffle::dev {
+namespace reshuffle {
     template<std::size_t N>
     struct Context {
         const BlockCyclic<N> distribution;
@@ -20,6 +20,6 @@ namespace reshuffle::dev {
     auto Context<N>::operator==(const Context &other) const -> bool {
         return distribution == other.distribution and comm == other.comm;
     }
-}// namespace reshuffle::dev
+}// namespace reshuffle
 
 #endif//CONTEXT_HPP
