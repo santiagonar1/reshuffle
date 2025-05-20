@@ -75,7 +75,8 @@ TEST(NewShuffle, CanShuffleFromOneToMany) {
                                               CommSelector::ALL_RANKS, num_global_values);
 
     const auto new_values =
-            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context);
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context)
+                    .first;
 
     EXPECT_THAT(new_values, Eq(generator.get_values_for_rank(rank)));
 }
@@ -96,7 +97,8 @@ TEST(NewShuffle, CanShuffleFromManyToOne) {
                                               CommSelector::ALL_RANKS, num_global_values);
 
     const auto new_values =
-            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context);
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context)
+                    .first;
 
     if (is_root(MPI_COMM_WORLD)) {
         EXPECT_THAT(new_values, Eq(generator.get_all_values()));
@@ -123,7 +125,8 @@ TEST(NewShuffle, CanShuffleFromBlockWiseToBlockCyclic) {
     const auto final_context = Context{final_distribution, MPI_COMM_WORLD};
 
     const auto new_values =
-            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context);
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context)
+                    .first;
 
     if (is_root(MPI_COMM_WORLD)) {
         const auto all_values = generator.get_all_values();
@@ -153,7 +156,8 @@ TEST(NewShuffle, CanShuffleFromBlockCyclicToBlockWise) {
                                               CommSelector::ALL_RANKS, num_global_values);
 
     const auto new_values =
-            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context);
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context)
+                    .first;
 
     if (is_root(MPI_COMM_WORLD)) {
         const auto expected_new_values = std::vector{1, 2, 3, 4, 5, 6};
@@ -180,7 +184,8 @@ TEST(NewShuffle, CanShuffleFromDifferentCommunicators) {
                                               CommSelector::ALL_RANKS, num_global_values);
 
     const auto new_values =
-            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context);
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context)
+                    .first;
 
     EXPECT_THAT(new_values, Eq(generator.get_values_for_rank(rank)));
 }
@@ -220,7 +225,8 @@ TEST(NewShuffle, IfUsingTwoDifferentCommunicatorsTheyCanStartAtDifferentRanks) {
                                               CommSelector::ALL_RANKS, num_global_values);
 
     const auto new_values =
-            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context);
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context)
+                    .first;
 
     EXPECT_THAT(new_values, Eq(generator.get_values_for_rank(rank)));
 }

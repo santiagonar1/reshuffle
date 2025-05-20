@@ -244,7 +244,7 @@ namespace reshuffle::dev::internal {
                          const ProcessorGrid<Extents::rank()> &initial_processor_grid,
                          const ProcessorGrid<Extents::rank()> &final_processor_grid,
                          const reshuffle::internal::Intercommunicator &intercomm)
-            -> std::vector<T> {
+            -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> {
 
         constexpr auto N = Extents::rank();
 
@@ -296,7 +296,7 @@ namespace reshuffle::dev::internal {
 
         MPI_Waitall(send_requests.size(), send_requests.data(), MPI_STATUSES_IGNORE);
 
-        return new_local_values;
+        return {new_local_values, dimensions};
     }
 }// namespace reshuffle::dev::internal
 

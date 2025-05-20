@@ -200,14 +200,30 @@ namespace reshuffle {
             }
         }// namespace internal
 
+        template<typename T, typename Extents>
+        auto get_dimensions(std::mdspan<const T, Extents> local_values)
+                -> Dimensions<Extents::rank()> {
+            constexpr auto N = Extents::rank();
+
+            if (local_values.empty()) { return Dimensions<N>{}; }
+
+            auto dimensions = Dimensions<N>{};
+            for (int i = 0; i < N; ++i) { dimensions[i] = local_values.extent(i); }
+
+            return dimensions;
+        }
+
         // TODO: I probably need to return the local dimensions as well
         template<typename T, typename Extents>
         auto shuffle(std::mdspan<const T, Extents> local_values,
                      const Context<Extents::rank()> &initial_context,
-                     const Context<Extents::rank()> &final_context) -> std::vector<T>
+                     const Context<Extents::rank()> &final_context)
+                -> std::pair<std::vector<T>, Dimensions<Extents::rank()>>
             requires(Extents::rank() <= 3)
         {
-            if (initial_context == final_context) { return get_1D_data(local_values); }
+            if (initial_context == final_context) {
+                return {get_1D_data(local_values), get_dimensions(local_values)};
+            }
 
             const auto grid_overlay = initial_context.distribution.get_grid_layout().get_overlay(
                     final_context.distribution.get_grid_layout(),
