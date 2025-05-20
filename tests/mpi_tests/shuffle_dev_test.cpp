@@ -74,7 +74,8 @@ TEST(NewShuffle, CanShuffleFromOneToMany) {
     const auto final_context = create_context(DataLocationSelector::ALL_RANKS,
                                               CommSelector::ALL_RANKS, num_global_values);
 
-    const auto new_values = shuffle(std::span{values}, initial_context, final_context);
+    const auto new_values =
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context);
 
     EXPECT_THAT(new_values, Eq(generator.get_values_for_rank(rank)));
 }
@@ -94,7 +95,8 @@ TEST(NewShuffle, CanShuffleFromManyToOne) {
     const auto final_context = create_context(DataLocationSelector::ONLY_RANK_0,
                                               CommSelector::ALL_RANKS, num_global_values);
 
-    const auto new_values = shuffle(std::span{values}, initial_context, final_context);
+    const auto new_values =
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context);
 
     if (is_root(MPI_COMM_WORLD)) {
         EXPECT_THAT(new_values, Eq(generator.get_all_values()));
@@ -120,7 +122,8 @@ TEST(NewShuffle, CanShuffleFromBlockWiseToBlockCyclic) {
     const auto final_distribution = BlockCyclic{{num_global_values}, {4}, final_processor_grid};
     const auto final_context = Context{final_distribution, MPI_COMM_WORLD};
 
-    const auto new_values = shuffle(std::span{values}, initial_context, final_context);
+    const auto new_values =
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context);
 
     if (is_root(MPI_COMM_WORLD)) {
         const auto all_values = generator.get_all_values();
@@ -149,7 +152,8 @@ TEST(NewShuffle, CanShuffleFromBlockCyclicToBlockWise) {
     const auto final_context = create_context(DataLocationSelector::ALL_RANKS,
                                               CommSelector::ALL_RANKS, num_global_values);
 
-    const auto new_values = shuffle(std::span{values}, initial_context, final_context);
+    const auto new_values =
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context);
 
     if (is_root(MPI_COMM_WORLD)) {
         const auto expected_new_values = std::vector{1, 2, 3, 4, 5, 6};
@@ -175,7 +179,8 @@ TEST(NewShuffle, CanShuffleFromDifferentCommunicators) {
     const auto final_context = create_context(DataLocationSelector::ALL_RANKS,
                                               CommSelector::ALL_RANKS, num_global_values);
 
-    const auto new_values = shuffle(std::span{values}, initial_context, final_context);
+    const auto new_values =
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context);
 
     EXPECT_THAT(new_values, Eq(generator.get_values_for_rank(rank)));
 }
@@ -194,7 +199,8 @@ TEST(NewShuffle, IfUsingTwoDifferentCommunicatorsOneMustBeSubCommunicatorOfTheOt
     const auto final_context = create_context(DataLocationSelector::ONLY_RANK_1,
                                               CommSelector::ONLY_RANK_1, num_global_values);
 
-    EXPECT_THROW(auto _ = shuffle(std::span{values}, initial_context, final_context),
+    EXPECT_THROW(auto _ = shuffle(std::mdspan{values.data(), values.size()}, initial_context,
+                                  final_context),
                  std::runtime_error);
 }
 
@@ -213,7 +219,8 @@ TEST(NewShuffle, IfUsingTwoDifferentCommunicatorsTheyCanStartAtDifferentRanks) {
     const auto final_context = create_context(DataLocationSelector::ALL_RANKS,
                                               CommSelector::ALL_RANKS, num_global_values);
 
-    const auto new_values = shuffle(std::span{values}, initial_context, final_context);
+    const auto new_values =
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context);
 
     EXPECT_THAT(new_values, Eq(generator.get_values_for_rank(rank)));
 }

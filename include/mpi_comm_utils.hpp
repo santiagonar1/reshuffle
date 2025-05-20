@@ -224,15 +224,42 @@ namespace reshuffle::dev::internal {
         return receive_requests;
     }
 
-    template<typename T>
-    auto exchange_values(std::span<const T> local_values, const std::vector<Block> &blocks_to_send,
-                         const std::vector<Block> &blocks_to_receive,
+    template<std::size_t N>
+    auto get_dimensions(const std::array<std::vector<Block>, N> &blocks_to_receive)
+            -> Dimensions<N> {
+
+        if (blocks_to_receive[0].empty()) { return std::array<int, N>{}; }
+
+        std::array<int, N> dimensions{};
+        for (int i = 0; i < N; i++) {
+            dimensions[i] = blocks_to_receive[i].back().get_interval().get_right_bound() - 1;
+        }
+        return dimensions;
+    }
+
+    template<typename T, typename Extents>
+    auto exchange_values(std::mdspan<const T, Extents> local_values,
+                         const std::array<std::vector<Block>, Extents::rank()> &blocks_to_send,
+                         const std::array<std::vector<Block>, Extents::rank()> &blocks_to_receive,
+                         const ProcessorGrid<Extents::rank()> &initial_processor_grid,
+                         const ProcessorGrid<Extents::rank()> &final_processor_grid,
                          const reshuffle::internal::Intercommunicator &intercomm)
             -> std::vector<T> {
-        auto [send_buffer, grouped_blocks_to_send] =
-                internal::get_send_package(local_values, blocks_to_send);
-        auto [receive_buffer, grouped_blocks_to_receive] =
-                internal::get_receive_package<T>(blocks_to_receive);
+
+        constexpr auto N = Extents::rank();
+
+        const auto dimensions = get_dimensions(blocks_to_receive);
+
+        // TODO: See if I can omit this by making get_send_receive_package return MultidimensionalBlocks
+        const auto multidimensional_blocks_to_send =
+                internal::get_cartesian_product(blocks_to_send);
+        const auto multidimensional_blocks_to_receive =
+                internal::get_cartesian_product(blocks_to_receive);
+
+        auto [send_buffer, grouped_blocks_to_send] = internal::get_send_package(
+                local_values, multidimensional_blocks_to_send, final_processor_grid);
+        auto [receive_buffer, grouped_blocks_to_receive] = internal::get_receive_package<T, N>(
+                multidimensional_blocks_to_receive, initial_processor_grid);
 
         auto send_requests = async_send(std::span{send_buffer}, grouped_blocks_to_send, intercomm);
         auto receive_requests =
@@ -249,17 +276,19 @@ namespace reshuffle::dev::internal {
             const auto message_starts = received_block.get_interval().get_left_bound();
             const auto num_values = static_cast<size_t>(received_block.get_interval().get_length());
 
-            auto blocks_from_source = blocks_to_receive | std::views::filter([source](auto block) {
-                                          return block.get_owner() == source;
-                                      });
+            auto blocks_from_source =
+                    multidimensional_blocks_to_receive |
+                    std::views::filter([source, initial_processor_grid](auto block) {
+                        return initial_processor_grid.get_processor_id(
+                                       get_owner_coordinates(block)) == source;
+                    });
 
-            auto received_values = std::span{receive_buffer.begin() + message_starts, num_values};
+            auto received_values =
+                    std::span{std::as_const(receive_buffer).begin() + message_starts, num_values};
             for (const auto &block: blocks_from_source) {
-                const auto num_values_in_block = block.get_interval().get_length();
-                const auto start_local = block.get_interval().get_left_bound();
+                const auto num_values_in_block = get_num_elements(block);
 
-                std::copy(received_values.begin(), received_values.begin() + num_values_in_block,
-                          new_local_values.begin() + start_local);
+                copy_data(received_values, std::mdspan(new_local_values.data(), dimensions), block);
 
                 received_values = received_values | std::views::drop(num_values_in_block);
             }

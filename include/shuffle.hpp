@@ -166,6 +166,7 @@ namespace reshuffle {
                             get_owner_coordinates(multidimensional_blocks[i]);
                     const auto &owner_target_grid = coordinate_owners_target[i];
 
+                    // The owners in the send_blocks are relative to the final grid
                     if (owner_initial_grid == rank_initial_grid) {
                         for (int dim = 0; dim < N; ++dim) {
                             const auto &block = multidimensional_blocks[i][dim];
@@ -174,6 +175,7 @@ namespace reshuffle {
                         }
                     }
 
+                    // The owners in the receive_blocks are relative to the initial grid
                     if (owner_target_grid == rank_final_grid) {
                         for (int dim = 0; dim < N; ++dim) {
                             const auto &block = multidimensional_blocks[i][dim];
@@ -198,13 +200,14 @@ namespace reshuffle {
             }
         }// namespace internal
 
-        template<typename T>
-        auto shuffle(std::span<const T> local_values, const Context<1> &initial_context,
-                     const Context<1> &final_context) -> std::vector<T> {
-            if (initial_context == final_context) {
-                auto new_values = std::vector<T>(local_values.begin(), local_values.end());
-                return new_values;
-            }
+        // TODO: I probably need to return the local dimensions as well
+        template<typename T, typename Extents>
+        auto shuffle(std::mdspan<const T, Extents> local_values,
+                     const Context<Extents::rank()> &initial_context,
+                     const Context<Extents::rank()> &final_context) -> std::vector<T>
+            requires(Extents::rank() <= 3)
+        {
+            if (initial_context == final_context) { return get_1D_data(local_values); }
 
             const auto grid_overlay = initial_context.distribution.get_grid_layout().get_overlay(
                     final_context.distribution.get_grid_layout(),
@@ -231,7 +234,8 @@ namespace reshuffle {
             const auto [blocks_to_send, blocks_to_receive] = internal::get_send_and_receive_blocks(
                     grid_overlay, rank_coordinates_initial_grid, rank_coordinates_final_grid);
 
-            return internal::exchange_values(local_values, blocks_to_send[0], blocks_to_receive[0],
+            return internal::exchange_values(local_values, blocks_to_send, blocks_to_receive,
+                                             initial_processor_grid, final_processor_grid,
                                              intercomm);
         }
     }// namespace dev

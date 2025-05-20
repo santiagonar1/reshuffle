@@ -13,6 +13,13 @@ namespace reshuffle::dev {
         return std::vector<T>(data.data_handle(), data.data_handle() + data.size());
     }
 
+    template<std::size_t N>
+    [[nodiscard]] auto get_num_elements(const std::vector<MultidimensionalBlock<N>> &blocks) {
+        return std::accumulate(blocks.cbegin(), blocks.cend(), 0, [](int sum, const auto &block) {
+            return sum + get_num_elements(block);
+        });
+    }
+
     template<typename T, typename Extents>
     auto check_bounds(std::mdspan<const T, Extents> data,
                       const MultidimensionalBlock<Extents::rank()> &block) -> void {

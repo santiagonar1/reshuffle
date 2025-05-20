@@ -12,7 +12,8 @@ double time_shuffle(const std::vector<SendType> &local_values, const Context<1> 
                     const Context<1> &final_context) {
     // Do the work and time it on each proc
     const auto start = std::chrono::high_resolution_clock::now();
-    const auto _ = shuffle(std::span{local_values}, initial_context, final_context);
+    const auto _ = shuffle(std::mdspan{local_values.data(), local_values.size()}, initial_context,
+                           final_context);
     const auto end = std::chrono::high_resolution_clock::now();
 
     // Now get the max time across all procs:
