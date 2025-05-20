@@ -213,7 +213,6 @@ namespace reshuffle {
             return dimensions;
         }
 
-        // TODO: I probably need to return the local dimensions as well
         template<typename T, typename Extents>
         auto shuffle(std::mdspan<const T, Extents> local_values,
                      const Context<Extents::rank()> &initial_context,
