@@ -112,6 +112,37 @@ TEST(NewShuffle, CanShuffleFromOneToManyIn2DVerticalSplit) {
     }
 }
 
+TEST(NewShuffle, CanShuffleFromOneToManyIn2DVerticalSplitVectorOfVectors) {
+    const auto values = is_root(MPI_COMM_WORLD)
+                                ? std::vector{std::vector{0, 1, 2}, std::vector{3, 4, 5}}
+                                : std::vector<std::vector<int>>();
+    constexpr auto num_global_rows = 2;
+    constexpr auto num_global_columns = 3;
+    const auto num_rows = is_root(MPI_COMM_WORLD) ? num_global_rows : 0;
+    const auto num_columns = is_root(MPI_COMM_WORLD) ? num_global_columns : 0;
+
+
+    const auto comm = create_communicator(CommSelector::ALL_RANKS);
+    const auto initial_context =
+            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
+                                                 ProcessorGrid<2>{{1, 1}}),
+                    comm};
+    const auto final_context =
+            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
+                                                 ProcessorGrid<2>{{1, 2}}),
+                    comm};
+
+    const auto [new_values, local_dimensions] = shuffle(values, initial_context, final_context);
+
+    if (is_root(MPI_COMM_WORLD)) {
+        EXPECT_THAT(new_values, Eq(std::vector{0, 1, 3, 4}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{2, 2}));
+    } else {
+        EXPECT_THAT(new_values, Eq(std::vector{2, 5}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{2, 1}));
+    }
+}
+
 TEST(NewShuffle, CanShuffleFromOneToManyIn2DHorizontalSplit) {
     const auto values =
             is_root(MPI_COMM_WORLD) ? std::vector{0, 1, 2, 3, 4, 5} : std::vector<int>();

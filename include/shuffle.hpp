@@ -213,6 +213,30 @@ namespace reshuffle {
             return dimensions;
         }
 
+        template<typename T>
+        auto get_dimensions(const std::vector<std::vector<T>> &local_values) -> Dimensions<2> {
+            if (local_values.empty()) { return Dimensions<2>{}; }
+
+            auto dimensions = Dimensions<2>{};
+            dimensions[0] = local_values.size();
+            dimensions[1] = local_values[0].size();
+
+            return dimensions;
+        }
+
+        template<typename T>
+        auto get_dimensions(const std::vector<std::vector<std::vector<T>>> &local_values)
+                -> Dimensions<3> {
+            if (local_values.empty()) { return Dimensions<3>{}; }
+
+            auto dimensions = Dimensions<3>{};
+            dimensions[0] = local_values.size();
+            dimensions[1] = local_values[0].size();
+            dimensions[2] = local_values[0][0].size();
+
+            return dimensions;
+        }
+
         template<typename T, typename Extents>
         auto shuffle(std::mdspan<const T, Extents> local_values,
                      const Context<Extents::rank()> &initial_context,
@@ -252,6 +276,15 @@ namespace reshuffle {
             return internal::exchange_values(local_values, blocks_to_send, blocks_to_receive,
                                              initial_processor_grid, final_processor_grid,
                                              intercomm);
+        }
+
+        template<typename T>
+        auto shuffle(std::vector<std::vector<T>> local_values, const Context<2> &initial_context,
+                     const Context<2> &final_context) -> std::pair<std::vector<T>, Dimensions<2>> {
+            auto flat_data = local_values | std::views::join | std::ranges::to<std::vector>();
+            const auto dimensions = get_dimensions(local_values);
+            return shuffle(std::mdspan(std::as_const(flat_data).data(), dimensions),
+                           initial_context, final_context);
         }
     }// namespace dev
 
