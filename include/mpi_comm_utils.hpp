@@ -232,7 +232,7 @@ namespace reshuffle::dev::internal {
 
         std::array<int, N> dimensions{};
         for (int i = 0; i < N; i++) {
-            dimensions[i] = blocks_to_receive[i].back().get_interval().get_right_bound() - 1;
+            dimensions[i] = blocks_to_receive[i].back().get_interval().get_right_bound();
         }
         return dimensions;
     }
