@@ -7,11 +7,11 @@
 
 
 using Matrix = std::vector<std::vector<int>>;
-using DataDistribution2D = std::array<reshuffle::BlockCyclic, 2>;
 
 bool is_root();
 
 Matrix init_matrix(int num_rows, int num_columns);
+auto init_vector(int num_values) -> std::vector<int>;
 
 std::ostream &operator<<(std::ostream &os, const Matrix &matrix);
 
@@ -34,19 +34,57 @@ int main() {
         throw std::invalid_argument(error_msg);
     }
 
-    auto matrix = is_root() ? init_matrix(num_rows, num_columns) : Matrix{};
-    const auto initial_global_coloring = std::vector<reshuffle::rank_id>(num_values, 0);
-    const std::vector<DataDistribution2D> distributions = {
-            {reshuffle::make_block_wise(num_columns, 1), reshuffle::make_block_wise(num_rows, 1)},
-            {reshuffle::make_block_wise(num_columns, 4), reshuffle::make_block_wise(num_rows, 1)},
-            {reshuffle::make_block_wise(num_columns, 2), reshuffle::make_block_wise(num_rows, 2)},
-            {reshuffle::make_block_wise(num_columns, 1), reshuffle::make_block_wise(num_rows, 4)}};
+    auto matrix = is_root() ? init_vector(num_values) : std::vector<int>{};
+    auto dimensions = reshuffle::Dimensions<2>{num_rows, num_columns};
 
-    if (is_root()) { std::cout << matrix << std::endl; }
+    const std::vector contexts = {
+            reshuffle::dev::Context{reshuffle::dev::make_block_wise_distribution(
+                                            reshuffle::Dimensions<2>{num_rows, num_columns},
+                                            reshuffle::dev::ProcessorGrid<2>{{1, 1}}),
+                                    MPI_COMM_WORLD},
+            reshuffle::dev::Context{reshuffle::dev::make_block_wise_distribution(
+                                            reshuffle::Dimensions<2>{num_rows, num_columns},
+                                            reshuffle::dev::ProcessorGrid<2>{{4, 1}}),
+                                    MPI_COMM_WORLD},
+            reshuffle::dev::Context{reshuffle::dev::make_block_wise_distribution(
+                                            reshuffle::Dimensions<2>{num_rows, num_columns},
+                                            reshuffle::dev::ProcessorGrid<2>{{1, 4}}),
+                                    MPI_COMM_WORLD},
+            reshuffle::dev::Context{reshuffle::dev::make_block_wise_distribution(
+                                            reshuffle::Dimensions<2>{num_rows, num_columns},
+                                            reshuffle::dev::ProcessorGrid<2>{{2, 2}}),
+                                    MPI_COMM_WORLD},
+    };
 
-    for (int i = 1; i < distributions.size(); ++i) {
-        matrix = reshuffle::shuffle(matrix, MPI_COMM_WORLD, distributions[i - 1], distributions[i]);
-        if (is_root()) { std::cout << matrix << std::endl; }
+    if (is_root()) {
+        int counter = 0;
+        for (int rowIndex = 0; rowIndex < dimensions[0]; ++rowIndex) {
+            for (int columnIndex = 0; columnIndex < dimensions[1]; ++columnIndex) {
+                std::cout << matrix[counter] << " ";
+                counter++;
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
+
+    for (int i = 1; i < contexts.size(); ++i) {
+        const auto [new_matrix, new_dimensions] =
+                reshuffle::dev::shuffle(std::mdspan{std::as_const(matrix).data(), dimensions},
+                                        contexts[i - 1], contexts[i]);
+        matrix = new_matrix;
+        dimensions = new_dimensions;
+        if (is_root()) {
+            int counter = 0;
+            for (int rowIndex = 0; rowIndex < dimensions[0]; ++rowIndex) {
+                for (int columnIndex = 0; columnIndex < dimensions[1]; ++columnIndex) {
+                    std::cout << matrix[counter] << " ";
+                    counter++;
+                }
+                std::cout << std::endl;
+            }
+            std::cout << std::endl;
+        }
     }
 
     MPI_Finalize();
@@ -71,6 +109,12 @@ Matrix init_matrix(const int num_rows, const int num_columns) {
     }
 
     return matrix;
+}
+
+auto init_vector(int num_values) -> std::vector<int> {
+    auto values = std::vector<int>(num_values);
+    std::iota(values.begin(), values.end(), 0);
+    return values;
 }
 
 std::ostream &operator<<(std::ostream &os, const Matrix &matrix) {
