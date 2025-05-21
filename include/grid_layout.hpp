@@ -164,16 +164,6 @@ namespace reshuffle::internal {
                               std::move(owners_target_grid)};
     }
 
-
-    // TODO: Move to MultidimensionalBlock.hpp
-    template<std::size_t N>
-    auto unpack_multidimensional_blocks(
-            const std::vector<MultidimensionalBlock<N>> &multidimensional_blocks)
-            -> std::array<std::vector<Block>, N> {
-        return unzip(multidimensional_blocks);
-    }
-
-
     template<std::size_t N>
     auto GridLayout<N>::get_local_grid(const rank_id rank,
                                        const ProcessorGrid<N> &processor_grid) const -> GridLayout {
@@ -189,7 +179,7 @@ namespace reshuffle::internal {
                 local_blocks_view.begin(), local_blocks_view.end()};
 
         // From now on, array of vectors
-        auto local_blocks = internal::unpack_multidimensional_blocks(local_multidimensional_blocks);
+        auto local_blocks = internal::unzip(local_multidimensional_blocks);
 
         // TODO: Remove duplicates and then join is something I am also doing in shuffle. Maybe
         // create helper function for this.
