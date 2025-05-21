@@ -181,19 +181,9 @@ namespace reshuffle::internal {
         // From now on, array of vectors
         auto local_blocks = internal::unzip(local_multidimensional_blocks);
 
-        // TODO: Remove duplicates and then join is something I am also doing in shuffle. Maybe
-        // create helper function for this.
         std::ranges::transform(local_blocks, local_blocks.begin(), [](const auto &block_vector) {
-            auto result = block_vector;
-            std::ranges::sort(result);
-            auto [new_end, _] = std::ranges::unique(result);
-            result.erase(new_end, result.end());
-            return result;
+            return join(remove_duplicates(block_vector));
         });
-
-
-        std::ranges::transform(local_blocks, local_blocks.begin(),
-                               [](const auto &block_vector) { return join(block_vector); });
 
         return GridLayout{std::move(local_blocks)};
     }
