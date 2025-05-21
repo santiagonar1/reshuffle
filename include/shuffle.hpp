@@ -10,21 +10,11 @@
 #include "dimensions.hpp"
 #include "mpi_comm_utils.hpp"
 #include "mpi_utils.hpp"
+#include "utils.hpp"
 
 
 namespace reshuffle {
     namespace internal {
-
-        // TODO: move to utils after old code has been removed
-        template<typename T>
-        auto remove_duplicates(const std::vector<T> &values) -> std::vector<T> {
-            auto unique_values = values;
-            std::sort(unique_values.begin(), unique_values.end());
-            auto [new_end, _] = std::ranges::unique(unique_values);
-            unique_values.erase(new_end, unique_values.end());
-            return unique_values;
-        }
-
         // TODO: I think this function should return a pair of vectors of MultiBlock
         // I have not changed it yet to avoid having to modify the exchange, but that should
         // be my next modification

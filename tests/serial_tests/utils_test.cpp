@@ -16,3 +16,9 @@ TEST(Unzip, WorksWithAnyTupleLikeType) {
     const auto zipped_values = std::vector{std::array{1, 2}, std::array{3, 4}};
     EXPECT_THAT(unzip(zipped_values), Eq(std::array{std::vector{1, 3}, std::vector{2, 4}}));
 }
+
+TEST(RemoveDuplicates, RemovesDuplicatesFromAVector) {
+    const auto values = std::vector{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5};
+    const auto expected = std::vector{1, 2, 3, 4, 5, 6};
+    EXPECT_THAT(remove_duplicates(values), Eq(expected));
+}

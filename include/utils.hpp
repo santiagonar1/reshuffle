@@ -1,7 +1,9 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include <algorithm>
 #include <array>
+#include <ranges>
 #include <vector>
 
 namespace reshuffle::internal {
@@ -22,6 +24,15 @@ namespace reshuffle::internal {
         }
 
         return result;
+    }
+
+    template<typename T>
+    auto remove_duplicates(const std::vector<T> &values) -> std::vector<T> {
+        auto unique_values = values;
+        std::sort(unique_values.begin(), unique_values.end());
+        auto [new_end, _] = std::ranges::unique(unique_values);
+        unique_values.erase(new_end, unique_values.end());
+        return unique_values;
     }
 }// namespace reshuffle::internal
 
