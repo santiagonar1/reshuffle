@@ -165,7 +165,7 @@ namespace reshuffle::internal {
 
     //TODO: Move to utils and add tests
     template<typename Tuple>
-    auto tuple_elements_to_vectors(const std::vector<Tuple> &tuples)
+    auto unzip(const std::vector<Tuple> &tuples)
             -> std::array<std::vector<std::tuple_element_t<0, Tuple>>, std::tuple_size_v<Tuple>> {
         using FirstType = std::tuple_element_t<0, Tuple>;
         constexpr std::size_t tuple_size = std::tuple_size_v<Tuple>;
@@ -189,7 +189,7 @@ namespace reshuffle::internal {
     auto unpack_multidimensional_blocks(
             const std::vector<MultidimensionalBlock<N>> &multidimensional_blocks)
             -> std::array<std::vector<Block>, N> {
-        return tuple_elements_to_vectors(multidimensional_blocks);
+        return unzip(multidimensional_blocks);
     }
 
 
