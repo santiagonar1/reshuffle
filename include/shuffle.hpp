@@ -64,43 +64,6 @@ namespace reshuffle {
 
             return {send_blocks, receive_blocks};
         }
-
-        template<typename T, typename Extents>
-        auto get_dimensions(std::mdspan<const T, Extents> local_values)
-                -> Dimensions<Extents::rank()> {
-            constexpr auto N = Extents::rank();
-
-            if (local_values.empty()) { return Dimensions<N>{}; }
-
-            auto dimensions = Dimensions<N>{};
-            for (int i = 0; i < N; ++i) { dimensions[i] = local_values.extent(i); }
-
-            return dimensions;
-        }
-
-        template<typename T>
-        auto get_dimensions(const std::vector<std::vector<T>> &local_values) -> Dimensions<2> {
-            if (local_values.empty()) { return Dimensions<2>{}; }
-
-            auto dimensions = Dimensions<2>{};
-            dimensions[0] = local_values.size();
-            dimensions[1] = local_values[0].size();
-
-            return dimensions;
-        }
-
-        template<typename T>
-        auto get_dimensions(const std::vector<std::vector<std::vector<T>>> &local_values)
-                -> Dimensions<3> {
-            if (local_values.empty()) { return Dimensions<3>{}; }
-
-            auto dimensions = Dimensions<3>{};
-            dimensions[0] = local_values.size();
-            dimensions[1] = local_values[0].size();
-            dimensions[2] = local_values[0][0].size();
-
-            return dimensions;
-        }
     }// namespace internal
 
     template<typename T, typename Extents>
