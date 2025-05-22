@@ -6,6 +6,7 @@
 #include <numeric>
 
 #include "mdspan.hpp"
+#include "profiler.hpp"
 
 namespace reshuffle {
     template<std::size_t N>
@@ -41,6 +42,7 @@ namespace reshuffle {
         template<typename T, typename Extents>
         auto get_dimensions(std::mdspan<const T, Extents> local_values)
                 -> Dimensions<Extents::rank()> {
+            PROFILE_SCOPE_NAMED("mdspan::get_dimensions");
             constexpr auto N = Extents::rank();
 
             if (local_values.empty()) { return Dimensions<N>{}; }
@@ -53,6 +55,7 @@ namespace reshuffle {
 
         template<typename C>
         constexpr auto get_dimensions(const C &container) -> Dimensions<get_rank_impl<C>()> {
+            PROFILE_SCOPE_NAMED("container::get_dimensions");
             auto dimensions = Dimensions<get_rank_impl<C>()>{};
 
             if (container.empty()) { return dimensions; }

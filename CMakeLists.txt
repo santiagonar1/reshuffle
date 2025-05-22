@@ -26,6 +26,7 @@ option(BUILD_DYN_PROC_DEMOS "Turn on compilation Dyn Proc Demos. Requires specia
 option(BUILD_TESTING "Build tests" ON)
 option(TEST_SCALAPACK "Build examples and benchmarks of ScaLAPACK" ON)
 option(TEST_COSTA "Build examples and benchmarks of the COSTA library" ON)
+option(PROFILING "Turns profiling on" OFF)
 
 if (TEST_SCALAPACK)
     include(FindScalapackPackages)
@@ -34,6 +35,11 @@ endif ()
 if (TEST_COSTA)
     include(FindCostaPackages)
 endif ()
+
+if (PROFILING)
+    find_package(Tracy REQUIRED)
+endif ()
+
 
 enable_testing()
 
@@ -48,11 +54,18 @@ file(GLOB MY_PUBLIC_HEADERS
 add_library(${PROJECT_NAME})
 
 target_sources(${PROJECT_NAME}
-        PRIVATE ${SOURCES})
+        PRIVATE ${SOURCES}
+)
 
 target_link_libraries(${PROJECT_NAME}
-        PUBLIC
-        MPI::MPI_CXX)
+        PUBLIC MPI::MPI_CXX
+)
+
+if (PROFILING)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC ENABLE_PROFILING_RESHUFFLE)
+    target_link_libraries(${PROJECT_NAME}
+            PUBLIC Tracy::TracyClient)
+endif ()
 
 # See: https://decovar.dev/blog/2021/03/08/cmake-cpp-library/#include-directories
 target_include_directories(${PROJECT_NAME}

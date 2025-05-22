@@ -1,14 +1,13 @@
 #ifndef RESHUFFLE_BLOCK_HPP
 #define RESHUFFLE_BLOCK_HPP
 
+#include <map>
 #include <span>
 #include <vector>
 
 #include "left_closed_range.hpp"
+#include "profiler.hpp"
 #include "rank_id.hpp"
-
-#include <map>
-
 
 namespace reshuffle::internal {
     class Block {
@@ -41,6 +40,7 @@ namespace reshuffle::internal {
 
     template<typename T>
     auto extract_data(std::span<const T> data, const Block &block) -> std::span<const T> {
+        PROFILE_SCOPE_NAMED("Block::extract_data");
         const auto start = block.get_interval().get_left_bound();
         const auto finish = start + block.get_interval().get_length();
 
@@ -50,7 +50,7 @@ namespace reshuffle::internal {
 
         return {data.begin() + start, data.begin() + finish};
     }
-}// namespace reshuffle::dev
+}// namespace reshuffle::internal
 
 
 #endif//RESHUFFLE_BLOCK_HPP

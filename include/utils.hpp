@@ -6,10 +6,13 @@
 #include <ranges>
 #include <vector>
 
+#include "profiler.hpp"
+
 namespace reshuffle::internal {
     template<typename Tuple>
     auto unzip(const std::vector<Tuple> &tuples)
             -> std::array<std::vector<std::tuple_element_t<0, Tuple>>, std::tuple_size_v<Tuple>> {
+        PROFILE_SCOPE_NAMED("unzip");
         using FirstType = std::tuple_element_t<0, Tuple>;
         constexpr std::size_t tuple_size = std::tuple_size_v<Tuple>;
         auto result = std::array<std::vector<FirstType>, tuple_size>{};
@@ -28,6 +31,7 @@ namespace reshuffle::internal {
 
     template<typename T>
     auto remove_duplicates(const std::vector<T> &values) -> std::vector<T> {
+        PROFILE_SCOPE_NAMED("remove_duplicates");
         auto unique_values = values;
         std::sort(unique_values.begin(), unique_values.end());
         auto [new_end, _] = std::ranges::unique(unique_values);
@@ -37,6 +41,7 @@ namespace reshuffle::internal {
 
     template<typename T>
     [[nodiscard]] auto to_vector(const std::vector<std::vector<T>> &values) -> std::vector<T> {
+        PROFILE_SCOPE_NAMED("to_vector");
         auto flat_values = std::vector<T>{};
         for (const auto &v: values | std::views::join) { flat_values.emplace_back(v); }
         return flat_values;

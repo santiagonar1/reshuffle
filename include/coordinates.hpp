@@ -1,9 +1,10 @@
 #ifndef RESHUFFLE_COORDINATES_HPP
 #define RESHUFFLE_COORDINATES_HPP
 
-#include "dimensions.hpp"
-
 #include <ranges>
+
+#include "dimensions.hpp"
+#include "profiler.hpp"
 
 namespace reshuffle::internal {
     template<std::size_t N>
@@ -19,7 +20,7 @@ namespace reshuffle::internal {
     template<std::size_t N>
     [[nodiscard]] auto map_indices(const Coordinates<N> &coordinates,
                                    const Dimensions<N> &dimensions) -> std::optional<int> {
-        const auto start = static_cast<int>(coordinates.size()) - 1;
+        PROFILE_SCOPE_NAMED("map_indices");
 
         int offset = 0;
         int stride = 1;
@@ -38,6 +39,8 @@ namespace reshuffle::internal {
     template<std::size_t N>
     [[nodiscard]] auto map_index(int index, const Dimensions<N> &dimensions)
             -> std::optional<Coordinates<N>> {
+
+        PROFILE_SCOPE_NAMED("map_index");
 
         if (index < 0) { return std::nullopt; }
 

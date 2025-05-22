@@ -8,6 +8,7 @@
 #include "communication_package.hpp"
 #include "intercommunicator.hpp"
 #include "mpi_utils.hpp"
+#include "profiler.hpp"
 
 namespace reshuffle::internal {
 
@@ -85,6 +86,7 @@ namespace reshuffle::internal {
                          const ProcessorGrid<Extents::rank()> &final_processor_grid,
                          const Intercommunicator &intercomm)
             -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> {
+        PROFILE_SCOPE_NAMED("exchange_values");
 
         constexpr auto N = Extents::rank();
 

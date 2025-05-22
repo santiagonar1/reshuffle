@@ -3,6 +3,7 @@
 namespace reshuffle::internal {
     auto create_blocks(const int num_values, const int block_size, const int num_processors)
             -> std::vector<Block> {
+        PROFILE_SCOPE_NAMED("create_blocks_1d");
         std::vector<Block> blocks{};
 
         for (int i = 0; i < num_values; i += block_size) {

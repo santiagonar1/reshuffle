@@ -8,6 +8,7 @@
 #include "multidimensional_block.hpp"
 #include "multidimensional_data.hpp"
 #include "processor_grid.hpp"
+#include "profiler.hpp"
 
 namespace reshuffle::internal {
     template<typename T>
@@ -23,6 +24,8 @@ namespace reshuffle::internal {
                           const std::vector<MultidimensionalBlock<Extents::rank()>> &send_blocks,
                           const ProcessorGrid<Extents::rank()> &final_processor_grid)
             -> CommunicationPackage<T> {
+        PROFILE_SCOPE_NAMED("get_send_package");
+
         if (send_blocks.empty()) { return {std::vector<T>{}, std::vector<Block>{}}; }
 
         auto send_buffer = std::vector<T>(local_data.size());
@@ -53,6 +56,8 @@ namespace reshuffle::internal {
     auto get_receive_package(const std::vector<MultidimensionalBlock<N>> &blocks_to_receive,
                              const ProcessorGrid<N> &initial_processor_grid)
             -> CommunicationPackage<T> {
+        PROFILE_SCOPE_NAMED("get_receive_package");
+
         if (blocks_to_receive.empty()) { return {std::vector<T>{}, std::vector<Block>{}}; }
 
         const auto num_elements = get_num_elements(blocks_to_receive);

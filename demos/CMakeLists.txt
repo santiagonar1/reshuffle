@@ -8,6 +8,10 @@ endfunction()
 compile_demo(demo)
 compile_demo(elastic_demo)
 
+if (PROFILING)
+    compile_demo(profiling)
+endif ()
+
 if (BUILD_DYN_PROC_DEMOS)
     find_package(absl REQUIRED)
 

@@ -6,6 +6,7 @@
 #include "coordinates.hpp"
 #include "multidimensional_block.hpp"
 #include "processor_grid.hpp"
+#include "profiler.hpp"
 #include "rank_id.hpp"
 #include "utils.hpp"
 
@@ -143,6 +144,7 @@ namespace reshuffle::internal {
                                     const ProcessorGrid<N> &target_processor_grid) const
             -> GridOverlay<N> {
 
+        PROFILE_SCOPE_NAMED("get_overlay");
         auto pairs_per_dimension = std::views::zip(_blocks, target_grid._blocks,
                                                    target_processor_grid.get_dimensions());
 

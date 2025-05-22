@@ -10,6 +10,7 @@
 #include "dimensions.hpp"
 #include "mpi_comm_utils.hpp"
 #include "mpi_utils.hpp"
+#include "profiler.hpp"
 #include "utils.hpp"
 
 
@@ -23,6 +24,8 @@ namespace reshuffle {
                                          const Coordinates<N> &rank_initial_grid,
                                          const Coordinates<N> &rank_final_grid)
                 -> std::pair<std::array<std::vector<Block>, N>, std::array<std::vector<Block>, N>> {
+            PROFILE_SCOPE_NAMED("get_send_and_receive_blocks");
+
             auto send_blocks = std::array<std::vector<Block>, N>{};
             auto receive_blocks = std::array<std::vector<Block>, N>{};
 
@@ -73,6 +76,7 @@ namespace reshuffle {
             -> std::pair<std::vector<T>, Dimensions<Extents::rank()>>
         requires(Extents::rank() <= 3)
     {
+        PROFILE_SCOPE_NAMED("Shuffle");
         if (initial_context == final_context) {
             return {internal::get_1D_data(local_values), internal::get_dimensions(local_values)};
         }

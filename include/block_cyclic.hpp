@@ -4,6 +4,7 @@
 #include "block.hpp"
 #include "grid_layout.hpp"
 #include "processor_grid.hpp"
+#include "profiler.hpp"
 
 #include <cmath>
 #include <vector>
@@ -19,6 +20,7 @@ namespace reshuffle {
         auto create_blocks(const Dimensions<N> &num_values, const Dimensions<N> &block_size,
                            const ProcessorGrid<N> &processor_grid)
                 -> std::array<std::vector<Block>, N> {
+            PROFILE_SCOPE_NAMED("create_blocks_nd");
             std::array<std::vector<Block>, N> blocks{};
             const auto processor_dimensions = processor_grid.get_dimensions();
             for (int i = 0; i < N; ++i) {

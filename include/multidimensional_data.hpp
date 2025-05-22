@@ -6,6 +6,7 @@
 #include "mdspan.hpp"
 #include "multidimensional_block.hpp"
 #include "processor_grid.hpp"
+#include "profiler.hpp"
 
 namespace reshuffle::internal {
     template<typename T, typename Extents>
@@ -40,6 +41,8 @@ namespace reshuffle::internal {
             -> std::vector<T>
         requires(Extents::rank() == 1)
     {
+        PROFILE_SCOPE_NAMED("extract_data");
+
         const auto start = block[0].get_interval().get_left_bound();
         const auto finish = start + block[0].get_interval().get_length();
 
@@ -54,6 +57,7 @@ namespace reshuffle::internal {
             -> std::vector<T>
         requires(Extents::rank() == 2)
     {
+        PROFILE_SCOPE_NAMED("extract_data");
         check_bounds(data, block);
 
         auto values = std::vector<T>{};
@@ -70,6 +74,7 @@ namespace reshuffle::internal {
             -> std::vector<T>
         requires(Extents::rank() == 3)
     {
+        PROFILE_SCOPE_NAMED("extract_data");
         check_bounds(data, block);
 
         auto values = std::vector<T>{};
@@ -87,6 +92,7 @@ namespace reshuffle::internal {
                    const MultidimensionalBlock<Extents::rank()> &local_block) -> void
         requires(Extents::rank() == 1)
     {
+        PROFILE_SCOPE_NAMED("copy_data");
         const auto num_values_in_block = local_block[0].get_num_elements();
         const auto start_local = local_block[0].get_interval().get_left_bound();
 
@@ -99,6 +105,7 @@ namespace reshuffle::internal {
                    const MultidimensionalBlock<Extents::rank()> &local_block) -> void
         requires(Extents::rank() == 2)
     {
+        PROFILE_SCOPE_NAMED("copy_data");
         int counter = 0;
         for (const auto i: local_block[0].get_interval()) {
             for (const auto j: local_block[1].get_interval()) { destiny[i, j] = origin[counter++]; }
@@ -110,6 +117,7 @@ namespace reshuffle::internal {
                    const MultidimensionalBlock<Extents::rank()> &local_block) -> void
         requires(Extents::rank() == 3)
     {
+        PROFILE_SCOPE_NAMED("copy_data");
         int counter = 0;
         for (const auto i: local_block[0].get_interval()) {
             for (const auto j: local_block[1].get_interval()) {
@@ -125,6 +133,8 @@ namespace reshuffle::internal {
     get_num_elements_per_processor(const std::vector<MultidimensionalBlock<N>> &blocks,
                                    const ProcessorGrid<N> &processor_grid)
             -> std::map<rank_id, int> {
+        PROFILE_SCOPE_NAMED("get_num_elements_per_processor");
+
         auto num_elements_per_process = std::map<rank_id, int>{};
 
         for (const auto &block: blocks) {
@@ -141,6 +151,8 @@ namespace reshuffle::internal {
     [[nodiscard]] auto group_by_processor(const std::vector<MultidimensionalBlock<N>> &blocks,
                                           const ProcessorGrid<N> &processor_grid)
             -> std::vector<Block> {
+        PROFILE_SCOPE_NAMED("group_by_processor");
+
         if (blocks.empty()) { return {}; }
 
         const auto num_elements_per_process =
