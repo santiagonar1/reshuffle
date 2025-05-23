@@ -13,16 +13,16 @@ using testing::Eq;
 TEST(GetOwnerCoordinates, ReturnsTheCoordinatesOfProcessorThatOwnsMultiblock) {
     const auto x_block = Block{{0, 2}, 0};
     const auto y_block = Block{{1, 3}, 1};
-    const auto multiblock = MultidimensionalBlock{y_block, x_block};
+    const auto multiblock = MultidimensionalBlock<2>{y_block, x_block};
 
-    const auto expected = reshuffle::internal::Coordinates{1, 0};
+    constexpr auto expected = Coordinates<2>{1, 0};
     EXPECT_THAT(get_owner_coordinates(multiblock), Eq(expected));
 }
 
 TEST(GetNumElements, ReturnsTheNumberOfElementsInTheBlock) {
     const auto x_block = Block{{0, 2}, 0};
     const auto y_block = Block{{1, 3}, 1};
-    const auto multiblock = MultidimensionalBlock{y_block, x_block};
+    const auto multiblock = MultidimensionalBlock<2>{y_block, x_block};
 
     const auto expected = x_block.get_num_elements() * y_block.get_num_elements();
     EXPECT_THAT(get_num_elements(multiblock), Eq(expected));

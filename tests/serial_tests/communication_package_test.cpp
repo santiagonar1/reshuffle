@@ -11,9 +11,9 @@ using testing::Eq;
 
 TEST(GetSendPackage, ConstructsACommunicationPackageBasedOnSendBlocksWithMultidimensionalBlocks) {
     const auto data = std::vector{0, 1, 2, 3, 4, 5};
-    const auto send_blocks = std::vector{MultidimensionalBlock{Block{{0, 2}, 1}},
-                                         MultidimensionalBlock{Block{{2, 4}, 0}},
-                                         MultidimensionalBlock{Block{{4, 6}, 1}}};
+    const auto send_blocks = std::vector{MultidimensionalBlock<1>{Block{{0, 2}, 1}},
+                                         MultidimensionalBlock<1>{Block{{2, 4}, 0}},
+                                         MultidimensionalBlock<1>{Block{{4, 6}, 1}}};
     const auto processor_grid = ProcessorGrid<1>{{2}};
 
     const auto expected_data_send_to_0 = std::vector{2, 3};
@@ -37,11 +37,11 @@ TEST(GetSendPackage, WorksIn2D) {
     constexpr auto num_rows = 3;
     constexpr auto num_columns = 3;
     const auto data = std::vector{0, 1, 2, 3, 4, 5, 6, 7, 8};
-    const auto send_blocks = std::vector{MultidimensionalBlock{Block{{0, 2}, 0}, Block{{0, 2}, 0}},
-                                         MultidimensionalBlock{Block{{0, 2}, 0}, Block{{2, 3}, 1}},
-                                         MultidimensionalBlock{Block{{2, 3}, 1}, Block{{0, 2}, 0}},
-                                         MultidimensionalBlock{Block{{2, 3}, 1}, Block{{2, 3}, 1}}};
-
+    const auto send_blocks =
+            std::vector{MultidimensionalBlock<2>{Block{{0, 2}, 0}, Block{{0, 2}, 0}},
+                        MultidimensionalBlock<2>{Block{{0, 2}, 0}, Block{{2, 3}, 1}},
+                        MultidimensionalBlock<2>{Block{{2, 3}, 1}, Block{{0, 2}, 0}},
+                        MultidimensionalBlock<2>{Block{{2, 3}, 1}, Block{{2, 3}, 1}}};
     const auto processor_grid = ProcessorGrid<2>{{2, 2}};
 
     const auto expected_destinies =

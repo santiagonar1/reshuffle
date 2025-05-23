@@ -23,7 +23,7 @@ TEST(ExtractData, ReturnsTheDataContainedInMultidimensionalBlockRangeIn1D) {
     auto multidimensional_data = std::mdspan(values.data(), 6);
 
 
-    const auto block = MultidimensionalBlock{Block{{1, 3}, dummy_owner}};
+    const auto block = MultidimensionalBlock<1>{Block{{1, 3}, dummy_owner}};
 
     const auto expected = std::vector{1, 2};
     EXPECT_THAT(extract_data(multidimensional_data, block), Eq(expected));
@@ -37,7 +37,7 @@ TEST(ExtractData, ThrowsIfBlockIsOutOfBoundsIn1D) {
 
 
     const auto out_of_bounds_block =
-            MultidimensionalBlock{Block{{1, static_cast<int>(values.size()) + 1}, dummy_owner}};
+            MultidimensionalBlock<1>{Block{{1, static_cast<int>(values.size()) + 1}, dummy_owner}};
 
     EXPECT_THROW(auto _ = extract_data(multidimensional_data, out_of_bounds_block),
                  std::out_of_range);
@@ -53,7 +53,7 @@ TEST(ExtractData, ReturnsTheDataContainedInMultidimensionalBlockRangeIn2D) {
 
 
     const auto block =
-            MultidimensionalBlock{Block{{0, 2}, dummy_owner}, Block{{1, 3}, dummy_owner}};
+            MultidimensionalBlock<2>{Block{{0, 2}, dummy_owner}, Block{{1, 3}, dummy_owner}};
 
     const auto expected = std::vector{2, 3, 5, 6};
     EXPECT_THAT(extract_data(multidimensional_data, block), Eq(expected));
@@ -68,9 +68,9 @@ TEST(ExtractData, ThrowsIfBlockIsOutOfBoundsIn2D) {
     auto multidimensional_data = std::mdspan(values.data(), num_rows, num_columns);
 
 
-    const auto out_of_bounds_block_rows = MultidimensionalBlock{
+    const auto out_of_bounds_block_rows = MultidimensionalBlock<2>{
             Block{{0, num_rows + 1}, dummy_owner}, Block{{1, 3}, dummy_owner}};
-    const auto out_of_bounds_block_columns = MultidimensionalBlock{
+    const auto out_of_bounds_block_columns = MultidimensionalBlock<2>{
             Block{{0, 2}, dummy_owner}, Block{{1, num_columns + 1}, dummy_owner}};
 
     EXPECT_THROW(auto _ = extract_data(multidimensional_data, out_of_bounds_block_rows),
@@ -84,7 +84,7 @@ TEST(CopyData, CopiesDataToMultidimensionalBlockRangeIn1D) {
 
     const auto values = std::vector{0, 1, 2, 3, 4, 5};
 
-    const auto block = MultidimensionalBlock{Block{{2, 5}, dummy_owner}};
+    const auto block = MultidimensionalBlock<1>{Block{{2, 5}, dummy_owner}};
     auto destiny = std::vector<int>(values.size(), -1);
 
 
@@ -101,7 +101,7 @@ TEST(CopyData, CopiesDataToMultidimensionalBlockRangeIn2D) {
 
     // Copy the first two values into the first column of destiny
     const auto block =
-            MultidimensionalBlock{Block{{0, 2}, dummy_owner}, Block{{0, 1}, dummy_owner}};
+            MultidimensionalBlock<2>{Block{{0, 2}, dummy_owner}, Block{{0, 1}, dummy_owner}};
     auto destiny = std::vector<int>(values.size(), -1);
 
     constexpr auto num_rows = 2;
@@ -115,8 +115,8 @@ TEST(CopyData, CopiesDataToMultidimensionalBlockRangeIn2D) {
 TEST(GetNumElementsPerProcessor, ReturnsNumberOfElementsBasedOnMultidimensionalBlocks) {
     const auto processor_grid = ProcessorGrid<2>{{1, 2}};
 
-    const auto multiblock_0 = MultidimensionalBlock{Block{{0, 2}, 0}, Block{{2, 4}, 0}};
-    const auto multiblock_1 = MultidimensionalBlock{Block{{4, 6}, 0}, Block{{6, 8}, 1}};
+    const auto multiblock_0 = MultidimensionalBlock<2>{Block{{0, 2}, 0}, Block{{2, 4}, 0}};
+    const auto multiblock_1 = MultidimensionalBlock<2>{Block{{4, 6}, 0}, Block{{6, 8}, 1}};
 
     const auto blocks = std::vector{multiblock_0, multiblock_1, multiblock_0};
     const auto expected_num_elements_0 = 2 * get_num_elements(multiblock_0);
@@ -130,8 +130,8 @@ TEST(GetNumElementsPerProcessor, ReturnsNumberOfElementsBasedOnMultidimensionalB
 TEST(GroupByProcessor, ReturnsA1DLayoutOfTheData) {
     const auto processor_grid = ProcessorGrid<2>{{1, 2}};
 
-    const auto multiblock_0 = MultidimensionalBlock{Block{{0, 2}, 0}, Block{{2, 4}, 0}};
-    const auto multiblock_1 = MultidimensionalBlock{Block{{4, 6}, 0}, Block{{6, 8}, 1}};
+    const auto multiblock_0 = MultidimensionalBlock<2>{Block{{0, 2}, 0}, Block{{2, 4}, 0}};
+    const auto multiblock_1 = MultidimensionalBlock<2>{Block{{4, 6}, 0}, Block{{6, 8}, 1}};
 
     const auto blocks = std::vector{multiblock_0, multiblock_1, multiblock_0};
     const auto expected_num_elements_0 = 2 * get_num_elements(multiblock_0);

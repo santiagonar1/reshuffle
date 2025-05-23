@@ -112,9 +112,9 @@ namespace reshuffle::internal {
                 const auto block_overlay = block.get_overlay(target_blocks[pos_target_grid]);
                 if (not block_overlay.has_value()) { break; }
                 sub_blocks.emplace_back(block_overlay.value());
-                owners_target_grid.emplace_back(target_grid.get_block_owner(
-                        ::reshuffle::internal::Coordinates{pos_target_grid},
-                        ProcessorGrid<1>{{target_num_processors}}));
+                owners_target_grid.emplace_back(
+                        target_grid.get_block_owner(Coordinates<1>{pos_target_grid},
+                                                    ProcessorGrid<1>{{target_num_processors}}));
                 ++pos_target_grid;
             }
 

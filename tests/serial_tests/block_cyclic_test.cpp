@@ -44,7 +44,7 @@ TEST(BlockCyclic, AssignsBlocksInRoundRobbinFashion) {
     auto result = std::vector<reshuffle::rank_id>{};
     const auto blocks = data_distribution.get_grid_layout().get_blocks().at(0);
     for (int i = 0; i < blocks.size(); ++i) {
-        const auto block_coordinates = Coordinates{i};
+        const auto block_coordinates = Coordinates<1>{i};
         result.push_back(data_distribution.get_grid_layout().get_block_owner(block_coordinates,
                                                                              processor_grid));
     }

@@ -34,8 +34,8 @@ TEST(GridLayout, CanReturnTheOwnerOfABlock) {
     const auto blocks = get_blocks(num_processors);
     const auto grid_layout = GridLayout(std::array{blocks});
 
-    EXPECT_THAT(grid_layout.get_block_owner(Coordinates{0}, processor_grid), Eq(0));
-    EXPECT_THAT(grid_layout.get_block_owner(Coordinates{1}, processor_grid), Eq(1));
+    EXPECT_THAT(grid_layout.get_block_owner(Coordinates<1>{0}, processor_grid), Eq(0));
+    EXPECT_THAT(grid_layout.get_block_owner(Coordinates<1>{1}, processor_grid), Eq(1));
 }
 
 TEST(GridLayout, CanReturnTheOwnerOfABlockIn2DVerticalPartition) {
@@ -91,7 +91,7 @@ TEST(GridLayout, ThrowsWhenAskedForABlockIdOutOfRange) {
 
     constexpr auto block_id_out_of_range = num_processors;
 
-    EXPECT_THROW(auto _ = grid_layout.get_block_owner(Coordinates{block_id_out_of_range},
+    EXPECT_THROW(auto _ = grid_layout.get_block_owner(Coordinates<1>{block_id_out_of_range},
                                                       processor_grid),
                  std::out_of_range);
 }

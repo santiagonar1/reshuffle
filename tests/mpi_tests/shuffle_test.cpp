@@ -105,10 +105,10 @@ TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplit) {
 
     if (is_root(MPI_COMM_WORLD)) {
         EXPECT_THAT(new_values, Eq(std::vector{0, 1, 3, 4}));
-        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{2, 2}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions<2>{2, 2}));
     } else {
         EXPECT_THAT(new_values, Eq(std::vector{2, 5}));
-        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{2, 1}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions<2>{2, 1}));
     }
 }
 
@@ -134,10 +134,10 @@ TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplitVectorOfVectors) {
 
     if (is_root(MPI_COMM_WORLD)) {
         EXPECT_THAT(new_values, Eq(std::vector{0, 1, 3, 4}));
-        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{2, 2}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions<2>{2, 2}));
     } else {
         EXPECT_THAT(new_values, Eq(std::vector{2, 5}));
-        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{2, 1}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions<2>{2, 1}));
     }
 }
 
@@ -165,10 +165,10 @@ TEST(Shuffle, CanShuffleFromOneToManyIn2DHorizontalSplit) {
 
     if (is_root(MPI_COMM_WORLD)) {
         EXPECT_THAT(new_values, Eq(std::vector{0, 1, 2}));
-        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{1, 3}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions<2>{1, 3}));
     } else {
         EXPECT_THAT(new_values, Eq(std::vector{3, 4, 5}));
-        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{1, 3}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions<2>{1, 3}));
     }
 }
 
@@ -221,10 +221,10 @@ TEST(Shuffle, CanShuffleFromManyToOneIn2DVerticalSplit) {
     if (is_root(MPI_COMM_WORLD)) {
         EXPECT_THAT(new_values, Eq(std::vector{0, 1, 2, 3, 4, 5}));
         EXPECT_THAT(local_dimensions,
-                    Eq(reshuffle::Dimensions{num_global_rows, num_global_columns}));
+                    Eq(reshuffle::Dimensions<2>{num_global_rows, num_global_columns}));
     } else {
         EXPECT_TRUE(new_values.empty());
-        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{0, 0}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions<2>{0, 0}));
     }
 }
 
@@ -251,10 +251,10 @@ TEST(Shuffle, CanShuffleFromManyToOneIn2DHorizontalSplit) {
     if (is_root(MPI_COMM_WORLD)) {
         EXPECT_THAT(new_values, Eq(std::vector{0, 1, 2, 3, 4, 5}));
         EXPECT_THAT(local_dimensions,
-                    Eq(reshuffle::Dimensions{num_global_rows, num_global_columns}));
+                    Eq(reshuffle::Dimensions<2>{num_global_rows, num_global_columns}));
     } else {
         EXPECT_TRUE(new_values.empty());
-        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{0, 0}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions<2>{0, 0}));
     }
 }
 
@@ -314,10 +314,10 @@ TEST(Shuffle, CanShuffleFromBlockWiseToBlockCyclicIn2D) {
 
     if (is_root(MPI_COMM_WORLD)) {
         EXPECT_THAT(new_values, Eq(std::vector{0, 2, 3, 5}));
-        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{2, 2}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions<2>{2, 2}));
     } else {
         EXPECT_THAT(new_values, Eq(std::vector{1, 4}));
-        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{2, 1}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions<2>{2, 1}));
     }
 }
 
@@ -371,10 +371,10 @@ TEST(Shuffle, CanShuffleFromBlockCyclicToBlockWiseIn2D) {
 
     if (is_root(MPI_COMM_WORLD)) {
         EXPECT_THAT(new_values, Eq(std::vector{0, 1, 2}));
-        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{1, 3}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions<2>{1, 3}));
     } else {
         EXPECT_THAT(new_values, Eq(std::vector{3, 4, 5}));
-        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{1, 3}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions<2>{1, 3}));
     }
 }
 
@@ -423,10 +423,10 @@ TEST(Shuffle, CanShuffleFromDifferentCommunicatorsIn2D) {
 
     if (is_root(MPI_COMM_WORLD)) {
         EXPECT_THAT(new_values, Eq(std::vector{0, 1, 3, 4}));
-        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{2, 2}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions<2>{2, 2}));
     } else {
         EXPECT_THAT(new_values, Eq(std::vector{2, 5}));
-        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions{2, 1}));
+        EXPECT_THAT(local_dimensions, Eq(reshuffle::Dimensions<2>{2, 1}));
     }
 }
 
