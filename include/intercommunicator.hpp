@@ -5,6 +5,7 @@
 
 #include <map>
 #include <mpi.h>
+#include <optional>
 
 namespace reshuffle::internal {
     class Intercommunicator {
@@ -19,8 +20,10 @@ namespace reshuffle::internal {
         [[nodiscard]] auto get_intercommunicator() const -> MPI_Comm;
         [[nodiscard]] auto get_intercomm_rank(rank_id original_rank,
                                               SelectCommunicator original_comm) const -> rank_id;
-        [[nodiscard]] auto get_initial_comm_rank(rank_id intercomm_rank) const -> std::optional<rank_id>;
-        [[nodiscard]] auto get_final_comm_rank(rank_id intercomm_rank) const -> std::optional<rank_id>;
+        [[nodiscard]] auto get_initial_comm_rank(rank_id intercomm_rank) const
+                -> std::optional<rank_id>;
+        [[nodiscard]] auto get_final_comm_rank(rank_id intercomm_rank) const
+                -> std::optional<rank_id>;
 
     private:
         const MPI_Comm _intercommunicator;

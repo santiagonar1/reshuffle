@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <mpi.h>
-#include <span>
 #include <vector>
 
 #include "rank_id.hpp"

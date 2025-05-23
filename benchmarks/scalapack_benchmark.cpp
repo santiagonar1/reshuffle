@@ -1,8 +1,9 @@
 
 #include <benchmark/benchmark.h>
-#include <iostream>
+#include <chrono>
 #include <mpi.h>
 #include <vector>
+
 
 // ScaLAPACK/BLACS function declarations
 extern "C" {

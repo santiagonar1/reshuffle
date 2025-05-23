@@ -4,11 +4,10 @@
 #include <vector>
 
 #include "block.hpp"
+#include "mdspan.hpp"
 #include "multidimensional_block.hpp"
 #include "multidimensional_data.hpp"
 #include "processor_grid.hpp"
-
-#include <mdspan>
 
 namespace reshuffle::internal {
     template<typename T>

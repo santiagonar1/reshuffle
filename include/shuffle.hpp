@@ -106,9 +106,9 @@ namespace reshuffle {
     }
 
     template<typename T>
-    auto shuffle(std::vector<std::vector<T>> local_values, const Context<2> &initial_context,
+    auto shuffle(const std::vector<std::vector<T>> &local_values, const Context<2> &initial_context,
                  const Context<2> &final_context) -> std::pair<std::vector<T>, Dimensions<2>> {
-        auto flat_data = local_values | std::views::join | std::ranges::to<std::vector>();
+        auto flat_data = internal::to_vector(local_values);
         const auto dimensions = internal::get_dimensions(local_values);
         return shuffle(std::mdspan(std::as_const(flat_data).data(), dimensions), initial_context,
                        final_context);

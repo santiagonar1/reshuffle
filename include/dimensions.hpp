@@ -3,8 +3,9 @@
 
 #include <algorithm>
 #include <array>
-#include <mdspan>
 #include <numeric>
+
+#include "mdspan.hpp"
 
 namespace reshuffle {
     template<std::size_t N>

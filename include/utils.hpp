@@ -34,6 +34,13 @@ namespace reshuffle::internal {
         unique_values.erase(new_end, unique_values.end());
         return unique_values;
     }
+
+    template<typename T>
+    [[nodiscard]] auto to_vector(const std::vector<std::vector<T>> &values) -> std::vector<T> {
+        auto flat_values = std::vector<T>{};
+        for (const auto &v: values | std::views::join) { flat_values.emplace_back(v); }
+        return flat_values;
+    }
 }// namespace reshuffle::internal
 
 #endif//UTILS_HPP

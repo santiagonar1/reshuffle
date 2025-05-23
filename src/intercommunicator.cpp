@@ -2,6 +2,8 @@
 
 #include "mpi_utils.hpp"
 
+#include <array>
+
 namespace reshuffle::internal {
     auto create_intercommunicator(MPI_Comm comm1, MPI_Comm comm2) -> MPI_Comm {
         if (mpi::is_sub_comm(comm1, comm2)) { return comm1; }
