@@ -12,6 +12,9 @@ RUN apt install -y build-essential \
     python3-venv \
     python3-virtualenv \
     gdb \
-    ninja-build
+    ninja-build \
+    libopenblas-dev liblapacke-dev \
+    libscalapack-mpi-dev \
+    libomp-dev
 
 RUN pip install conan --break-system-packages
