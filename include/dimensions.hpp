@@ -52,8 +52,8 @@ namespace reshuffle {
         }
 
         template<typename C>
-        constexpr auto get_dimensions(const C &container) -> Dimensions<get_rank(container)> {
-            auto dimensions = Dimensions<get_rank(container)>{};
+        constexpr auto get_dimensions(const C &container) -> Dimensions<get_rank_impl<C>()> {
+            auto dimensions = Dimensions<get_rank_impl<C>()>{};
 
             if (container.empty()) { return dimensions; }
 
