@@ -38,7 +38,7 @@ namespace reshuffle::internal {
     template<typename T, typename Extents>
     [[nodiscard]] auto extract_data(std::mdspan<const T, Extents> data,
                                     const MultidimensionalBlock<Extents::rank()> &block)
-            -> std::vector<T>
+            -> std::span<const T>
         requires(Extents::rank() == 1)
     {
         PROFILE_SCOPE_NAMED("extract_data");

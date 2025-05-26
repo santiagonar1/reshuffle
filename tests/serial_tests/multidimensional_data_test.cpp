@@ -16,7 +16,7 @@ TEST(Get1DData, Returns1DContainerOfMultidimensionalData) {
 }
 
 
-TEST(ExtractData, ReturnsTheDataContainedInMultidimensionalBlockRangeIn1D) {
+TEST(ExtractData, ReturnsTheDataContainedInMultidimensionalBlockRangeIn1DAsASpan) {
     constexpr auto dummy_owner = -1;
 
     const auto values = std::vector{0, 1, 2, 3, 4, 5};
@@ -25,8 +25,11 @@ TEST(ExtractData, ReturnsTheDataContainedInMultidimensionalBlockRangeIn1D) {
 
     const auto block = MultidimensionalBlock<1>{Block{{1, 3}, dummy_owner}};
 
+    auto result_view = extract_data(multidimensional_data, block);
+    const auto result = std::vector(result_view.begin(), result_view.end());
+
     const auto expected = std::vector{1, 2};
-    EXPECT_THAT(extract_data(multidimensional_data, block), Eq(expected));
+    EXPECT_THAT(result, Eq(expected));
 }
 
 TEST(ExtractData, ThrowsIfBlockIsOutOfBoundsIn1D) {
