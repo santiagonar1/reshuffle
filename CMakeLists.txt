@@ -37,6 +37,7 @@ if (TEST_COSTA)
 endif ()
 
 if (PROFILING)
+    message(STATUS "Profiling is enabled - Tracy profiler will be used")
     find_package(Tracy REQUIRED)
 endif ()
 
