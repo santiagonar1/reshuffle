@@ -8,7 +8,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     endif ()
 endif ()
 
-set(CMAKE_CXX_STANDARD 23)
 set(namespace "${PROJECT_NAME}")
 
 # Where to find our CMake modules. Needs to be called before any add_subdirectory for them to have access to the variable
@@ -53,6 +52,7 @@ file(GLOB MY_PUBLIC_HEADERS
 )
 
 add_library(${PROJECT_NAME})
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
 
 target_sources(${PROJECT_NAME}
         PRIVATE ${SOURCES}
