@@ -52,6 +52,12 @@ This should create an `install` directory inside the main directory (i.e., `/pat
 the variable [CMAKE_INSTALL_PREFIX](https://cmake.org/cmake/help/latest/variable/CMAKE_INSTALL_PREFIX.html) to change
 this behaviour.
 
+You can check available options via:
+
+```shell
+bash install.sh --help
+```
+
 Keep in mind that certain things, such as the path to MPI, might need to be modified. So take a look at the script
 before
 running it. You are encouraged to take a look at the scripts to check the steps required to install the library, which
