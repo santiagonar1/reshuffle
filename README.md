@@ -13,7 +13,9 @@ means that we still need to improve the performance of the library.
 ### Requirements
 
 - Clang-18/gcc-13 or newer.
-- Conan 2.
+- [Conan 2](https://docs.conan.io/2/installation.html).
+- ScaLAPACK (if you want to compile the benchmark).
+- [Costa](https://github.com/eth-cscs/COSTA/tree/master) (if you want to compile the benchmark).
 
 ### Build
 
