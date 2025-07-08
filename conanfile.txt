@@ -6,3 +6,6 @@ gtest/1.16.0
 abseil/20250127.0
 benchmark/1.9.1
 tracy/0.11.1
+
+[options]
+gtest/*:build_gmock=True
