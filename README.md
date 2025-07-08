@@ -10,6 +10,9 @@ means that we still need to improve the performance of the library.
 
 ## Build and Install
 
+If you are trying to do more complicated things, like building the library with different compilers in the same
+machine, please take a look at [compiling rehsuffle](./docs/compiling_reshuffle.md).
+
 ### Requirements
 
 - Clang-18/gcc-13 or newer.
