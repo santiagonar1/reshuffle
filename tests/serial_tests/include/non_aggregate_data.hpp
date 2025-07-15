@@ -22,6 +22,8 @@ struct NonAggregateDataSerializable {
 
     int _dummy_int{};
     std::string _dummy_string{};
+
+    bool operator==(const NonAggregateDataSerializable &) const = default;
 };
 
 struct NonAggregateDataSerializableWithArgumentLookup {
@@ -31,6 +33,8 @@ struct NonAggregateDataSerializableWithArgumentLookup {
 
     int _dummy_int{};
     std::string _dummy_string{};
+
+    bool operator==(const NonAggregateDataSerializableWithArgumentLookup &) const = default;
 };
 
 // Add this line somewhere before the actual serialization happens.

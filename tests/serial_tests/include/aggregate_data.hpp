@@ -4,8 +4,10 @@
 #include <string>
 
 struct AggregateData {
-    int _dummy_int{};
     std::string _dummy_string{};
+    int _dummy_int{};
+
+    bool operator==(const AggregateData &) const = default;
 };
 
 #endif//AGGREGATE_DATA_HPP
