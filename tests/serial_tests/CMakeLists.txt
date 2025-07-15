@@ -5,6 +5,10 @@ macro(package_add_test TEST_NAME)
     # create an executable in which the tests will be stored
     add_executable(${TEST_NAME} ${ARGN})
 
+    target_include_directories(${TEST_NAME}
+            PRIVATE include
+    )
+
     # link the Google test infrastructure, mocking library, and a default main function to
     # the test executable.  Remove g_test_main if writing your own main function.
     target_link_libraries(${TEST_NAME}
