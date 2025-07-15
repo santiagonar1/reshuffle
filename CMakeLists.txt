@@ -18,6 +18,7 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 find_package(MPI REQUIRED)
+find_package(zpp_bits REQUIRED)
 
 message(STATUS "Found MPI_CXX_COMPILER: ${MPI_CXX_COMPILER}")
 
@@ -60,6 +61,7 @@ target_sources(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
         PUBLIC MPI::MPI_CXX
+        PUBLIC zpp_bits::zpp_bits
 )
 
 if (PROFILING)
