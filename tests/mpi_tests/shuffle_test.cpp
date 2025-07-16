@@ -48,6 +48,13 @@ enum class DataLocationSelector {
     ALL_RANKS,
 };
 
+struct AggregateData {
+    std::string _dummy_string{};
+    int _dummy_int{};
+
+    bool operator==(const AggregateData &) const = default;
+};
+
 [[nodiscard]] auto create_communicator(const CommSelector &comm_selector) -> MPI_Comm;
 [[nodiscard]] auto create_context(const DataLocationSelector &data_location,
                                   const CommSelector &comm_selector, int num_global_values)
@@ -79,6 +86,23 @@ TEST(Shuffle, CanShuffleFromOneToMany) {
                     .first;
 
     EXPECT_THAT(new_values, Eq(generator.get_values_for_rank(rank)));
+}
+
+TEST(Shuffle, CanShuffleCustomDatatypes) {
+    constexpr auto num_global_values = 2;
+
+    const auto values = is_root(MPI_COMM_WORLD)
+                                ? std::vector{AggregateData{"one", 1}, AggregateData{"two", 2}}
+                                : std::vector<AggregateData>();
+
+    const auto initial_context = create_context(DataLocationSelector::ONLY_RANK_0,
+                                                CommSelector::ALL_RANKS, num_global_values);
+    const auto final_context = create_context(DataLocationSelector::ALL_RANKS,
+                                              CommSelector::ALL_RANKS, num_global_values);
+
+    const auto new_values =
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context)
+                    .first;
 }
 
 TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplit) {
