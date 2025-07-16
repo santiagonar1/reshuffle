@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "communication_package.hpp"
+#include "concepts.hpp"
 #include "context.hpp"
 #include "dimensions.hpp"
 #include "mpi_comm_utils.hpp"
@@ -70,11 +71,13 @@ namespace reshuffle {
     }// namespace internal
 
     template<typename T, typename Extents>
-    auto shuffle(std::mdspan<const T, Extents> local_values,
-                 const Context<Extents::rank()> &initial_context,
-                 const Context<Extents::rank()> &final_context)
-            -> std::pair<std::vector<T>, Dimensions<Extents::rank()>>
-        requires(Extents::rank() <= 3)
+        requires concepts::FundamentalType<T> ||
+                 concepts::Serializable<T>
+                 auto shuffle(std::mdspan<const T, Extents> local_values,
+                              const Context<Extents::rank()> &initial_context,
+                              const Context<Extents::rank()> &final_context)
+                         -> std::pair<std::vector<T>, Dimensions<Extents::rank()>>
+                     requires(Extents::rank() <= 3)
     {
         PROFILE_SCOPE_NAMED("Shuffle");
         if (initial_context == final_context) {
