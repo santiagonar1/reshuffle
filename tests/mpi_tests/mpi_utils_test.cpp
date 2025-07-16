@@ -10,14 +10,29 @@ using namespace reshuffle::mpi;
 
 using testing::Eq;
 
+struct MyDatatype {};
+
 TEST(ToMPIDatatype, ConvertsDatatypeToMPIDatatype) {
     EXPECT_THAT(to_mpi_datatype<int>(), Eq(MPI_INT));
     EXPECT_THAT(to_mpi_datatype<float>(), Eq(MPI_FLOAT));
     EXPECT_THAT(to_mpi_datatype<double>(), Eq(MPI_DOUBLE));
+    EXPECT_THAT(to_mpi_datatype<std::byte>(), Eq(MPI_BYTE));
+    EXPECT_THAT(to_mpi_datatype<char>(), Eq(MPI_CHAR));
+    EXPECT_THAT(to_mpi_datatype<unsigned char>(), Eq(MPI_UNSIGNED_CHAR));
+    EXPECT_THAT(to_mpi_datatype<short>(), Eq(MPI_SHORT));
+    EXPECT_THAT(to_mpi_datatype<unsigned short>(), Eq(MPI_UNSIGNED_SHORT));
+    EXPECT_THAT(to_mpi_datatype<unsigned int>(), Eq(MPI_UNSIGNED));
+    EXPECT_THAT(to_mpi_datatype<long>(), Eq(MPI_LONG));
+    EXPECT_THAT(to_mpi_datatype<unsigned long>(), Eq(MPI_UNSIGNED_LONG));
+    EXPECT_THAT(to_mpi_datatype<long long>(), Eq(MPI_LONG_LONG));
+    EXPECT_THAT(to_mpi_datatype<unsigned long long>(), Eq(MPI_UNSIGNED_LONG_LONG));
+    EXPECT_THAT(to_mpi_datatype<bool>(), Eq(MPI_C_BOOL));
+    EXPECT_THAT(to_mpi_datatype<long double>(), Eq(MPI_LONG_DOUBLE));
 }
 
+
 TEST(ToMPIDatatype, ThrowsIfDatatypeCannotBeConverted) {
-    EXPECT_THROW(auto _ = to_mpi_datatype<char>(), std::invalid_argument);
+    EXPECT_THROW(auto _ = to_mpi_datatype<MyDatatype>(), std::invalid_argument);
 }
 
 TEST(GetRankId, ReturnsRankId) {

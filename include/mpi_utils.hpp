@@ -12,12 +12,21 @@ namespace reshuffle::mpi {
     template<typename DATATYPE>
     [[nodiscard]] MPI_Datatype to_mpi_datatype() {
         if (std::is_same_v<DATATYPE, int>) { return MPI_INT; }
-
         if (std::is_same_v<DATATYPE, float>) { return MPI_FLOAT; }
-
         if (std::is_same_v<DATATYPE, double>) { return MPI_DOUBLE; }
-
         if (std::is_same_v<DATATYPE, std::byte>) { return MPI_BYTE; }
+        if (std::is_same_v<DATATYPE, char>) { return MPI_CHAR; }
+        if (std::is_same_v<DATATYPE, unsigned char>) { return MPI_UNSIGNED_CHAR; }
+        if (std::is_same_v<DATATYPE, short>) { return MPI_SHORT; }
+        if (std::is_same_v<DATATYPE, unsigned short>) { return MPI_UNSIGNED_SHORT; }
+        if (std::is_same_v<DATATYPE, unsigned int>) { return MPI_UNSIGNED; }
+        if (std::is_same_v<DATATYPE, long>) { return MPI_LONG; }
+        if (std::is_same_v<DATATYPE, unsigned long>) { return MPI_UNSIGNED_LONG; }
+        if (std::is_same_v<DATATYPE, long long>) { return MPI_LONG_LONG; }
+        if (std::is_same_v<DATATYPE, unsigned long long>) { return MPI_UNSIGNED_LONG_LONG; }
+        if (std::is_same_v<DATATYPE, bool>) { return MPI_C_BOOL; }
+        if (std::is_same_v<DATATYPE, long double>) { return MPI_LONG_DOUBLE; }
+
 
         throw std::invalid_argument("No MPI Datatype");
     }
