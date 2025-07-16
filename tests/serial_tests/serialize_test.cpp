@@ -40,3 +40,27 @@ TEST(Serialize, WorksOnAggregateDataThatHasImplementedSerializeWithLookup) {
 
     EXPECT_THAT(non_aggregates, Eq(deserialized_non_aggregates));
 }
+
+TEST(Serialize, WorksWithSpans) {
+    const auto non_aggregates =
+            std::vector{NonAggregateDataSerializableWithArgumentLookup{"one", 1},
+                        NonAggregateDataSerializableWithArgumentLookup{"two", 2}};
+
+    const auto bytes = serialize(std::span{non_aggregates});
+    const auto deserialized_non_aggregates =
+            deserialize<NonAggregateDataSerializableWithArgumentLookup>(bytes);
+
+    EXPECT_THAT(non_aggregates, Eq(deserialized_non_aggregates));
+}
+
+TEST(Deserialize, WorksWithSpans) {
+    const auto non_aggregates =
+            std::vector{NonAggregateDataSerializableWithArgumentLookup{"one", 1},
+                        NonAggregateDataSerializableWithArgumentLookup{"two", 2}};
+
+    const auto bytes = serialize(non_aggregates);
+    const auto deserialized_non_aggregates =
+            deserialize<NonAggregateDataSerializableWithArgumentLookup>(std::span{bytes});
+
+    EXPECT_THAT(non_aggregates, Eq(deserialized_non_aggregates));
+}
