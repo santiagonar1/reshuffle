@@ -24,32 +24,32 @@ namespace reshuffle::internal {
     auto CommunicationPackage<T>::as_bytes() -> CommunicationPackage<std::byte> {
         if (buffer.empty()) { return {std::vector<std::byte>{}, std::vector<Block>{}}; }
 
-        auto grouped_blocks_to_send = std::vector<Block>{};
-        auto send_buffer = std::vector<std::byte>{};
+        auto grouped_blocks = std::vector<Block>{};
+        auto serialized_buffer = std::vector<std::byte>{};
         const auto first_block = data_assignments[0];
         const auto first_bytes = serialize(std::span{
                 buffer.data(), static_cast<size_t>(first_block.get_interval().get_length())});
-        grouped_blocks_to_send.emplace_back(
+        grouped_blocks.emplace_back(
                 Block{{0, static_cast<int>(first_bytes.size())}, first_block.get_owner()});
-        std::ranges::copy(first_bytes, std::back_inserter(send_buffer));
+        std::ranges::copy(first_bytes, std::back_inserter(serialized_buffer));
 
         for (const auto &block: data_assignments | std::views::drop(1)) {
             const auto bytes =
                     serialize(std::span{buffer.data() + block.get_interval().get_left_bound(),
                                         static_cast<size_t>(block.get_interval().get_length())});
-            std::ranges::copy(bytes, std::back_inserter(send_buffer));
+            std::ranges::copy(bytes, std::back_inserter(serialized_buffer));
 
-            const auto last_inserted_block = grouped_blocks_to_send.back();
+            const auto last_inserted_block = grouped_blocks.back();
             const auto num_elements = static_cast<int>(bytes.size());
             const auto rank = block.get_owner();
 
-            grouped_blocks_to_send.emplace_back(
+            grouped_blocks.emplace_back(
                     Block{{last_inserted_block.get_interval().get_right_bound(),
                            last_inserted_block.get_interval().get_right_bound() + num_elements},
                           rank});
         }
 
-        return {send_buffer, grouped_blocks_to_send};
+        return {serialized_buffer, grouped_blocks};
     }
 
 
