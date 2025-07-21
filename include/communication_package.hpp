@@ -17,7 +17,7 @@ namespace reshuffle::internal {
         std::vector<T> buffer;
         std::vector<Block> data_assignments;
 
-        [[nodiscard]] auto as_bytes() -> SendCommunicationPackage<std::byte>;
+        [[nodiscard]] auto as_bytes() const -> SendCommunicationPackage<std::byte>;
     };
 
     template<typename T>
@@ -27,7 +27,7 @@ namespace reshuffle::internal {
     };
 
     template<typename T>
-    auto SendCommunicationPackage<T>::as_bytes() -> SendCommunicationPackage<std::byte> {
+    auto SendCommunicationPackage<T>::as_bytes() const -> SendCommunicationPackage<std::byte> {
         if (buffer.empty()) { return {std::vector<std::byte>{}, std::vector<Block>{}}; }
 
         auto grouped_blocks = std::vector<Block>{};
