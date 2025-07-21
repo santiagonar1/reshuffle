@@ -15,25 +15,24 @@
 namespace reshuffle::internal {
 
     template<typename T>
-    auto async_send(std::span<T> send_buffer, const std::vector<Block> &grouped_blocks_to_send,
+    auto async_send(std::span<T> send_buffer,
+                    const std::map<rank_id, LeftClosedRange> &intervals_to_send_per_rank,
                     const Intercommunicator &intercomm) -> std::vector<MPI_Request> {
-        const auto num_ranks_to_send = static_cast<int>(grouped_blocks_to_send.size());
+        const auto num_ranks_to_send = static_cast<int>(intervals_to_send_per_rank.size());
         auto send_requests = std::vector<MPI_Request>(num_ranks_to_send);
         const auto comm = intercomm.get_intercommunicator();
 
-        for (int i = 0; i < num_ranks_to_send; i++) {
-            const auto &block = grouped_blocks_to_send[i];
-            const auto num_values = block.get_interval().get_length();
-            // block.get_owner() in this context will return a rank relative to the final comm.
-            // Thus, this should never fail. If it throws, something went wrong.
-            const auto rank_id_destiny_final_comm = block.get_owner();
+        auto num_messages_sent = 0;
+        for (const auto &[rank, interval]: intervals_to_send_per_rank) {
+            const auto num_values = interval.get_length();
+            // The rank here is relative to the final communicator
             const auto destiny = intercomm.get_intercomm_rank(
-                    rank_id_destiny_final_comm, Intercommunicator::SelectCommunicator::FINAL_COMM);
-
+                    rank, Intercommunicator::SelectCommunicator::FINAL_COMM);
             MPI_Isend(send_buffer.data(), num_values, mpi::to_mpi_datatype<std::remove_cv_t<T>>(),
-                      destiny, 0, comm, &send_requests[i]);
+                      destiny, 0, comm, &send_requests[num_messages_sent]);
 
             send_buffer = send_buffer | std::views::drop(num_values);
+            num_messages_sent++;
         }
 
         return send_requests;
@@ -69,27 +68,25 @@ namespace reshuffle::internal {
 
     template<typename T>
     auto async_receive(std::span<T> receive_buffer,
-                       const std::vector<Block> &grouped_blocks_to_receive,
+                       const std::map<rank_id, LeftClosedRange> &intervals_to_receive_per_rank,
                        const Intercommunicator &intercomm) -> std::vector<MPI_Request> {
-        const auto num_ranks_to_receive = static_cast<int>(grouped_blocks_to_receive.size());
+        const auto num_ranks_to_receive = static_cast<int>(intervals_to_receive_per_rank.size());
         auto receive_requests = std::vector<MPI_Request>(num_ranks_to_receive);
         const auto comm = intercomm.get_intercommunicator();
 
-        for (int i = 0; i < num_ranks_to_receive; i++) {
-            const auto &block = grouped_blocks_to_receive[i];
-            const auto num_values = block.get_interval().get_length();
-            // block.get_owner() in this context will return a rank relative to the initial comm.
-            // Thus, this should never fail. If it throws, something went wrong.
-            const auto rank_id_source_initial_comm = block.get_owner();
+        auto num_messages_received = 0;
+        for (const auto &[rank, interval]: intervals_to_receive_per_rank) {
+            const auto num_values = interval.get_length();
+            // The rank here is relative to the initial communicator
             const auto source = intercomm.get_intercomm_rank(
-                    rank_id_source_initial_comm,
-                    Intercommunicator::SelectCommunicator::INITIAL_COMM);
+                    rank, Intercommunicator::SelectCommunicator::INITIAL_COMM);
 
             MPI_Irecv(receive_buffer.data(), num_values,
                       mpi::to_mpi_datatype<std::remove_cv_t<T>>(), source, MPI_ANY_TAG, comm,
-                      &receive_requests[i]);
+                      &receive_requests[num_messages_received]);
 
             receive_buffer = receive_buffer | std::views::drop(num_values);
+            num_messages_received++;
         }
 
         return receive_requests;
@@ -156,14 +153,15 @@ namespace reshuffle::internal {
         const auto multidimensional_blocks_to_send = get_cartesian_product(blocks_to_send);
         const auto multidimensional_blocks_to_receive = get_cartesian_product(blocks_to_receive);
 
-        auto [send_buffer, grouped_blocks_to_send] = get_send_package(
+        auto [send_buffer, intervals_to_send_per_rank] = get_send_package(
                 local_values, multidimensional_blocks_to_send, final_processor_grid);
-        auto [receive_buffer, grouped_blocks_to_receive] = get_receive_package<T, N>(
+        auto [receive_buffer, intervals_to_receive_per_rank] = get_receive_package<T, N>(
                 multidimensional_blocks_to_receive, initial_processor_grid);
 
-        auto send_requests = async_send(std::span{send_buffer}, grouped_blocks_to_send, intercomm);
+        auto send_requests =
+                async_send(std::span{send_buffer}, intervals_to_send_per_rank, intercomm);
         auto receive_requests =
-                async_receive(std::span{receive_buffer}, grouped_blocks_to_receive, intercomm);
+                async_receive(std::span{receive_buffer}, intervals_to_receive_per_rank, intercomm);
 
         const auto num_ranks_to_receive = static_cast<int>(receive_requests.size());
 
@@ -172,10 +170,9 @@ namespace reshuffle::internal {
             auto source{MPI_PROC_NULL};
 
             MPI_Waitany(num_ranks_to_receive, receive_requests.data(), &source, MPI_STATUS_IGNORE);
-            //TODO: Code smell, why [source]? I think this breaks if we don't receive from contiguous ranks
-            const auto &received_block = grouped_blocks_to_receive[source];
-            const auto message_starts = received_block.get_interval().get_left_bound();
-            const auto num_values = static_cast<size_t>(received_block.get_interval().get_length());
+            const auto &received_interval = intervals_to_receive_per_rank.at(source);
+            const auto message_starts = received_interval.get_left_bound();
+            const auto num_values = static_cast<size_t>(received_interval.get_length());
 
             auto blocks_from_source =
                     multidimensional_blocks_to_receive |
@@ -201,24 +198,25 @@ namespace reshuffle::internal {
     }
 
     template<typename T>
-    auto get_serialized_receive_comm_package(const ReceiveCommunicationPackage<T> &package,
-                                             const std::vector<Block> &grouped_blocks_to_send,
-                                             const Intercommunicator &intercomm)
-            -> ReceiveCommunicationPackage<std::byte> {
-        const auto &grouped_blocks_to_receive_after_deserialization = package.data_assignments;
+    auto get_serialized_receive_comm_package(
+            const ReceiveCommunicationPackage<T> &package,
+            const std::map<rank_id, LeftClosedRange> &intervals_to_send_per_rank,
+            const Intercommunicator &intercomm) -> ReceiveCommunicationPackage<std::byte> {
+        const auto &intervals_to_receive_per_rank_without_serialization = package.data_assignments;
 
         auto sending_data_to_final_comm = std::vector<int>{};
         auto num_bytes_to_send_per_rank = std::vector<int>{};
 
-        for (const auto &block: grouped_blocks_to_send) {
-            sending_data_to_final_comm.push_back(block.get_owner());
-            num_bytes_to_send_per_rank.push_back(block.get_interval().get_length());
+        for (const auto &[rank, interval]: intervals_to_send_per_rank) {
+            sending_data_to_final_comm.push_back(rank);
+            num_bytes_to_send_per_rank.push_back(interval.get_length());
         }
 
         auto receiving_data_from_initial_comm = std::vector<int>{};
 
-        for (const auto &block: grouped_blocks_to_receive_after_deserialization) {
-            receiving_data_from_initial_comm.push_back(block.get_owner());
+        for (const auto &rank:
+             intervals_to_receive_per_rank_without_serialization | std::views::keys) {
+            receiving_data_from_initial_comm.push_back(rank);
         }
 
         auto num_bytes_to_receive_per_rank =
@@ -234,30 +232,23 @@ namespace reshuffle::internal {
         MPI_Waitall(static_cast<int>(send_size_requests.size()), send_size_requests.data(),
                     MPI_STATUSES_IGNORE);
 
-        auto grouped_blocks_to_receive = std::vector<Block>{};
+        auto intervals_to_receive_per_rank = std::map<rank_id, LeftClosedRange>{};
 
-        if (not num_bytes_to_receive_per_rank.empty()) {
-            grouped_blocks_to_receive.emplace_back(Block{{0, num_bytes_to_receive_per_rank[0]},
-                                                         receiving_data_from_initial_comm[0]});
+        auto old_size = 0;
+        auto total_bytes = 0;
+        for (int i = 0; i < num_bytes_to_receive_per_rank.size(); i++) {
+            const auto num_bytes_to_receive = num_bytes_to_receive_per_rank[i];
+            const auto rank = receiving_data_from_initial_comm[i];
+            total_bytes = old_size + num_bytes_to_receive;
+            const auto data_interval = LeftClosedRange{old_size, total_bytes};
+            intervals_to_receive_per_rank.emplace(rank, data_interval);
 
-            for (int i = 1; i < num_bytes_to_receive_per_rank.size(); i++) {
-                const auto num_bytes_to_receive = num_bytes_to_receive_per_rank[i];
-                const auto rank_id_source_initial_comm = receiving_data_from_initial_comm[i];
-                const auto &last_block = grouped_blocks_to_receive.back();
-                grouped_blocks_to_receive.emplace_back(
-                        Block{{last_block.get_interval().get_right_bound(),
-                               last_block.get_interval().get_right_bound() + num_bytes_to_receive},
-                              rank_id_source_initial_comm});
-            }
+            old_size = total_bytes;
         }
 
+        const auto receive_buffer = std::vector<std::byte>(total_bytes);
 
-        const auto total_num_bytes = std::accumulate(num_bytes_to_receive_per_rank.begin(),
-                                                     num_bytes_to_receive_per_rank.end(), 0);
-
-        const auto receive_buffer = std::vector<std::byte>(total_num_bytes);
-
-        return {receive_buffer, grouped_blocks_to_receive};
+        return {receive_buffer, intervals_to_receive_per_rank};
     }
 
 
@@ -276,11 +267,10 @@ namespace reshuffle::internal {
 
         const auto dimensions = get_dimensions(blocks_to_receive);
 
-        // TODO: See if I can omit this by making get_send_receive_package return MultidimensionalBlocks
         const auto multidimensional_blocks_to_send = get_cartesian_product(blocks_to_send);
         const auto multidimensional_blocks_to_receive = get_cartesian_product(blocks_to_receive);
 
-        const auto [send_buffer, grouped_blocks_to_send] =
+        const auto [send_buffer, intervals_to_send_per_rank] =
                 get_send_package(local_values, multidimensional_blocks_to_send,
                                  final_processor_grid)
                         .as_bytes();
@@ -288,12 +278,13 @@ namespace reshuffle::internal {
         const auto receive_package = get_receive_package<T, N>(multidimensional_blocks_to_receive,
                                                                initial_processor_grid);
 
-        auto [receive_buffer, grouped_blocks_to_receive] = get_serialized_receive_comm_package(
-                receive_package, grouped_blocks_to_send, intercomm);
+        auto [receive_buffer, intervals_to_receive_per_rank] = get_serialized_receive_comm_package(
+                receive_package, intervals_to_send_per_rank, intercomm);
 
-        auto send_requests = async_send(std::span{send_buffer}, grouped_blocks_to_send, intercomm);
+        auto send_requests =
+                async_send(std::span{send_buffer}, intervals_to_send_per_rank, intercomm);
         auto receive_requests =
-                async_receive(std::span{receive_buffer}, grouped_blocks_to_receive, intercomm);
+                async_receive(std::span{receive_buffer}, intervals_to_receive_per_rank, intercomm);
 
         const auto num_ranks_to_receive = static_cast<int>(receive_requests.size());
 
@@ -303,10 +294,9 @@ namespace reshuffle::internal {
             auto source{MPI_PROC_NULL};
 
             MPI_Waitany(num_ranks_to_receive, receive_requests.data(), &source, MPI_STATUS_IGNORE);
-            // TODO: Fix, might break. Change for a std::map once test passes
-            const auto &received_block = grouped_blocks_to_receive[source];
-            const auto message_starts = received_block.get_interval().get_left_bound();
-            const auto num_values = static_cast<size_t>(received_block.get_interval().get_length());
+            const auto &received_interval = intervals_to_receive_per_rank.at(source);
+            const auto message_starts = received_interval.get_left_bound();
+            const auto num_values = static_cast<size_t>(received_interval.get_length());
 
             auto blocks_from_source =
                     multidimensional_blocks_to_receive |
@@ -330,7 +320,6 @@ namespace reshuffle::internal {
         }
 
         MPI_Waitall(send_requests.size(), send_requests.data(), MPI_STATUSES_IGNORE);
-        // TODO: Deserialize
         return {new_local_values, dimensions};
     }
 }// namespace reshuffle::internal

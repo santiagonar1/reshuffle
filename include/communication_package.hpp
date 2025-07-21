@@ -15,7 +15,7 @@ namespace reshuffle::internal {
     template<typename T>
     struct SendCommunicationPackage {
         std::vector<T> buffer;
-        std::vector<Block> data_assignments;
+        std::map<rank_id, LeftClosedRange> data_assignments;
 
         [[nodiscard]] auto as_bytes() const -> SendCommunicationPackage<std::byte>;
     };
@@ -23,39 +23,43 @@ namespace reshuffle::internal {
     template<typename T>
     struct ReceiveCommunicationPackage {
         std::vector<T> buffer;
-        std::vector<Block> data_assignments;
+        std::map<rank_id, LeftClosedRange> data_assignments;
     };
 
     template<typename T>
     auto SendCommunicationPackage<T>::as_bytes() const -> SendCommunicationPackage<std::byte> {
-        if (buffer.empty()) { return {std::vector<std::byte>{}, std::vector<Block>{}}; }
-
-        auto grouped_blocks = std::vector<Block>{};
-        auto serialized_buffer = std::vector<std::byte>{};
-        const auto first_block = data_assignments[0];
-        const auto first_bytes = serialize(std::span{
-                buffer.data(), static_cast<size_t>(first_block.get_interval().get_length())});
-        grouped_blocks.emplace_back(
-                Block{{0, static_cast<int>(first_bytes.size())}, first_block.get_owner()});
-        std::ranges::copy(first_bytes, std::back_inserter(serialized_buffer));
-
-        for (const auto &block: data_assignments | std::views::drop(1)) {
-            const auto bytes =
-                    serialize(std::span{buffer.data() + block.get_interval().get_left_bound(),
-                                        static_cast<size_t>(block.get_interval().get_length())});
-            std::ranges::copy(bytes, std::back_inserter(serialized_buffer));
-
-            const auto last_inserted_block = grouped_blocks.back();
-            const auto num_elements = static_cast<int>(bytes.size());
-            const auto rank = block.get_owner();
-
-            grouped_blocks.emplace_back(
-                    Block{{last_inserted_block.get_interval().get_right_bound(),
-                           last_inserted_block.get_interval().get_right_bound() + num_elements},
-                          rank});
+        if (buffer.empty()) {
+            return {std::vector<std::byte>{}, std::map<rank_id, LeftClosedRange>{}};
         }
 
-        return {serialized_buffer, grouped_blocks};
+        auto new_data_assignments = std::map<rank_id, LeftClosedRange>{};
+        auto serialized_buffer = std::vector<std::byte>{};
+
+        // I need to order the map by interval to make sure that the data is packed in the same order
+        // as in the original buffer. This is because I do not have an easy way to find beforehand
+        // how much space each range will occupy once serialized
+        auto data_assignments_ordered_by_interval =
+                std::vector<std::pair<rank_id, LeftClosedRange>>{data_assignments.begin(),
+                                                                 data_assignments.end()};
+        std::ranges::sort(data_assignments_ordered_by_interval,
+                          [](const auto &a, const auto &b) { return a.second < b.second; });
+
+        auto old_size = 0;
+        for (const auto &[rank, interval]: data_assignments_ordered_by_interval) {
+            const auto bytes = serialize(std::span{buffer.data() + interval.get_left_bound(),
+                                                   static_cast<size_t>(interval.get_length())});
+            std::ranges::copy(bytes, std::back_inserter(serialized_buffer));
+
+            const auto size = static_cast<int>(serialized_buffer.size());
+            const auto data_interval = LeftClosedRange{old_size, size};
+
+            new_data_assignments.emplace(rank, data_interval);
+
+            old_size = size;
+        }
+
+
+        return {serialized_buffer, new_data_assignments};
     }
 
 
@@ -68,7 +72,9 @@ namespace reshuffle::internal {
             -> SendCommunicationPackage<T> {
         PROFILE_SCOPE_NAMED("get_send_package");
 
-        if (send_blocks.empty()) { return {std::vector<T>{}, std::vector<Block>{}}; }
+        if (send_blocks.empty()) {
+            return {std::vector<T>{}, std::map<rank_id, LeftClosedRange>{}};
+        }
 
         auto send_buffer = std::vector<T>(local_data.size());
 
@@ -91,7 +97,12 @@ namespace reshuffle::internal {
             num_elements_packed_per_process[destiny] += block_data.size();
         }
 
-        return {send_buffer, send_blocks_grouped_by_owner};
+        std::map<rank_id, LeftClosedRange> data_assignments{};
+        for (const auto &block: send_blocks_grouped_by_owner) {
+            data_assignments.emplace(block.get_owner(), block.get_interval());
+        }
+
+        return {send_buffer, data_assignments};
     }
 
     template<typename T, std::size_t N>
@@ -100,7 +111,9 @@ namespace reshuffle::internal {
             -> ReceiveCommunicationPackage<T> {
         PROFILE_SCOPE_NAMED("get_receive_package");
 
-        if (blocks_to_receive.empty()) { return {std::vector<T>{}, std::vector<Block>{}}; }
+        if (blocks_to_receive.empty()) {
+            return {std::vector<T>{}, std::map<rank_id, LeftClosedRange>{}};
+        }
 
         const auto num_elements = get_num_elements(blocks_to_receive);
         auto receive_buffer = std::vector<T>(num_elements);
@@ -108,7 +121,12 @@ namespace reshuffle::internal {
         const auto blocks_to_receive_grouped_by_owner =
                 group_by_processor(blocks_to_receive, initial_processor_grid);
 
-        return {receive_buffer, blocks_to_receive_grouped_by_owner};
+        std::map<rank_id, LeftClosedRange> data_assignments{};
+        for (const auto &block: blocks_to_receive_grouped_by_owner) {
+            data_assignments.emplace(block.get_owner(), block.get_interval());
+        }
+
+        return {receive_buffer, data_assignments};
     }
 
 }// namespace reshuffle::internal
