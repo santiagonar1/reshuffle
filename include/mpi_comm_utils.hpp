@@ -135,6 +135,60 @@ namespace reshuffle::internal {
         return dimensions;
     }
 
+    template<typename T>
+    auto get_serialized_receive_comm_package(
+            const ReceiveCommunicationPackage<T> &package,
+            const std::map<rank_id, LeftClosedRange> &intervals_to_send_per_rank,
+            const Intercommunicator &intercomm) -> ReceiveCommunicationPackage<std::byte> {
+        const auto &intervals_to_receive_per_rank_without_serialization = package.data_assignments;
+
+        auto sending_data_to_final_comm = std::vector<int>{};
+        auto num_bytes_to_send_per_rank = std::vector<int>{};
+
+        for (const auto &[rank, interval]: intervals_to_send_per_rank) {
+            sending_data_to_final_comm.push_back(rank);
+            num_bytes_to_send_per_rank.push_back(interval.get_length());
+        }
+
+        auto receiving_data_from_initial_comm = std::vector<int>{};
+
+        for (const auto &rank:
+             intervals_to_receive_per_rank_without_serialization | std::views::keys) {
+            receiving_data_from_initial_comm.push_back(rank);
+        }
+
+        auto num_bytes_to_receive_per_rank =
+                std::vector<int>(receiving_data_from_initial_comm.size());
+
+        auto send_size_requests = async_send(std::span{num_bytes_to_send_per_rank},
+                                             sending_data_to_final_comm, intercomm);
+        auto receive_size_requests = async_receive(std::span{num_bytes_to_receive_per_rank},
+                                                   receiving_data_from_initial_comm, intercomm);
+
+        MPI_Waitall(static_cast<int>(receive_size_requests.size()), receive_size_requests.data(),
+                    MPI_STATUSES_IGNORE);
+        MPI_Waitall(static_cast<int>(send_size_requests.size()), send_size_requests.data(),
+                    MPI_STATUSES_IGNORE);
+
+        auto intervals_to_receive_per_rank = std::map<rank_id, LeftClosedRange>{};
+
+        auto old_size = 0;
+        auto total_bytes = 0;
+        for (int i = 0; i < num_bytes_to_receive_per_rank.size(); i++) {
+            const auto num_bytes_to_receive = num_bytes_to_receive_per_rank[i];
+            const auto rank = receiving_data_from_initial_comm[i];
+            total_bytes = old_size + num_bytes_to_receive;
+            const auto data_interval = LeftClosedRange{old_size, total_bytes};
+            intervals_to_receive_per_rank.emplace(rank, data_interval);
+
+            old_size = total_bytes;
+        }
+
+        const auto receive_buffer = std::vector<std::byte>(total_bytes);
+
+        return {receive_buffer, intervals_to_receive_per_rank};
+    }
+
     template<concepts::FundamentalType T, typename Extents>
     auto exchange_values(std::mdspan<const T, Extents> local_values,
                          const std::array<std::vector<Block>, Extents::rank()> &blocks_to_send,
@@ -196,61 +250,6 @@ namespace reshuffle::internal {
 
         return {new_local_values, dimensions};
     }
-
-    template<typename T>
-    auto get_serialized_receive_comm_package(
-            const ReceiveCommunicationPackage<T> &package,
-            const std::map<rank_id, LeftClosedRange> &intervals_to_send_per_rank,
-            const Intercommunicator &intercomm) -> ReceiveCommunicationPackage<std::byte> {
-        const auto &intervals_to_receive_per_rank_without_serialization = package.data_assignments;
-
-        auto sending_data_to_final_comm = std::vector<int>{};
-        auto num_bytes_to_send_per_rank = std::vector<int>{};
-
-        for (const auto &[rank, interval]: intervals_to_send_per_rank) {
-            sending_data_to_final_comm.push_back(rank);
-            num_bytes_to_send_per_rank.push_back(interval.get_length());
-        }
-
-        auto receiving_data_from_initial_comm = std::vector<int>{};
-
-        for (const auto &rank:
-             intervals_to_receive_per_rank_without_serialization | std::views::keys) {
-            receiving_data_from_initial_comm.push_back(rank);
-        }
-
-        auto num_bytes_to_receive_per_rank =
-                std::vector<int>(receiving_data_from_initial_comm.size());
-
-        auto send_size_requests = async_send(std::span{num_bytes_to_send_per_rank},
-                                             sending_data_to_final_comm, intercomm);
-        auto receive_size_requests = async_receive(std::span{num_bytes_to_receive_per_rank},
-                                                   receiving_data_from_initial_comm, intercomm);
-
-        MPI_Waitall(static_cast<int>(receive_size_requests.size()), receive_size_requests.data(),
-                    MPI_STATUSES_IGNORE);
-        MPI_Waitall(static_cast<int>(send_size_requests.size()), send_size_requests.data(),
-                    MPI_STATUSES_IGNORE);
-
-        auto intervals_to_receive_per_rank = std::map<rank_id, LeftClosedRange>{};
-
-        auto old_size = 0;
-        auto total_bytes = 0;
-        for (int i = 0; i < num_bytes_to_receive_per_rank.size(); i++) {
-            const auto num_bytes_to_receive = num_bytes_to_receive_per_rank[i];
-            const auto rank = receiving_data_from_initial_comm[i];
-            total_bytes = old_size + num_bytes_to_receive;
-            const auto data_interval = LeftClosedRange{old_size, total_bytes};
-            intervals_to_receive_per_rank.emplace(rank, data_interval);
-
-            old_size = total_bytes;
-        }
-
-        const auto receive_buffer = std::vector<std::byte>(total_bytes);
-
-        return {receive_buffer, intervals_to_receive_per_rank};
-    }
-
 
     template<concepts::NeedsSerialization T, typename Extents>
         requires concepts::Serializable<T>
