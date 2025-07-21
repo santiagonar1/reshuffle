@@ -200,39 +200,6 @@ namespace reshuffle::internal {
         return {new_local_values, dimensions};
     }
 
-    template<typename T>
-    auto serialize_communication_package(const CommunicationPackage<T> &package)
-            -> CommunicationPackage<std::byte> {
-        if (package.buffer.empty()) { return {std::vector<std::byte>{}, std::vector<Block>{}}; }
-
-        auto grouped_blocks_to_send = std::vector<Block>{};
-        auto send_buffer = std::vector<std::byte>{};
-        const auto first_block = package.data_assignments[0];
-        const auto first_bytes =
-                serialize(std::span{package.buffer.data(),
-                                    static_cast<size_t>(first_block.get_interval().get_length())});
-        grouped_blocks_to_send.emplace_back(
-                Block{{0, static_cast<int>(first_bytes.size())}, first_block.get_owner()});
-        std::ranges::copy(first_bytes, std::back_inserter(send_buffer));
-
-        for (const auto &block: package.data_assignments | std::views::drop(1)) {
-            const auto bytes = serialize(
-                    std::span{package.buffer.data() + block.get_interval().get_left_bound(),
-                              static_cast<size_t>(block.get_interval().get_length())});
-            std::ranges::copy(bytes, std::back_inserter(send_buffer));
-
-            const auto last_inserted_block = grouped_blocks_to_send.back();
-            const auto num_elements = static_cast<int>(bytes.size());
-            const auto rank = block.get_owner();
-
-            grouped_blocks_to_send.emplace_back(
-                    Block{{last_inserted_block.get_interval().get_right_bound(),
-                           last_inserted_block.get_interval().get_right_bound() + num_elements},
-                          rank});
-        }
-
-        return {send_buffer, grouped_blocks_to_send};
-    }
 
     template<concepts::NeedsSerialization T, typename Extents>
         requires concepts::Serializable<T>
@@ -254,8 +221,9 @@ namespace reshuffle::internal {
         const auto multidimensional_blocks_to_receive = get_cartesian_product(blocks_to_receive);
 
         const auto [send_buffer, grouped_blocks_to_send] =
-                serialize_communication_package(get_send_package(
-                        local_values, multidimensional_blocks_to_send, final_processor_grid));
+                get_send_package(local_values, multidimensional_blocks_to_send,
+                                 final_processor_grid)
+                        .as_bytes();
 
         auto [receive_buffer_after_deserialization,
               grouped_blocks_to_receive_after_deserialization] =

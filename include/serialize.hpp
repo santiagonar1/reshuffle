@@ -29,6 +29,15 @@ namespace reshuffle::internal {
         return bytes;
     }
 
+
+    // We define it this way to make sure we never call this with something that does not
+    // require serialization (e.g., an integer), as this operation has an overhead
+    template<concepts::NeedsSerialization T>
+        requires concepts::Serializable<T>
+    auto serialize(std::span<T> values) -> std::vector<std::byte> {
+        return serialize(std::span<const T>(values));
+    }
+
     // We define it this way to make sure we never call this with something that does not
     // require serialization (e.g., an integer), as this operation has an overhead
     template<concepts::NeedsSerialization T>
