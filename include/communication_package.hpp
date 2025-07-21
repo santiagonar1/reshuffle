@@ -13,15 +13,21 @@
 
 namespace reshuffle::internal {
     template<typename T>
-    struct CommunicationPackage {
+    struct SendCommunicationPackage {
         std::vector<T> buffer;
         std::vector<Block> data_assignments;
 
-        [[nodiscard]] auto as_bytes() -> CommunicationPackage<std::byte>;
+        [[nodiscard]] auto as_bytes() -> SendCommunicationPackage<std::byte>;
     };
 
     template<typename T>
-    auto CommunicationPackage<T>::as_bytes() -> CommunicationPackage<std::byte> {
+    struct ReceiveCommunicationPackage {
+        std::vector<T> buffer;
+        std::vector<Block> data_assignments;
+    };
+
+    template<typename T>
+    auto SendCommunicationPackage<T>::as_bytes() -> SendCommunicationPackage<std::byte> {
         if (buffer.empty()) { return {std::vector<std::byte>{}, std::vector<Block>{}}; }
 
         auto grouped_blocks = std::vector<Block>{};
@@ -59,7 +65,7 @@ namespace reshuffle::internal {
     auto get_send_package(std::mdspan<const T, Extents> local_data,
                           const std::vector<MultidimensionalBlock<Extents::rank()>> &send_blocks,
                           const ProcessorGrid<Extents::rank()> &final_processor_grid)
-            -> CommunicationPackage<T> {
+            -> SendCommunicationPackage<T> {
         PROFILE_SCOPE_NAMED("get_send_package");
 
         if (send_blocks.empty()) { return {std::vector<T>{}, std::vector<Block>{}}; }
@@ -91,7 +97,7 @@ namespace reshuffle::internal {
     template<typename T, std::size_t N>
     auto get_receive_package(const std::vector<MultidimensionalBlock<N>> &blocks_to_receive,
                              const ProcessorGrid<N> &initial_processor_grid)
-            -> CommunicationPackage<T> {
+            -> ReceiveCommunicationPackage<T> {
         PROFILE_SCOPE_NAMED("get_receive_package");
 
         if (blocks_to_receive.empty()) { return {std::vector<T>{}, std::vector<Block>{}}; }
