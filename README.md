@@ -76,7 +76,7 @@ find_package(reshuffle CONFIG REQUIRED)
 target_link_libraries(exec.out PRIVATE reshuffle::reshuffle)
 ```
 
-Finally, when you configure your external application remember to include the path to `reshuffle`:
+When you configure your external application remember to include the path to `reshuffle`:
 
 ```shell
 cmake -DCMAKE_PREFIX_PATH=/path/to/reshuffle/install
@@ -89,6 +89,8 @@ You should be able to include and use `reshuffle` in your project as:
 ```
 
 You can find an example of how this is done in [our demo](https://gitlab.lrz.de/reshuffle/demo).
+
+You should have access to both MPI and zpp_bits in the project you are linking reshuffle with.
 
 ### Docker
 
