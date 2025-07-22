@@ -55,6 +55,11 @@ struct AggregateData {
     bool operator==(const AggregateData &) const = default;
 };
 
+std::ostream &operator<<(std::ostream &os, const AggregateData &data) {
+    return os << "AggregateData{_dummy_string: " << data._dummy_string
+              << ", _dummy_int: " << data._dummy_int << "}";
+}
+
 [[nodiscard]] auto create_communicator(const CommSelector &comm_selector) -> MPI_Comm;
 [[nodiscard]] auto create_context(const DataLocationSelector &data_location,
                                   const CommSelector &comm_selector, int num_global_values)
@@ -103,6 +108,12 @@ TEST(Shuffle, CanShuffleCustomDatatypes) {
     const auto new_values =
             shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context)
                     .first;
+
+    if (is_root(MPI_COMM_WORLD)) {
+        EXPECT_THAT(new_values, Eq(std::vector{AggregateData{"one", 1}}));
+    } else {
+        EXPECT_THAT(new_values, Eq(std::vector{AggregateData{"two", 2}}));
+    }
 }
 
 TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplit) {
