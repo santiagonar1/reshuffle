@@ -60,6 +60,32 @@ std::ostream &operator<<(std::ostream &os, const AggregateData &data) {
               << ", _dummy_int: " << data._dummy_int << "}";
 }
 
+struct Base {
+    Base() = default;
+    explicit Base(const int id) : id_base(id) { /*...*/ }// Make non-aggregate.
+    int id_base{};
+};
+
+struct Derived : Base {
+    Derived() = default;
+    explicit Derived(const int id_base, const int id)
+        : Base(id_base), id_derived(id) { /*...*/ }// Make non-aggregate.
+
+    static constexpr auto serialize(auto &archive, Derived &d) {
+        return archive(d.id_base, d.id_derived);
+    }
+
+    static constexpr auto serialize(auto &archive, const Derived &d) {
+        return archive(d.id_base, d.id_derived);
+    }
+
+    bool operator==(const Derived &other) const {
+        return id_base == other.id_base and id_derived == other.id_derived;
+    }
+
+    int id_derived{};
+};
+
 [[nodiscard]] auto create_communicator(const CommSelector &comm_selector) -> MPI_Comm;
 [[nodiscard]] auto create_context(const DataLocationSelector &data_location,
                                   const CommSelector &comm_selector, int num_global_values)
@@ -113,6 +139,28 @@ TEST(Shuffle, CanShuffleCustomDatatypes) {
         EXPECT_THAT(new_values, Eq(std::vector{AggregateData{"one", 1}}));
     } else {
         EXPECT_THAT(new_values, Eq(std::vector{AggregateData{"two", 2}}));
+    }
+}
+
+TEST(Shuffle, CanShuffleComplexCustomDatatypes) {
+    constexpr auto num_global_values = 2;
+
+    const auto values = is_root(MPI_COMM_WORLD) ? std::vector{Derived{0, 1}, Derived{2, 3}}
+                                                : std::vector<Derived>();
+
+    const auto initial_context = create_context(DataLocationSelector::ONLY_RANK_0,
+                                                CommSelector::ALL_RANKS, num_global_values);
+    const auto final_context = create_context(DataLocationSelector::ALL_RANKS,
+                                              CommSelector::ALL_RANKS, num_global_values);
+
+    const auto new_values =
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context)
+                    .first;
+
+    if (is_root(MPI_COMM_WORLD)) {
+        EXPECT_THAT(new_values, Eq(std::vector{Derived{0, 1}}));
+    } else {
+        EXPECT_THAT(new_values, Eq(std::vector{Derived{2, 3}}));
     }
 }
 
