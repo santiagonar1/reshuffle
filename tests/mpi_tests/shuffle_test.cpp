@@ -3,7 +3,9 @@
 
 #include <shuffle.hpp>
 
+#include "aggregate_data.hpp"
 #include "autopas_particle.hpp"
+#include "complex_data.hpp"
 
 using namespace reshuffle;
 using namespace reshuffle::mpi;
@@ -48,44 +50,6 @@ enum class DataLocationSelector {
     ONLY_RANK_0,
     ONLY_RANK_1,
     ALL_RANKS,
-};
-
-struct AggregateData {
-    std::string _dummy_string{};
-    int _dummy_int{};
-
-    bool operator==(const AggregateData &) const = default;
-};
-
-std::ostream &operator<<(std::ostream &os, const AggregateData &data) {
-    return os << "AggregateData{_dummy_string: " << data._dummy_string
-              << ", _dummy_int: " << data._dummy_int << "}";
-}
-
-struct Base {
-    Base() = default;
-    explicit Base(const int id) : id_base(id) { /*...*/ }// Make non-aggregate.
-    int id_base{};
-};
-
-struct Derived : Base {
-    Derived() = default;
-    explicit Derived(const int id_base, const int id)
-        : Base(id_base), id_derived(id) { /*...*/ }// Make non-aggregate.
-
-    static constexpr auto serialize(auto &archive, Derived &d) {
-        return archive(d.id_base, d.id_derived);
-    }
-
-    static constexpr auto serialize(auto &archive, const Derived &d) {
-        return archive(d.id_base, d.id_derived);
-    }
-
-    bool operator==(const Derived &other) const {
-        return id_base == other.id_base and id_derived == other.id_derived;
-    }
-
-    int id_derived{};
 };
 
 [[nodiscard]] auto create_communicator(const CommSelector &comm_selector) -> MPI_Comm;
