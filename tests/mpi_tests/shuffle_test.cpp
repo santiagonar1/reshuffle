@@ -3,6 +3,8 @@
 
 #include <shuffle.hpp>
 
+#include "autopas_particle.hpp"
+
 using namespace reshuffle;
 using namespace reshuffle::mpi;
 
@@ -161,6 +163,32 @@ TEST(Shuffle, CanShuffleComplexCustomDatatypes) {
         EXPECT_THAT(new_values, Eq(std::vector{Derived{0, 1}}));
     } else {
         EXPECT_THAT(new_values, Eq(std::vector{Derived{2, 3}}));
+    }
+}
+
+TEST(Shuffle, CanShuffleAutoPasParticles) {
+    constexpr auto num_global_values = 2;
+
+    const auto particle_to_rank_0 = MoleculeLJ{{0, 1, 2}, {3, 4, 5}, 6, 7};
+    const auto particle_to_rank_1 = MoleculeLJ{{8, 9, 10}, {11, 12, 13}, 14, 15};
+
+    const auto values = is_root(MPI_COMM_WORLD)
+                                ? std::vector{particle_to_rank_0, particle_to_rank_1}
+                                : std::vector<MoleculeLJ>();
+
+    const auto initial_context = create_context(DataLocationSelector::ONLY_RANK_0,
+                                                CommSelector::ALL_RANKS, num_global_values);
+    const auto final_context = create_context(DataLocationSelector::ALL_RANKS,
+                                              CommSelector::ALL_RANKS, num_global_values);
+
+    const auto new_values =
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context)
+                    .first;
+
+    if (is_root(MPI_COMM_WORLD)) {
+        EXPECT_THAT(new_values, Eq(std::vector{particle_to_rank_0}));
+    } else {
+        EXPECT_THAT(new_values, Eq(std::vector{particle_to_rank_1}));
     }
 }
 
