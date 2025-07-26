@@ -45,12 +45,18 @@ namespace reshuffle::mpi {
     auto get_sub_comm(MPI_Comm base_comm, const std::vector<rank_id> &ranks) -> MPI_Comm {
         const auto base_group = get_group(base_comm).value();
         MPI_Group sub_group;
+
+        //extract sub-MPI_Group from base_group
         MPI_Group_incl(base_group, static_cast<int>(ranks.size()), ranks.data(), &sub_group);
 
         auto sub_comm{MPI_COMM_NULL};
 
         MPI_Comm_create_group(base_comm, sub_group, 1, &sub_comm);
-        MPI_Comm_create(base_comm, sub_group, &sub_comm);
+        /*
+         * TODO check if this line is required. It incorporates all ranks from base comm, but hands
+         *      MPI_COMM_NULL to the ranks not in the subgroup. Should be redundant
+         */
+        // MPI_Comm_create(base_comm, sub_group, &sub_comm);
         return sub_comm;
     }
 
@@ -103,6 +109,12 @@ namespace reshuffle::mpi {
 
         return is_sub_comm;
     }
+    ContiguousDatatype::ContiguousDatatype(MPI_Datatype base_datatype,
+                                           const int num_consecutive_elements) {
+        _datatype = get_contiguous_datatype(base_datatype, num_consecutive_elements);
+    }
+    ContiguousDatatype::~ContiguousDatatype() { MPI_Type_free(&_datatype); }
+    ContiguousDatatype::operator MPI_Datatype() const { return _datatype; }
 
     auto get_contiguous_datatype(MPI_Datatype base_datatype, const int num_consecutive_elements)
             -> MPI_Datatype {

@@ -48,6 +48,15 @@ namespace reshuffle::mpi {
 
     [[nodiscard]] auto is_sub_comm(MPI_Comm comm, MPI_Comm possible_sub_comm) -> bool;
 
+    class ContiguousDatatype {
+        MPI_Datatype _datatype{};
+
+    public:
+        ContiguousDatatype(MPI_Datatype base_datatype, int num_consecutive_elements);
+        ~ContiguousDatatype();
+        operator MPI_Datatype() const;
+    };
+
     [[nodiscard]] auto get_contiguous_datatype(MPI_Datatype base_datatype,
                                                int num_consecutive_elements) -> MPI_Datatype;
 }// namespace reshuffle::mpi

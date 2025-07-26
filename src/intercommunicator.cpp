@@ -13,9 +13,11 @@ namespace reshuffle::internal {
                                  " to be a sub_communicator");
     }
 
+    //Intercommunicator enables communication between ranks with different MPI_Comm
     Intercommunicator::Intercommunicator(const MPI_Comm initial_comm, const MPI_Comm final_comm)
         : _intercommunicator{create_intercommunicator(initial_comm, final_comm)},
           _initial_comm{initial_comm}, _final_comm{final_comm} {
+        //gets the rank in the MPI_Comm that is NOT the sub communicator
         const auto rank_intercomm = mpi::get_rank_id(_intercommunicator);
 
         auto rank_first_comm{INVALID_RANK_ID};
@@ -30,7 +32,12 @@ namespace reshuffle::internal {
         auto info_rank = std::array{rank_first_comm, rank_second_comm, rank_intercomm};
         const auto num_ranks = mpi::get_num_ranks(_intercommunicator);
 
-        auto info_rank_datatype = mpi::get_contiguous_datatype(MPI_INT, info_rank.size());
+        /*
+         *TODO  check if the ContiguousDatatype RAII Wrapper is the better performing option
+         *      dont forget to uncomment MPI_Type_free if change reversed
+         */
+        //auto info_rank_datatype = mpi::get_contiguous_datatype(MPI_INT, info_rank.size());
+        mpi::ContiguousDatatype info_rank_datatype(MPI_INT, info_rank.size());
         auto info_all_ranks = std::vector<std::array<int, 3>>(num_ranks);
 
         MPI_Allgather(info_rank.data(), 1, info_rank_datatype, info_all_ranks.data(), 1,
@@ -48,7 +55,7 @@ namespace reshuffle::internal {
             }
         }
 
-        MPI_Type_free(&info_rank_datatype);
+        //MPI_Type_free(&info_rank_datatype);
     }
 
     auto Intercommunicator::get_intercommunicator() const -> MPI_Comm { return _intercommunicator; }
