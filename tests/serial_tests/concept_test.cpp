@@ -4,6 +4,7 @@
 #include <concepts.hpp>
 
 #include "aggregate_data.hpp"
+#include "fixed_size_data.hpp"
 #include "non_aggregate_data.hpp"
 
 using namespace reshuffle::concepts;
@@ -51,4 +52,13 @@ TEST(ABasicDatatype, IsAFundamentalType) {
 
 TEST(ABasicDataType, DoesNotRequireSerialization) {
     static_assert(!NeedsSerialization<int>, "A basic datatype does not require serialization");
+}
+
+TEST(FixedSizedData, CanBeMarkedAsSo) {
+    static_assert(FixedSizeSerializable<FixedSizeData>, "A FixedSizeData must be fixed size");
+}
+
+TEST(AClassNotMarkedAsFixedZise, IsNotFixedSized) {
+    static_assert(!FixedSizeSerializable<AggregateData>,
+                  "A class not marked as fixed size is not fixed size");
 }
