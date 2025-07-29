@@ -1,7 +1,9 @@
 #ifndef CARTESIAN_PRODUCT_HPP
 #define CARTESIAN_PRODUCT_HPP
 
+#include <array>
 #include <ranges>
+#include <vector>
 
 #include "profiler.hpp"
 
