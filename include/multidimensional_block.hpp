@@ -10,7 +10,7 @@ namespace reshuffle::internal {
     using MultidimensionalBlock = std::array<Block, N>;
 
     template<std::size_t N>
-    auto get_owner_coordinates(const MultidimensionalBlock<N> &multidimensional_block)
+    [[nodiscard]] auto get_owner_coordinates(const MultidimensionalBlock<N> &multidimensional_block)
             -> Coordinates<N> {
         PROFILE_SCOPE_NAMED("get_owner_coordinates");
         auto owner_coordinates = Coordinates<N>{};
@@ -21,7 +21,8 @@ namespace reshuffle::internal {
     }
 
     template<std::size_t N>
-    auto get_num_elements(const MultidimensionalBlock<N> &multidimensional_block) -> int {
+    [[nodiscard]] auto get_num_elements(const MultidimensionalBlock<N> &multidimensional_block)
+            -> int {
         PROFILE_SCOPE_NAMED("get_num_elements");
         auto num_elements = 1;
         for (int i = 0; i < N; ++i) {
