@@ -30,6 +30,14 @@ namespace reshuffle::internal {
         }
         return num_elements;
     }
+
+    template<std::size_t N>
+    [[nodiscard]] auto get_num_elements(const std::vector<MultidimensionalBlock<N>> &blocks)
+            -> int {
+        return std::accumulate(blocks.cbegin(), blocks.cend(), 0, [](int sum, const auto &block) {
+            return sum + get_num_elements(block);
+        });
+    }
 }// namespace reshuffle::internal
 
 #endif//MULTIDIMENSIONAL_BLOCK_HPP
