@@ -57,7 +57,7 @@ void shuffle_from_N_to_one(benchmark::State &state) {
     }
 }
 
-void shuffle_from_one_to_N_with_distribution(benchmark::State &state) {
+void shuffle_from_one_to_N(benchmark::State &state) {
     const auto num_global_values = static_cast<int>(state.range(0));
 
     const auto num_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
@@ -169,7 +169,7 @@ constexpr auto LIMIT = 100'000;
 constexpr auto STEP = 10'000;
 
 BENCHMARK(shuffle_from_N_to_one)->UseManualTime()->DenseRange(START, LIMIT, STEP);
-BENCHMARK(shuffle_from_one_to_N_with_distribution)->UseManualTime()->DenseRange(START, LIMIT, STEP);
+BENCHMARK(shuffle_from_one_to_N)->UseManualTime()->DenseRange(START, LIMIT, STEP);
 BENCHMARK(shuffle_reduction)->UseManualTime()->DenseRange(START, LIMIT, STEP);
 BENCHMARK(shuffle_from_N_to_N_same_distribution)->UseManualTime()->DenseRange(START, LIMIT, STEP);
 BENCHMARK(shuffle_from_N_to_N)->UseManualTime()->DenseRange(START, LIMIT, STEP);
