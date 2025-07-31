@@ -48,11 +48,6 @@ namespace reshuffle::mpi {
         auto sub_comm{MPI_COMM_NULL};
 
         MPI_Comm_create_group(base_comm, sub_group, 1, &sub_comm);
-        /*
-         * TODO check if this line is required. It incorporates all ranks from base comm, but hands
-         *      MPI_COMM_NULL to the ranks not in the subgroup. Should be redundant
-         */
-        // MPI_Comm_create(base_comm, sub_group, &sub_comm);
         return sub_comm;
     }
 
