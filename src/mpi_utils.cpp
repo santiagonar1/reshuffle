@@ -44,11 +44,7 @@ namespace reshuffle::mpi {
 
     auto get_sub_comm(MPI_Comm base_comm, const std::vector<rank_id> &ranks) -> MPI_Comm {
         const auto base_group = get_group(base_comm).value();
-        MPI_Group sub_group;
-
-        //extract sub-MPI_Group from base_group
-        MPI_Group_incl(base_group, static_cast<int>(ranks.size()), ranks.data(), &sub_group);
-
+        MPI_Group sub_group = get_sub_group(base_group, ranks);
         auto sub_comm{MPI_COMM_NULL};
 
         MPI_Comm_create_group(base_comm, sub_group, 1, &sub_comm);
@@ -85,7 +81,11 @@ namespace reshuffle::mpi {
 
         return err == MPI_SUCCESS;
     }
-
+    auto get_sub_group(const MPI_Group &group, const std::vector<rank_id> &ranks) -> MPI_Group {
+        MPI_Group sub_group;
+        MPI_Group_incl(group, static_cast<int>(ranks.size()), ranks.data(), &sub_group);
+        return sub_group;
+    }
     auto is_sub_comm(MPI_Comm comm, MPI_Comm possible_sub_comm) -> bool {
         auto const group = get_group(comm);
         auto const subgroup = get_group(possible_sub_comm);
