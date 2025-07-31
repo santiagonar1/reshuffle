@@ -162,13 +162,15 @@ void shuffle_reduction(benchmark::State &state) {
     }
 }
 
-BENCHMARK(shuffle_from_N_to_one)->UseManualTime()->DenseRange(1000, 100000, 10000);
-BENCHMARK(shuffle_from_one_to_N_with_distribution)
-        ->UseManualTime()
-        ->DenseRange(1000, 100000, 10000);
-BENCHMARK(shuffle_reduction)->UseManualTime()->DenseRange(1000, 10000, 1000);
-BENCHMARK(shuffle_from_N_to_N_same_distribution)->UseManualTime()->DenseRange(1000, 100000, 10000);
-BENCHMARK(shuffle_from_N_to_N)->UseManualTime()->DenseRange(1000, 100000, 10000);
+constexpr auto START = 1'000;
+constexpr auto LIMIT = 100'000;
+constexpr auto STEP = 10'000;
+
+BENCHMARK(shuffle_from_N_to_one)->UseManualTime()->DenseRange(START, LIMIT, STEP);
+BENCHMARK(shuffle_from_one_to_N_with_distribution)->UseManualTime()->DenseRange(START, LIMIT, STEP);
+BENCHMARK(shuffle_reduction)->UseManualTime()->DenseRange(START, LIMIT, STEP);
+BENCHMARK(shuffle_from_N_to_N_same_distribution)->UseManualTime()->DenseRange(START, LIMIT, STEP);
+BENCHMARK(shuffle_from_N_to_N)->UseManualTime()->DenseRange(START, LIMIT, STEP);
 
 // This reporter does nothing.
 // We can use it to disable output from all but the root process
