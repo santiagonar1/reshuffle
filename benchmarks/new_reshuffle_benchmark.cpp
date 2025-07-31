@@ -162,7 +162,7 @@ void shuffle_reduction(benchmark::State &state) {
     }
 }
 
-// BENCHMARK(shuffle_from_N_to_one)->UseManualTime()->DenseRange(1000, 100000, 10000);
+BENCHMARK(shuffle_from_N_to_one)->UseManualTime()->DenseRange(1000, 100000, 10000);
 BENCHMARK(shuffle_from_one_to_N_with_distribution)
         ->UseManualTime()
         ->DenseRange(1000, 100000, 10000);
