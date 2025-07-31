@@ -8,7 +8,7 @@ function(compile_benchmark benchmark_name)
             PRIVATE benchmark::benchmark)
 endfunction()
 
-compile_benchmark(new_reshuffle_benchmark)
+compile_benchmark(reshuffle_benchmark)
 
 if (TEST_SCALAPACK)
     add_executable(scalapack_benchmark.out scalapack_benchmark.cpp)
