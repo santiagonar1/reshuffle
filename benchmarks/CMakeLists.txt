@@ -5,7 +5,11 @@ function(compile_benchmark benchmark_name)
     target_link_libraries(${benchmark_name}.out
             PRIVATE reshuffle
             PRIVATE MPI::MPI_CXX
-            PRIVATE benchmark::benchmark)
+            PRIVATE benchmark::benchmark
+    )
+    target_include_directories(${benchmark_name}.out
+            PRIVATE include
+    )
 endfunction()
 
 compile_benchmark(reshuffle_benchmark)
@@ -17,6 +21,9 @@ if (TEST_SCALAPACK)
             PRIVATE ScalapackLibrary
             PRIVATE benchmark::benchmark
     )
+    target_include_directories(scalapack_benchmark.out
+            PRIVATE include
+    )
 endif ()
 
 if (TEST_COSTA)
@@ -25,5 +32,8 @@ if (TEST_COSTA)
             PRIVATE MPI::MPI_CXX
             PRIVATE CostaLibrary
             PRIVATE benchmark::benchmark
+    )
+    target_include_directories(costa_benchmark.out
+            PRIVATE include
     )
 endif ()

@@ -4,6 +4,8 @@
 #include <mpi.h>
 #include <vector>
 
+#include "null_reporter.hpp"
+
 
 // ScaLAPACK/BLACS function declarations
 extern "C" {
@@ -215,16 +217,6 @@ constexpr auto STEP = 10'000;
 BENCHMARK(shuffle_from_one_to_N_with_distribution)->UseManualTime()->DenseRange(START, LIMIT, STEP);
 BENCHMARK(shuffle_from_N_to_N_same_distribution)->UseManualTime()->DenseRange(START, LIMIT, STEP);
 BENCHMARK(shuffle_from_N_to_N)->UseManualTime()->DenseRange(START, LIMIT, STEP);
-
-// This reporter does nothing.
-// We can use it to disable output from all but the root process
-class NullReporter final : public benchmark::BenchmarkReporter {
-public:
-    NullReporter() = default;
-    bool ReportContext(const Context &) override { return true; }
-    void ReportRuns(const std::vector<Run> &) override {}
-    void Finalize() override {}
-};
 
 int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
