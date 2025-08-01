@@ -33,7 +33,7 @@ namespace reshuffle::internal {
         auto info_rank = std::array{rank_first_comm, rank_second_comm, rank_intercomm};
         const auto num_ranks = mpi::get_num_ranks(_intercommunicator);
 
-        mpi::ContiguousMPIDatatype info_rank_datatype{MPI_INT, info_rank.size()};
+        const auto info_rank_datatype = mpi::ContiguousMPIDatatype{MPI_INT, info_rank.size()};
         auto info_all_ranks = std::vector<std::array<int, 3>>(num_ranks);
 
         MPI_Allgather(info_rank.data(), 1, info_rank_datatype.get_datatype(), info_all_ranks.data(),
