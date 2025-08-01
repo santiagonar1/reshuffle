@@ -46,10 +46,11 @@ namespace reshuffle::mpi {
 
     [[nodiscard]] auto belongs_to_comm(const MPI_Comm &comm) -> bool;
 
+    [[nodiscard]] auto get_sub_group(const MPI_Group &group, const std::vector<rank_id> &ranks)
+            -> MPI_Group;
+
     [[nodiscard]] auto is_sub_comm(MPI_Comm comm, MPI_Comm possible_sub_comm) -> bool;
 
-    [[nodiscard]] auto get_contiguous_datatype(MPI_Datatype base_datatype,
-                                               int num_consecutive_elements) -> MPI_Datatype;
 }// namespace reshuffle::mpi
 
 #endif//RESHUFFLE_MPI_UTILS_HPP
