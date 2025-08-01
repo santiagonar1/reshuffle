@@ -108,14 +108,3 @@ namespace reshuffle::mpi {
     }
 
 }// namespace reshuffle::mpi
-
-namespace reshuffle::internal {
-    auto get_displacements(const std::vector<int> &num_values_per_rank) -> std::vector<int> {
-        std::vector displacements(num_values_per_rank.size(), 0);
-        std::partial_sum(num_values_per_rank.begin(), num_values_per_rank.end() - 1,
-                         displacements.begin() + 1);
-
-        return displacements;
-    }
-
-}// namespace reshuffle::internal
