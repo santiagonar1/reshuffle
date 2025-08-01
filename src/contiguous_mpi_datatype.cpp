@@ -3,10 +3,11 @@
 
 namespace reshuffle::mpi {
     ContiguousMPIDatatype::ContiguousMPIDatatype(MPI_Datatype base_datatype,
-                                                 const int num_consecutive_elements) {
-        _datatype = get_contiguous_datatype(base_datatype, num_consecutive_elements);
-    }
+                                                 const int num_consecutive_elements)
+        : _datatype(get_contiguous_datatype(base_datatype, num_consecutive_elements)) {}
+
     ContiguousMPIDatatype::~ContiguousMPIDatatype() { MPI_Type_free(&_datatype); }
+
     auto ContiguousMPIDatatype::get_contiguous_datatype(MPI_Datatype base_datatype,
                                                         int num_consecutive_elements)
             -> MPI_Datatype {
