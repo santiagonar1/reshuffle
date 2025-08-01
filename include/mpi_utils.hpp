@@ -39,17 +39,17 @@ namespace reshuffle::mpi {
 
     [[nodiscard]] auto is_comm_null(const MPI_Comm &comm) -> bool;
 
-    [[nodiscard]] auto get_sub_comm(MPI_Comm base_comm, const std::vector<rank_id> &ranks)
+    [[nodiscard]] auto get_sub_comm(const MPI_Comm &base_comm, const std::vector<rank_id> &ranks)
             -> MPI_Comm;
 
-    [[nodiscard]] auto get_group(MPI_Comm comm) -> std::optional<MPI_Group>;
+    [[nodiscard]] auto get_group(const MPI_Comm &comm) -> std::optional<MPI_Group>;
 
     [[nodiscard]] auto belongs_to_comm(const MPI_Comm &comm) -> bool;
 
     [[nodiscard]] auto get_sub_group(const MPI_Group &group, const std::vector<rank_id> &ranks)
             -> MPI_Group;
 
-    [[nodiscard]] auto is_sub_comm(MPI_Comm comm, MPI_Comm possible_sub_comm) -> bool;
+    [[nodiscard]] auto is_sub_comm(const MPI_Comm &comm, const MPI_Comm &possible_sub_comm) -> bool;
 
 }// namespace reshuffle::mpi
 
