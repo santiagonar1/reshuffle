@@ -3,10 +3,6 @@
 
 #include <shuffle.hpp>
 
-using namespace reshuffle;
-using namespace reshuffle::mpi;
-
-
 [[nodiscard]] auto generate_values(int from, int to) -> std::vector<int>;
 
 class ValuesGenerator {
@@ -50,9 +46,9 @@ enum class DataLocationSelector {
 [[nodiscard]] auto create_communicator(const CommSelector &comm_selector) -> MPI_Comm;
 [[nodiscard]] auto create_context(const DataLocationSelector &data_location,
                                   const CommSelector &comm_selector, int num_global_values)
-        -> Context<1>;
+        -> reshuffle::Context<1>;
 [[nodiscard]] auto create_context(const DataLocationSelector &data_location, MPI_Comm comm,
-                                  int num_global_values) -> Context<1>;
+                                  int num_global_values) -> reshuffle::Context<1>;
 [[nodiscard]] auto is_disjoint(const DataLocationSelector &data_location,
                                const CommSelector &comm_selector) -> bool;
 [[nodiscard]] auto is_rank_with_data_outside_comm(const DataLocationSelector &data_location,
@@ -66,9 +62,9 @@ inline auto generate_values(int from, int to) -> std::vector<int> {
 inline auto create_communicator(const CommSelector &comm_selector) -> MPI_Comm {
     switch (comm_selector) {
         case CommSelector::ONLY_RANK_0:
-            return get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
+            return reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
         case CommSelector::ONLY_RANK_1:
-            return get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1));
+            return reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1));
         case CommSelector::ALL_RANKS:
             return MPI_COMM_WORLD;
         default:
@@ -78,7 +74,7 @@ inline auto create_communicator(const CommSelector &comm_selector) -> MPI_Comm {
 
 inline auto create_context(const DataLocationSelector &data_location,
                            const CommSelector &comm_selector, const int num_global_values)
-        -> Context<1> {
+        -> reshuffle::Context<1> {
     if (is_rank_with_data_outside_comm(data_location, comm_selector)) {
         throw std::runtime_error("Want to allocate data in rank outside of communicator");
     }
@@ -88,15 +84,15 @@ inline auto create_context(const DataLocationSelector &data_location,
 }
 
 inline auto create_context(const DataLocationSelector &data_location, const MPI_Comm comm,
-                           const int num_global_values) -> Context<1> {
+                           const int num_global_values) -> reshuffle::Context<1> {
     switch (data_location) {
         case DataLocationSelector::ONLY_RANK_0:
         case DataLocationSelector::ONLY_RANK_1:
-            return Context{make_block_wise_distribution({num_global_values}, ProcessorGrid<1>{{1}}),
-                           comm};
+            return reshuffle::Context{reshuffle::make_block_wise_distribution({num_global_values}, 
+                                    reshuffle::ProcessorGrid<1>{{1}}), comm};
         case DataLocationSelector::ALL_RANKS:
-            return Context{make_block_wise_distribution({num_global_values}, ProcessorGrid<1>{{2}}),
-                           comm};
+            return reshuffle::Context{reshuffle::make_block_wise_distribution({num_global_values}, 
+                                    reshuffle::ProcessorGrid<1>{{2}}), comm};
         default:
             throw std::runtime_error("Invalid DataLocationSelector");
     }
