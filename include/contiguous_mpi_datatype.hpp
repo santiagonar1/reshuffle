@@ -1,5 +1,5 @@
-#ifndef CONTIGUOUSMPIDATATYPE_HPP
-#define CONTIGUOUSMPIDATATYPE_HPP
+#ifndef CONTIGUOUS_MPI_DATATYPE_HPP
+#define CONTIGUOUS_MPI_DATATYPE_HPP
 
 #include <mpi.h>
 
@@ -23,4 +23,4 @@ namespace reshuffle::mpi {
 
 }// namespace reshuffle::mpi
 
-#endif//CONTIGUOUSMPIDATATYPE_HPP
+#endif//CONTIGUOUS_MPI_DATATYPE_HPP
