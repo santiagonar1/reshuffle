@@ -1,7 +1,5 @@
 #include "mpi_utils.hpp"
 
-#include <numeric>
-
 namespace reshuffle::mpi {
     namespace internal {
         auto enable_mpi_errors_return(MPI_Comm comm) -> MPI_Errhandler {
