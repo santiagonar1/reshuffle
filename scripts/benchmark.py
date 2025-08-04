@@ -5,11 +5,11 @@ import argparse
 from common import utils
 
 
-def plot_metrics(metrics, metric_name: str):
+def plot_metrics(metrics, metric_name: str, title: str):
     for experiment, metric_data in metrics.items():
         plt.plot(metric_data["num_elements"], metric_data[metric_name], label=f"{experiment}")
 
-    plt.title(f"{metric_name}")
+    plt.title(f"{title}")
     plt.xlabel("Number of Elements")
     plt.ylabel("Value")
     plt.legend()
@@ -53,9 +53,10 @@ def main():
 
     results = utils.load_benchmark_results(results_file, benchmark_filter)
     metrics = utils.get_metrics(results, metric_names)
+    time_unit =  results[0]["time_unit"] # Let's assume all of them have the same time unit
 
     for metric_name in metric_names:
-        plot_metrics(metrics, metric_name)
+        plot_metrics(metrics, metric_name, f"{metric_name} ({time_unit})")
 
 
 if __name__ == "__main__":

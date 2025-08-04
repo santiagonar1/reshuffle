@@ -4,12 +4,12 @@ import argparse
 from common import utils
 
 
-def plot_comparison(base_metrics, compare_metrics, metric_name: str, experiment: str):
+def plot_comparison(base_metrics, compare_metrics, metric_name: str, experiment: str, title: str = "s"):
     plt.plot(base_metrics[experiment]["num_elements"], base_metrics[experiment][metric_name], label=f"Base")
     plt.plot(compare_metrics[experiment]["num_elements"], compare_metrics[experiment][metric_name],
              label=f"Contender")
 
-    plt.title(f"{experiment} + {metric_name}")
+    plt.title(f"{title}")
     plt.xlabel("Number of Elements")
     plt.ylabel("Value")
     plt.legend()
@@ -71,9 +71,18 @@ def main():
 
     common_experiments = get_common_experiments(base_metrics, contender_metrics)
 
+    base_time_unit = base_results[0]["time_unit"]
+    contender_time_unit = contender_results[0]["time_unit"]
+
+    if base_time_unit != contender_time_unit:
+        raise ValueError("Time units of the base and contender benchmarks are different")
+
+    time_unit = base_time_unit
+
     for metric_name in metric_names:
         for experiment in common_experiments:
-            plot_comparison(base_metrics, contender_metrics, metric_name, experiment)
+            plot_comparison(base_metrics, contender_metrics, metric_name, experiment,
+                            f"{experiment} + {metric_name} ({time_unit})")
 
 
 if __name__ == "__main__":
