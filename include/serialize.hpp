@@ -2,6 +2,7 @@
 #define SERIALIZE_HPP
 
 #include "concepts.hpp"
+#include "profiler.hpp"
 
 namespace reshuffle::internal {
 
@@ -10,6 +11,8 @@ namespace reshuffle::internal {
     template<concepts::NeedsSerialization T>
         requires concepts::Serializable<T>
     auto serialize(const std::vector<T> &values) -> std::vector<std::byte> {
+        PROFILE_SCOPE_NAMED("serialize");
+
         auto [bytes, out] = zpp::bits::data_out();
 
         std::ranges::for_each(values, [&out](const auto &p) { out(p).or_throw(); });
@@ -22,6 +25,8 @@ namespace reshuffle::internal {
     template<concepts::NeedsSerialization T>
         requires concepts::Serializable<T>
     auto serialize(std::span<const T> values) -> std::vector<std::byte> {
+        PROFILE_SCOPE_NAMED("serialize");
+
         auto [bytes, out] = zpp::bits::data_out();
 
         std::ranges::for_each(values, [&out](const auto &p) { out(p).or_throw(); });
@@ -43,6 +48,8 @@ namespace reshuffle::internal {
     template<concepts::NeedsSerialization T>
         requires concepts::Serializable<T>
     auto deserialize(const std::vector<std::byte> &bytes) -> std::vector<T> {
+        PROFILE_SCOPE_NAMED("deserialize");
+
         auto values = std::vector<T>();
 
         auto in = zpp::bits::in(bytes);
@@ -60,6 +67,8 @@ namespace reshuffle::internal {
     template<concepts::NeedsSerialization T>
         requires concepts::Serializable<T>
     auto deserialize(std::span<const std::byte> bytes) -> std::vector<T> {
+        PROFILE_SCOPE_NAMED("deserialize");
+
         auto values = std::vector<T>();
 
         auto in = zpp::bits::in(bytes);
