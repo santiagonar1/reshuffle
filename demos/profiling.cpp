@@ -19,7 +19,7 @@ int main() {
     }
 
     const auto local_values = reshuffle::mpi::is_root(MPI_COMM_WORLD)
-                                      ? std::vector<SendType>(num_global_values, 2)
+                                      ? std::vector<SendType>(num_global_values)
                                       : std::vector<SendType>{};
 
     const auto initial_processor_grid = reshuffle::ProcessorGrid<1>{{1}};
