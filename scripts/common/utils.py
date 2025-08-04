@@ -2,7 +2,7 @@ import json
 import re
 
 
-def load_benchmark_results(file_name: str, benchmark_filter: str) -> [dict]:
+def load_benchmark_results(file_name: str, benchmark_filter: str) -> list[dict]:
     def benchmark_wanted(benchmark):
         if benchmark_filter is None:
             return True
@@ -14,7 +14,7 @@ def load_benchmark_results(file_name: str, benchmark_filter: str) -> [dict]:
         return list(filter(benchmark_wanted, results["benchmarks"]))
 
 
-def get_experiment_names(results) -> [str]:
+def get_experiment_names(results) -> list[str]:
     experiment_names = set()
     for result in results:
         name, _, _ = (result.get("run_name", None) or result["name"]).split("/")
