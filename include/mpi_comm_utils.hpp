@@ -60,6 +60,21 @@ namespace reshuffle::internal {
     }
 
     template<typename T, typename Extents>
+    auto process_received_blocks(std::span<const T> received_values,
+                                 std::mdspan<T, Extents> destination, auto &blocks_from_source)
+            -> void {
+        auto received_values_view = received_values;
+
+        for (const auto &block: blocks_from_source) {
+            const auto num_values_in_block = get_num_elements(block);
+
+            copy_data(received_values_view, destination, block);
+
+            received_values_view = received_values_view | std::views::drop(num_values_in_block);
+        }
+    }
+
+    template<typename T, typename Extents>
         requires concepts::FundamentalType<T> or concepts::Serializable<T>
     auto exchange_values(std::mdspan<const T, Extents> local_values,
                          const std::array<std::vector<Block>, Extents::rank()> &blocks_to_send,
@@ -111,14 +126,9 @@ namespace reshuffle::internal {
             auto received_values_view =
                     std::span{std::as_const(send_buffer).data() + send_to_myself.get_left_bound(),
                               static_cast<size_t>(send_to_myself.get_length())};
-            for (const auto &block: blocks_from_source) {
-                const auto num_values_in_block = get_num_elements(block);
-
-                copy_data(received_values_view, std::mdspan(new_local_values.data(), dimensions),
-                          block);
-
-                received_values_view = received_values_view | std::views::drop(num_values_in_block);
-            }
+            process_received_blocks(received_values_view,
+                                    std::mdspan(new_local_values.data(), dimensions),
+                                    blocks_from_source);
         }
 
 
@@ -133,14 +143,9 @@ namespace reshuffle::internal {
                     });
 
             auto received_values_view = std::span{data};
-            for (const auto &block: blocks_from_source) {
-                const auto num_values_in_block = get_num_elements(block);
-
-                copy_data(received_values_view, std::mdspan(new_local_values.data(), dimensions),
-                          block);
-
-                received_values_view = received_values_view | std::views::drop(num_values_in_block);
-            }
+            process_received_blocks(received_values_view,
+                                    std::mdspan(new_local_values.data(), dimensions),
+                                    blocks_from_source);
         }
 
         MPI_Waitall(send_requests.size(), send_requests.data(), MPI_STATUSES_IGNORE);
