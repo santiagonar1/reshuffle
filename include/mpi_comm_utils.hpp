@@ -27,39 +27,6 @@ namespace reshuffle::internal {
         return sources.size();
     }
 
-    struct ReceivedMessageInformation {
-        int source;
-        int tag;
-        int num_elements;
-    };
-
-    [[nodiscard]] auto get_num_elements(const MPI_Status &status, const MPI_Datatype &datatype)
-            -> int;
-
-    [[nodiscard]] auto block_until_message_is_received(const MPI_Datatype &datatype,
-                                                       const MPI_Comm &comm)
-            -> ReceivedMessageInformation;
-
-    template<concepts::FundamentalType T>
-    [[nodiscard]] auto async_send(std::span<T> values, const rank_id destiny, const MPI_Comm &comm)
-            -> MPI_Request {
-        auto request = MPI_Request{};
-        MPI_Isend(values.data(), values.size(), mpi::to_mpi_datatype<std::remove_cv_t<T>>(),
-                  destiny, 0, comm, &request);
-        return request;
-    }
-
-    template<concepts::NeedsSerialization T>
-        requires concepts::Serializable<T>
-    [[nodiscard]] auto async_send(std::span<T> values, const rank_id destiny, const MPI_Comm &comm)
-            -> MPI_Request {
-        auto request = MPI_Request{};
-        auto serialized_values = serialize(values);
-        MPI_Isend(serialized_values.data(), serialized_values.size(), MPI_BYTE, destiny, 0, comm,
-                  &request);
-        return request;
-    }
-
     template<typename T>
         requires concepts::FundamentalType<T> || concepts::Serializable<T>
     auto async_send(std::span<T> values, const std::map<rank_id, LeftClosedRange> &data_mapping,
@@ -73,35 +40,10 @@ namespace reshuffle::internal {
             const auto destiny = intercomm.get_intercomm_rank(
                     rank, Intercommunicator::SelectCommunicator::FINAL_COMM);
             auto values_to_send = std::span(values.data() + interval.get_left_bound(), num_values);
-            send_requests.emplace_back(async_send(values_to_send, destiny, comm));
+            send_requests.emplace_back(mpi::async_send(values_to_send, destiny, comm));
         }
 
         return send_requests;
-    }
-
-    template<concepts::FundamentalType T>
-    [[nodiscard]] auto block_receive(const MPI_Comm &comm) -> std::pair<rank_id, std::vector<T>> {
-
-        const auto [source, tag, count] =
-                block_until_message_is_received(mpi::to_mpi_datatype<std::remove_cv_t<T>>(), comm);
-
-        auto values = std::vector<T>(count);
-        MPI_Recv(values.data(), count, mpi::to_mpi_datatype<std::remove_cv_t<T>>(), source, tag,
-                 comm, MPI_STATUS_IGNORE);
-
-        return {source, values};
-    }
-
-    template<concepts::NeedsSerialization T>
-        requires concepts::Serializable<T>
-    [[nodiscard]] auto block_receive(const MPI_Comm &comm) -> std::pair<rank_id, std::vector<T>> {
-        const auto [source, tag, count] = block_until_message_is_received(MPI_BYTE, comm);
-
-        auto buffer = std::vector<std::byte>(count);
-        MPI_Recv(buffer.data(), count, MPI_BYTE, source, tag, comm, MPI_STATUS_IGNORE);
-
-        auto values = deserialize<T>(buffer);
-        return {source, values};
     }
 
     template<std::size_t N>
@@ -148,7 +90,7 @@ namespace reshuffle::internal {
         const auto num_new_local_values = get_num_elements(multidimensional_blocks_to_receive);
         auto new_local_values = std::vector<T>(num_new_local_values);
         for (int i = 0; i < num_messages_to_receive; i++) {
-            const auto [source, data] = block_receive<T>(intercomm.get_intercommunicator());
+            const auto [source, data] = mpi::block_receive<T>(intercomm.get_intercommunicator());
 
             auto blocks_from_source =
                     multidimensional_blocks_to_receive |

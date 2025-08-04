@@ -6,9 +6,27 @@
 #include <stdexcept>
 #include <vector>
 
+#include "concepts.hpp"
 #include "rank_id.hpp"
+#include "serialize.hpp"
 
 namespace reshuffle::mpi {
+
+    namespace internal {
+        struct ReceivedMessageInformation {
+            int source;
+            int tag;
+            int num_elements;
+        };
+
+        [[nodiscard]] auto get_num_elements(const MPI_Status &status, const MPI_Datatype &datatype)
+                -> int;
+
+        [[nodiscard]] auto block_until_message_is_received(const MPI_Datatype &datatype,
+                                                           const MPI_Comm &comm)
+                -> ReceivedMessageInformation;
+    }// namespace internal
+
     template<typename DATATYPE>
     [[nodiscard]] MPI_Datatype to_mpi_datatype() {
         if (std::is_same_v<DATATYPE, int>) { return MPI_INT; }
@@ -50,6 +68,51 @@ namespace reshuffle::mpi {
             -> MPI_Group;
 
     [[nodiscard]] auto is_sub_comm(const MPI_Comm &comm, const MPI_Comm &possible_sub_comm) -> bool;
+
+    template<concepts::FundamentalType T>
+    [[nodiscard]] auto async_send(std::span<T> values, const rank_id destiny, const MPI_Comm &comm)
+            -> MPI_Request {
+        auto request = MPI_Request{};
+        MPI_Isend(values.data(), values.size(), mpi::to_mpi_datatype<std::remove_cv_t<T>>(),
+                  destiny, 0, comm, &request);
+        return request;
+    }
+
+    template<concepts::NeedsSerialization T>
+        requires concepts::Serializable<T>
+    [[nodiscard]] auto async_send(std::span<T> values, const rank_id destiny, const MPI_Comm &comm)
+            -> MPI_Request {
+        auto request = MPI_Request{};
+        auto serialized_values = reshuffle::internal::serialize(values);
+        MPI_Isend(serialized_values.data(), serialized_values.size(), MPI_BYTE, destiny, 0, comm,
+                  &request);
+        return request;
+    }
+
+    template<concepts::FundamentalType T>
+    [[nodiscard]] auto block_receive(const MPI_Comm &comm) -> std::pair<rank_id, std::vector<T>> {
+
+        const auto [source, tag, count] = internal::block_until_message_is_received(
+                mpi::to_mpi_datatype<std::remove_cv_t<T>>(), comm);
+
+        auto values = std::vector<T>(count);
+        MPI_Recv(values.data(), count, mpi::to_mpi_datatype<std::remove_cv_t<T>>(), source, tag,
+                 comm, MPI_STATUS_IGNORE);
+
+        return {source, values};
+    }
+
+    template<concepts::NeedsSerialization T>
+        requires concepts::Serializable<T>
+    [[nodiscard]] auto block_receive(const MPI_Comm &comm) -> std::pair<rank_id, std::vector<T>> {
+        const auto [source, tag, count] = internal::block_until_message_is_received(MPI_BYTE, comm);
+
+        auto buffer = std::vector<std::byte>(count);
+        MPI_Recv(buffer.data(), count, MPI_BYTE, source, tag, comm, MPI_STATUS_IGNORE);
+
+        auto values = reshuffle::internal::deserialize<T>(buffer);
+        return {source, values};
+    }
 
 }// namespace reshuffle::mpi
 
