@@ -205,3 +205,19 @@ TEST(GetNumElements, ReturnsNumberOfElementsInAReceivedMessage) {
         EXPECT_THAT(count, Eq(3));
     }
 }
+
+TEST(BlockScatter, CanScatterFundamentalDatatypes) {
+    if (is_root(MPI_COMM_WORLD)) {
+        auto values_to_scatter = std::vector{1, 2, 3};
+        const auto values_per_rank = std::map<reshuffle::rank_id, int>{{0, 1}, {1, 2}};
+        const auto values =
+                block_scatter(std::span{values_to_scatter}, values_per_rank, 0, MPI_COMM_WORLD);
+
+        EXPECT_THAT(values, Eq(std::vector{1}));
+    } else {
+        auto dummy = std::vector<int>{};
+        const auto values = block_scatter(std::span{dummy}, std::map<reshuffle::rank_id, int>{}, 0,
+                                          MPI_COMM_WORLD);
+        EXPECT_THAT(values, Eq(std::vector{2, 3}));
+    }
+}

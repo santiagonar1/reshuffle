@@ -9,6 +9,9 @@
 #include "concepts.hpp"
 #include "rank_id.hpp"
 #include "serialize.hpp"
+#include "utils.hpp"
+
+#include <map>
 
 namespace reshuffle::mpi {
 
@@ -112,6 +115,33 @@ namespace reshuffle::mpi {
 
         auto values = reshuffle::internal::deserialize<T>(buffer);
         return {source, values};
+    }
+
+    template<concepts::FundamentalType T>
+    [[nodiscard]] auto block_scatter(std::span<T> values,
+                                     const std::map<rank_id, int> &values_per_rank,
+                                     const rank_id root, const MPI_Comm &comm) -> std::vector<T> {
+        const auto num_ranks = get_num_ranks(comm);
+
+        auto num_values_per_rank = std::vector<int>(num_ranks);
+        for (int i = 0; i < num_ranks; ++i) {
+            num_values_per_rank[i] = reshuffle::internal::find(values_per_rank, i).value_or(0);
+        }
+
+        auto num_values_to_receive{0};
+        MPI_Scatter(num_values_per_rank.data(), 1, MPI_INT, &num_values_to_receive, 1, MPI_INT,
+                    root, comm);
+
+        auto displacements = std::vector<int>(num_ranks + 1);
+        std::partial_sum(num_values_per_rank.begin(), num_values_per_rank.end(),
+                         displacements.begin() + 1);
+
+        auto received_values = std::vector<T>(num_values_to_receive);
+        MPI_Scatterv(values.data(), num_values_per_rank.data(), displacements.data(),
+                     to_mpi_datatype<T>(), received_values.data(), num_values_to_receive,
+                     to_mpi_datatype<T>(), root, comm);
+
+        return received_values;
     }
 
 }// namespace reshuffle::mpi
