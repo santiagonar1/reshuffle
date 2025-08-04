@@ -81,14 +81,47 @@ namespace reshuffle::internal {
         auto [send_buffer, intervals_to_send_per_rank] = get_send_package(
                 local_values, multidimensional_blocks_to_send, final_processor_grid);
 
+        const auto intercomm_rank = mpi::get_rank_id(intercomm.get_intercommunicator());
+        const auto rank_final_comm =
+                intercomm.get_final_comm_rank(intercomm_rank).value_or(INVALID_RANK_ID);
+        const auto send_to_myself_optional = find(intervals_to_send_per_rank, rank_final_comm);
+        intervals_to_send_per_rank.erase(rank_final_comm);
+
         auto num_messages_to_receive =
                 get_number_of_receive_messages(multidimensional_blocks_to_receive);
+
+        if (send_to_myself_optional.has_value()) { num_messages_to_receive -= 1; }
 
         auto send_requests =
                 async_send(std::span{send_buffer}, intervals_to_send_per_rank, intercomm);
 
         const auto num_new_local_values = get_num_elements(multidimensional_blocks_to_receive);
         auto new_local_values = std::vector<T>(num_new_local_values);
+
+        if (send_to_myself_optional.has_value()) {
+            const auto send_to_myself = send_to_myself_optional.value();
+            auto blocks_from_source = multidimensional_blocks_to_receive |
+                                      std::views::filter([intercomm_rank, initial_processor_grid,
+                                                          intercomm](auto block) {
+                                          return initial_processor_grid.get_processor_id(
+                                                         get_owner_coordinates(block)) ==
+                                                 intercomm.get_initial_comm_rank(intercomm_rank);
+                                      });
+
+            auto received_values_view =
+                    std::span{std::as_const(send_buffer).data() + send_to_myself.get_left_bound(),
+                              static_cast<size_t>(send_to_myself.get_length())};
+            for (const auto &block: blocks_from_source) {
+                const auto num_values_in_block = get_num_elements(block);
+
+                copy_data(received_values_view, std::mdspan(new_local_values.data(), dimensions),
+                          block);
+
+                received_values_view = received_values_view | std::views::drop(num_values_in_block);
+            }
+        }
+
+
         for (int i = 0; i < num_messages_to_receive; i++) {
             const auto [source, data] = mpi::block_receive<T>(intercomm.get_intercommunicator());
 

@@ -22,3 +22,14 @@ TEST(RemoveDuplicates, RemovesDuplicatesFromAVector) {
     const auto expected = std::vector{1, 2, 3, 4, 5, 6};
     EXPECT_THAT(remove_duplicates(values), Eq(expected));
 }
+
+TEST(Find, ReturnsValueAssociatedWithKey) {
+    const auto map = std::map<int, int>{{1, 2}, {3, 4}};
+
+    EXPECT_THAT(find(map, 1).value(), Eq(2));
+}
+
+TEST(Find, ReturnsNulloptIfNoKeyWithThatValue) {
+    const auto map = std::map<int, int>{{1, 2}, {3, 4}};
+    EXPECT_FALSE(find(map, 5).has_value());
+}

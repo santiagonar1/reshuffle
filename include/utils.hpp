@@ -46,6 +46,14 @@ namespace reshuffle::internal {
         for (const auto &v: values | std::views::join) { flat_values.emplace_back(v); }
         return flat_values;
     }
+
+
+    template<typename K, typename T>
+    [[nodiscard]] auto find(const std::map<K, T> &map, const K &key) -> std::optional<T> {
+        if (map.contains(key)) { return map.at(key); }
+
+        return std::nullopt;
+    }
 }// namespace reshuffle::internal
 
 #endif//UTILS_HPP

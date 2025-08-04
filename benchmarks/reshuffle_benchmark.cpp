@@ -249,8 +249,8 @@ void shuffle_reduction(benchmark::State &state) {
 }
 
 constexpr auto START = 1'000;
-constexpr auto LIMIT = 100'000;
-constexpr auto STEP = 10'000;
+constexpr auto LIMIT = 502'000;
+constexpr auto STEP = 50'000;
 
 BENCHMARK(shuffle_from_N_to_one)->UseManualTime()->DenseRange(START, LIMIT, STEP);
 BENCHMARK(shuffle_serialization_from_N_to_one)->UseManualTime()->DenseRange(START, LIMIT, STEP);
