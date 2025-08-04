@@ -88,11 +88,15 @@ inline auto create_context(const DataLocationSelector &data_location, const MPI_
     switch (data_location) {
         case DataLocationSelector::ONLY_RANK_0:
         case DataLocationSelector::ONLY_RANK_1:
-            return reshuffle::Context{reshuffle::make_block_wise_distribution({num_global_values}, 
-                                    reshuffle::ProcessorGrid<1>{{1}}), comm};
+            return reshuffle::Context{
+                    reshuffle::make_block_wise_distribution({num_global_values},
+                                                            reshuffle::ProcessorGrid<1>{{1}}),
+                    comm};
         case DataLocationSelector::ALL_RANKS:
-            return reshuffle::Context{reshuffle::make_block_wise_distribution({num_global_values}, 
-                                    reshuffle::ProcessorGrid<1>{{2}}), comm};
+            return reshuffle::Context{
+                    reshuffle::make_block_wise_distribution({num_global_values},
+                                                            reshuffle::ProcessorGrid<1>{{2}}),
+                    comm};
         default:
             throw std::runtime_error("Invalid DataLocationSelector");
     }
@@ -108,7 +112,7 @@ inline auto is_disjoint(const DataLocationSelector &data_location,
 }
 
 inline auto is_rank_with_data_outside_comm(const DataLocationSelector &data_location,
-                                    const CommSelector &comm_selector) -> bool {
+                                           const CommSelector &comm_selector) -> bool {
     const auto data_outside_boundaries_comm = (comm_selector == CommSelector::ONLY_RANK_0 or
                                                comm_selector == CommSelector::ONLY_RANK_1) and
                                               data_location == DataLocationSelector::ALL_RANKS;
