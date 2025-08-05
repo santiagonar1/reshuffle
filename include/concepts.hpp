@@ -21,7 +21,7 @@ namespace reshuffle::concepts {
     concept MPIType = FundamentalType<T> || std::is_same_v<T, std::byte>;
 
     template<typename T>
-    concept NeedsSerialization = !FundamentalType<T>;
+    concept NeedsSerialization = !MPIType<T>;
 
     template<typename T>
     concept FixedSizeSerializable = internal::is_fixed_size_serializable_v<T>;
