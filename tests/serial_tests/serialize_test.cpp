@@ -63,6 +63,15 @@ TEST(Serialize, WorksWithSpans) {
     EXPECT_THAT(non_aggregates, Eq(deserialized_non_aggregates));
 }
 
+TEST(Serialize, CanBeDoneInPlaceWithSpans) {
+    const auto values = std::vector{FixedSizeData{1}, FixedSizeData{2}};
+    auto bytes = std::vector<std::byte>(values.size() * sizeof(FixedSizeData));
+    serialize(std::span{values}, bytes);
+
+    const auto deserialized_values = deserialize<FixedSizeData>(bytes);
+    EXPECT_THAT(deserialized_values, Eq(values));
+}
+
 TEST(Deserialize, WorksWithSpans) {
     const auto non_aggregates =
             std::vector{NonAggregateDataSerializableWithArgumentLookup{"one", 1},
