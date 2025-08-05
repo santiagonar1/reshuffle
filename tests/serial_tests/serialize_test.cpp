@@ -4,6 +4,7 @@
 #include <serialize.hpp>
 
 #include "aggregate_data.hpp"
+#include "fixed_size_data.hpp"
 #include "non_aggregate_data.hpp"
 
 using namespace reshuffle::internal;
@@ -39,6 +40,15 @@ TEST(Serialize, WorksOnAggregateDataThatHasImplementedSerializeWithLookup) {
             deserialize<NonAggregateDataSerializableWithArgumentLookup>(bytes);
 
     EXPECT_THAT(non_aggregates, Eq(deserialized_non_aggregates));
+}
+
+TEST(Serialize, CanBeDoneInPlace) {
+    const auto values = std::vector{FixedSizeData{1}, FixedSizeData{2}};
+    auto bytes = std::vector<std::byte>(values.size() * sizeof(FixedSizeData));
+    serialize(values, bytes);
+
+    const auto deserialized_values = deserialize<FixedSizeData>(bytes);
+    EXPECT_THAT(deserialized_values, Eq(values));
 }
 
 TEST(Serialize, WorksWithSpans) {

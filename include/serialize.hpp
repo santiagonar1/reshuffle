@@ -10,7 +10,7 @@ namespace reshuffle::internal {
     // require serialization (e.g., an integer), as this operation has an overhead
     template<concepts::NeedsSerialization T>
         requires concepts::Serializable<T>
-    [[nodiscard]] auto serialize(const std::vector<T> &values) -> std::vector<std::byte> {
+    [[nodiscard]] auto serialize(std::span<const T> values) -> std::vector<std::byte> {
         PROFILE_SCOPE_NAMED("serialize");
 
         auto [bytes, out] = zpp::bits::data_out();
@@ -24,14 +24,17 @@ namespace reshuffle::internal {
     // require serialization (e.g., an integer), as this operation has an overhead
     template<concepts::NeedsSerialization T>
         requires concepts::Serializable<T>
-    [[nodiscard]] auto serialize(std::span<const T> values) -> std::vector<std::byte> {
+    [[nodiscard]] auto serialize(const std::vector<T> &values) -> std::vector<std::byte> {
+        return serialize(std::span{values});
+    }
+
+    template<concepts::NeedsSerialization T>
+        requires concepts::Serializable<T>
+    auto serialize(const std::vector<T> &values, std::span<std::byte> save_here) -> void {
         PROFILE_SCOPE_NAMED("serialize");
 
-        auto [bytes, out] = zpp::bits::data_out();
-
+        auto out = zpp::bits::out{save_here};
         std::ranges::for_each(values, [&out](const auto &p) { out(p).or_throw(); });
-
-        return bytes;
     }
 
 
