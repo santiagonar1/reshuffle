@@ -30,7 +30,7 @@ namespace reshuffle::mpi {
                 -> ReceivedMessageInformation;
     }// namespace internal
 
-    template<typename DATATYPE>
+    template<concepts::MPIType DATATYPE>
     [[nodiscard]] MPI_Datatype to_mpi_datatype() {
         if (std::is_same_v<DATATYPE, int>) { return MPI_INT; }
         if (std::is_same_v<DATATYPE, float>) { return MPI_FLOAT; }
@@ -72,7 +72,7 @@ namespace reshuffle::mpi {
 
     [[nodiscard]] auto is_sub_comm(const MPI_Comm &comm, const MPI_Comm &possible_sub_comm) -> bool;
 
-    template<concepts::FundamentalType T>
+    template<concepts::MPIType T>
     [[nodiscard]] auto async_send(std::span<T> values, const rank_id destiny, const MPI_Comm &comm)
             -> MPI_Request {
         auto request = MPI_Request{};
@@ -92,7 +92,7 @@ namespace reshuffle::mpi {
         return request;
     }
 
-    template<concepts::FundamentalType T>
+    template<concepts::MPIType T>
     [[nodiscard]] auto block_receive(const MPI_Comm &comm) -> std::pair<rank_id, std::vector<T>> {
 
         const auto [source, tag, count] = internal::block_until_message_is_received(
@@ -117,7 +117,7 @@ namespace reshuffle::mpi {
         return {source, values};
     }
 
-    template<concepts::FundamentalType T>
+    template<concepts::MPIType T>
     [[nodiscard]] auto block_scatter(std::span<T> values,
                                      const std::map<rank_id, int> &values_per_rank,
                                      const rank_id root, const MPI_Comm &comm) -> std::vector<T> {

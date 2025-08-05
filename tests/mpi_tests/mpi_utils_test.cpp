@@ -13,8 +13,6 @@ using namespace reshuffle::mpi::internal;
 
 using testing::Eq;
 
-struct MyDatatype {};
-
 TEST(ToMPIDatatype, ConvertsDatatypeToMPIDatatype) {
     EXPECT_THAT(to_mpi_datatype<int>(), Eq(MPI_INT));
     EXPECT_THAT(to_mpi_datatype<float>(), Eq(MPI_FLOAT));
@@ -33,10 +31,6 @@ TEST(ToMPIDatatype, ConvertsDatatypeToMPIDatatype) {
     EXPECT_THAT(to_mpi_datatype<long double>(), Eq(MPI_LONG_DOUBLE));
 }
 
-
-TEST(ToMPIDatatype, ThrowsIfDatatypeCannotBeConverted) {
-    EXPECT_THROW(auto _ = to_mpi_datatype<MyDatatype>(), std::invalid_argument);
-}
 
 TEST(GetRankId, ReturnsRankId) {
     auto rank{MPI_ERR_RANK};
