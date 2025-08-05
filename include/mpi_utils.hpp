@@ -153,8 +153,8 @@ namespace reshuffle::mpi {
         const auto rank = get_rank_id(comm);
 
         auto num_values_per_rank = std::vector<int>(num_ranks);
-        auto num_bytes_per_rank = std::vector<int>(num_ranks);
-        auto send_buffer = std::vector<std::byte>{};
+        auto bytes_per_rank = std::map<rank_id, int>{};
+        auto bytes_to_send = std::vector<std::byte>{};
 
 
         if (rank == root) {
@@ -167,23 +167,14 @@ namespace reshuffle::mpi {
             for (int i = 0; i < num_values_per_rank.size(); ++i) {
                 const auto bytes = reshuffle::internal::serialize(
                         values.subspan(num_values_serialized, num_values_per_rank[i]));
-                num_bytes_per_rank[i] = static_cast<int>(bytes.size());
-                send_buffer.append_range(bytes);
+                bytes_per_rank[i] = static_cast<int>(bytes.size());
+                bytes_to_send.append_range(bytes);
                 num_values_serialized += num_values_per_rank[i];
             }
         }
 
-        auto num_bytes_to_receive{0};
-        MPI_Scatter(num_bytes_per_rank.data(), 1, MPI_INT, &num_bytes_to_receive, 1, MPI_INT, root,
-                    comm);
-
-        auto displacements = std::vector<int>(num_ranks + 1);
-        std::partial_sum(num_bytes_per_rank.begin(), num_bytes_per_rank.end(),
-                         displacements.begin() + 1);
-
-        auto received_bytes = std::vector<std::byte>(num_bytes_to_receive);
-        MPI_Scatterv(send_buffer.data(), num_bytes_per_rank.data(), displacements.data(), MPI_BYTE,
-                     received_bytes.data(), num_bytes_to_receive, MPI_BYTE, root, comm);
+        const auto received_bytes =
+                block_scatter(std::span{bytes_to_send}, bytes_per_rank, root, comm);
 
         return reshuffle::internal::deserialize<T>(received_bytes);
     }
