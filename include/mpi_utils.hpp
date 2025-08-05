@@ -144,20 +144,17 @@ namespace reshuffle::mpi {
         return received_values;
     }
 
-    template<concepts::NeedsSerialization T>
-        requires concepts::Serializable<T>
-    [[nodiscard]] auto block_scatter(std::span<T> values,
-                                     const std::map<rank_id, int> &values_per_rank,
-                                     const rank_id root, const MPI_Comm &comm) -> std::vector<T> {
-        const auto num_ranks = get_num_ranks(comm);
-        const auto rank = get_rank_id(comm);
+    namespace internal {
+        template<typename T>
+        [[nodiscard]] auto
+        get_send_buffer_and_mapping(std::span<T> values,
+                                    const std::map<rank_id, int> &values_per_rank,
+                                    const int num_ranks, const rank_id root)
+                -> std::tuple<std::vector<T>, std::vector<std::byte>, std::map<rank_id, int>> {
+            auto bytes_per_rank = std::map<rank_id, int>{};
+            auto bytes_to_send = std::vector<std::byte>{};
+            auto num_values_per_rank = std::vector<int>(num_ranks);
 
-        auto num_values_per_rank = std::vector<int>(num_ranks);
-        auto bytes_per_rank = std::map<rank_id, int>{};
-        auto bytes_to_send = std::vector<std::byte>{};
-
-
-        if (rank == root) {
             for (int i = 0; i < num_ranks; ++i) {
                 num_values_per_rank[i] = reshuffle::internal::find(values_per_rank, i).value_or(0);
             }
@@ -172,12 +169,12 @@ namespace reshuffle::mpi {
                 num_values_serialized += num_values_per_rank[i];
             }
 
+            bytes_per_rank[root] = 0;
             const auto num_values_to_send_myself = num_values_per_rank[root];
             const auto my_values = std::vector<T>{values.begin() + num_values_serialized,
                                                   values.begin() + num_values_serialized +
                                                           num_values_to_send_myself};
-            bytes_per_rank[root] = 0;// I do not want to send bytes to myself, I already have them
-            num_values_serialized += num_values_to_send_myself;
+            num_values_serialized += num_values_per_rank[root];
 
             for (int i = root + 1; i < num_values_per_rank.size(); ++i) {
                 const auto bytes = reshuffle::internal::serialize(
@@ -187,13 +184,32 @@ namespace reshuffle::mpi {
                 num_values_serialized += num_values_per_rank[i];
             }
 
+            return {my_values, bytes_to_send, bytes_per_rank};
+        }
+    }// namespace internal
+
+    template<concepts::NeedsSerialization T>
+        requires concepts::Serializable<T>
+    [[nodiscard]] auto block_scatter(std::span<T> values,
+                                     const std::map<rank_id, int> &values_per_rank,
+                                     const rank_id root, const MPI_Comm &comm) -> std::vector<T> {
+        const auto rank = get_rank_id(comm);
+
+
+        if (rank == root) {
+            const auto num_ranks = get_num_ranks(comm);
+            auto [my_values, bytes_to_send, bytes_per_rank] =
+                    internal::get_send_buffer_and_mapping(values, values_per_rank, num_ranks, root);
+
             const auto _ = block_scatter(std::span{bytes_to_send}, bytes_per_rank, root, comm);
 
             return my_values;
         }
 
+        auto dummy_bytes = std::vector<std::byte>{};
+        const auto dummy_values_per_rank = std::map<rank_id, int>{};
         const auto received_bytes =
-                block_scatter(std::span{bytes_to_send}, bytes_per_rank, root, comm);
+                block_scatter(std::span{dummy_bytes}, dummy_values_per_rank, root, comm);
 
         return reshuffle::internal::deserialize<T>(received_bytes);
     }
