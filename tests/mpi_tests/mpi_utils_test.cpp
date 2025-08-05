@@ -6,6 +6,8 @@
 #include <mpi_utils.hpp>
 
 #include "aggregate_data.hpp"
+#include "autopas_particle.hpp"
+#include "fixed_size_data.hpp"
 
 using namespace reshuffle::internal;
 using namespace reshuffle::mpi;
@@ -229,6 +231,36 @@ TEST(BlockScatter, CanBeUsedWithNonFundamentalDatatypes) {
         const auto values = block_scatter(std::span{dummy}, std::map<reshuffle::rank_id, int>{}, 0,
                                           MPI_COMM_WORLD);
         EXPECT_THAT(values, Eq(std::vector{AggregateData{"two", 2}, AggregateData{"three", 3}}));
+    }
+}
+
+TEST(BlockScatter, WorksWithFixedSizedDatatypes) {
+    if (is_root(MPI_COMM_WORLD)) {
+        auto values_to_scatter = std::vector{FixedSizeData{1}, FixedSizeData{2}, FixedSizeData{3}};
+        const auto values_per_rank = std::map<reshuffle::rank_id, int>{{0, 1}, {1, 2}};
+        const auto values =
+                block_scatter(std::span{values_to_scatter}, values_per_rank, 0, MPI_COMM_WORLD);
+        EXPECT_THAT(values, Eq(std::vector{FixedSizeData{1}}));
+    } else {
+        auto dummy = std::vector<FixedSizeData>{};
+        const auto values = block_scatter(std::span{dummy}, std::map<reshuffle::rank_id, int>{}, 0,
+                                          MPI_COMM_WORLD);
+        EXPECT_THAT(values, Eq(std::vector{FixedSizeData{2}, FixedSizeData{3}}));
+    }
+}
+
+TEST(BlockScatter, WorksWithAutopasParticles) {
+    if (is_root(MPI_COMM_WORLD)) {
+        auto values_to_scatter = std::vector<MoleculeLJ>(3);
+        const auto values_per_rank = std::map<reshuffle::rank_id, int>{{0, 1}, {1, 2}};
+        const auto values =
+                block_scatter(std::span{values_to_scatter}, values_per_rank, 0, MPI_COMM_WORLD);
+        // EXPECT_THAT(values, Eq(std::vector{FixedSizeData{1}}));
+    } else {
+        auto dummy = std::vector<MoleculeLJ>{};
+        const auto values = block_scatter(std::span{dummy}, std::map<reshuffle::rank_id, int>{}, 0,
+                                          MPI_COMM_WORLD);
+        // EXPECT_THAT(values, Eq(std::vector{FixedSizeData{2}, FixedSizeData{3}}));
     }
 }
 

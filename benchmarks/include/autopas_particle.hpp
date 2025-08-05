@@ -114,4 +114,6 @@ protected:
     std::array<double, 3> _oldF = {0., 0., 0.};
 };
 
+RESHUFFLE_HAS_FIXED_SIZE_SERIALIZABLE(MoleculeLJ)
+
 #endif//AUTOPAS_PARTICLE_HPP

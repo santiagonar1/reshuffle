@@ -186,6 +186,68 @@ namespace reshuffle::mpi {
 
             return {my_values, bytes_to_send, bytes_per_rank};
         }
+
+        template<concepts::FixedSizeSerializable T>
+        [[nodiscard]] auto get_num_bytes() -> int {
+            const auto dummy_vector = std::vector<T>(1);
+            return static_cast<int>(reshuffle::internal::serialize(dummy_vector).size());
+        }
+
+        template<concepts::FixedSizeSerializable T>
+        [[nodiscard]] auto
+        get_send_buffer_and_mapping(std::span<T> values,
+                                    const std::map<rank_id, int> &values_per_rank,
+                                    const int num_ranks, const rank_id root)
+                -> std::tuple<std::vector<T>, std::vector<std::byte>, std::map<rank_id, int>> {
+            auto bytes_per_rank = std::map<rank_id, int>{};
+            const auto dummy_vector = std::vector<T>(1);
+            const auto num_bytes_per_value = get_num_bytes<T>();
+            auto num_values_per_rank = std::vector<int>(num_ranks);
+            auto num_bytes_per_rank = std::vector<size_t>(num_ranks);
+
+            for (int i = 0; i < num_ranks; ++i) {
+                num_values_per_rank[i] = reshuffle::internal::find(values_per_rank, i).value_or(0);
+                num_bytes_per_rank[i] = num_values_per_rank[i] * num_bytes_per_value;
+            }
+
+
+            const auto num_bytes_to_send_to_myself = num_bytes_per_rank[root];
+            const auto buffer_size =
+                    values.size() * num_bytes_per_value - num_bytes_to_send_to_myself;
+            auto bytes_to_send = std::vector<std::byte>{buffer_size};
+
+
+            auto num_values_serialized{0};
+            for (int i = 0; i < root; ++i) {
+                const auto num_bytes_serialized = num_values_serialized * num_bytes_per_value;
+                reshuffle::internal::serialize(
+                        values.subspan(num_values_serialized, num_values_per_rank[i]),
+                        std::span{bytes_to_send.data() + num_bytes_serialized,
+                                  num_bytes_per_rank[i]});
+                bytes_per_rank[i] = static_cast<int>(num_bytes_per_rank[i]);
+                num_values_serialized += num_values_per_rank[i];
+            }
+
+            bytes_per_rank[root] = 0;
+            const auto num_values_to_send_myself = num_values_per_rank[root];
+            const auto my_values = std::vector<T>{values.begin() + num_values_serialized,
+                                                  values.begin() + num_values_serialized +
+                                                          num_values_to_send_myself};
+            num_values_serialized += num_values_per_rank[root];
+
+            for (int i = root + 1; i < num_values_per_rank.size(); ++i) {
+                const auto num_bytes_serialized =
+                        num_values_serialized * num_bytes_per_value - num_bytes_to_send_to_myself;
+                reshuffle::internal::serialize(
+                        values.subspan(num_values_serialized, num_values_per_rank[i]),
+                        std::span{bytes_to_send.data() + num_bytes_serialized,
+                                  num_bytes_per_rank[i]});
+                bytes_per_rank[i] = static_cast<int>(num_bytes_per_rank[i]);
+                num_values_serialized += num_values_per_rank[i];
+            }
+
+            return {my_values, bytes_to_send, bytes_per_rank};
+        }
     }// namespace internal
 
     template<concepts::NeedsSerialization T>
