@@ -50,6 +50,24 @@ TEST(ABasicDatatype, IsAFundamentalType) {
     static_assert(FundamentalType<char>, "A char must be a FundamentalType");
 }
 
+TEST(AnMPIType, IsAnyTypeThatCanBeRepresentedByDefaultMPIDatatypes) {
+    static_assert(MPIType<int>, "An int must be a MPIType");
+    static_assert(MPIType<float>, "An float must be a MPIType");
+    static_assert(MPIType<double>, "An double must be a MPIType");
+    static_assert(MPIType<std::byte>, "An std::byte must be a MPIType");
+    static_assert(MPIType<char>, "An char must be a MPIType");
+    static_assert(MPIType<unsigned char>, "An unsigned char must be a MPIType");
+    static_assert(MPIType<short>, "A short must be a MPIType");
+    static_assert(MPIType<unsigned short>, "An unsigned short must be a MPIType");
+    static_assert(MPIType<unsigned int>, "An unsigned int must be a MPIType");
+    static_assert(MPIType<long>, "A long must be a MPIType");
+    static_assert(MPIType<unsigned long>, "An unsigned long must be a MPIType");
+    static_assert(MPIType<long long>, "A long long must be a MPIType");
+    static_assert(MPIType<unsigned long long>, "An unsigned long long must be a MPIType");
+    static_assert(MPIType<long double>, "A long double must be a MPIType");
+    static_assert(MPIType<bool>, "An bool must be a MPIType");
+}
+
 TEST(ABasicDataType, DoesNotRequireSerialization) {
     static_assert(!NeedsSerialization<int>, "A basic datatype does not require serialization");
 }
