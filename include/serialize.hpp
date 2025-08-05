@@ -10,7 +10,7 @@ namespace reshuffle::internal {
     // require serialization (e.g., an integer), as this operation has an overhead
     template<concepts::NeedsSerialization T>
         requires concepts::Serializable<T>
-    auto serialize(const std::vector<T> &values) -> std::vector<std::byte> {
+    [[nodiscard]] auto serialize(const std::vector<T> &values) -> std::vector<std::byte> {
         PROFILE_SCOPE_NAMED("serialize");
 
         auto [bytes, out] = zpp::bits::data_out();
@@ -24,7 +24,7 @@ namespace reshuffle::internal {
     // require serialization (e.g., an integer), as this operation has an overhead
     template<concepts::NeedsSerialization T>
         requires concepts::Serializable<T>
-    auto serialize(std::span<const T> values) -> std::vector<std::byte> {
+    [[nodiscard]] auto serialize(std::span<const T> values) -> std::vector<std::byte> {
         PROFILE_SCOPE_NAMED("serialize");
 
         auto [bytes, out] = zpp::bits::data_out();
@@ -39,7 +39,7 @@ namespace reshuffle::internal {
     // require serialization (e.g., an integer), as this operation has an overhead
     template<concepts::NeedsSerialization T>
         requires concepts::Serializable<T>
-    auto serialize(std::span<T> values) -> std::vector<std::byte> {
+    [[nodiscard]] auto serialize(std::span<T> values) -> std::vector<std::byte> {
         return serialize(std::span<const T>(values));
     }
 
@@ -47,7 +47,7 @@ namespace reshuffle::internal {
     // require serialization (e.g., an integer), as this operation has an overhead
     template<concepts::NeedsSerialization T>
         requires concepts::Serializable<T>
-    auto deserialize(const std::vector<std::byte> &bytes) -> std::vector<T> {
+    [[nodiscard]] auto deserialize(const std::vector<std::byte> &bytes) -> std::vector<T> {
         PROFILE_SCOPE_NAMED("deserialize");
 
         auto values = std::vector<T>();
@@ -66,7 +66,7 @@ namespace reshuffle::internal {
     // require serialization (e.g., an integer), as this operation has an overhead
     template<concepts::NeedsSerialization T>
         requires concepts::Serializable<T>
-    auto deserialize(std::span<const std::byte> bytes) -> std::vector<T> {
+    [[nodiscard]] auto deserialize(std::span<const std::byte> bytes) -> std::vector<T> {
         PROFILE_SCOPE_NAMED("deserialize");
 
         auto values = std::vector<T>();
