@@ -164,13 +164,32 @@ namespace reshuffle::mpi {
 
             // TODO: This can be simplified if we have a T with fixed size
             auto num_values_serialized{0};
-            for (int i = 0; i < num_values_per_rank.size(); ++i) {
+            for (int i = 0; i < root; ++i) {
                 const auto bytes = reshuffle::internal::serialize(
                         values.subspan(num_values_serialized, num_values_per_rank[i]));
                 bytes_per_rank[i] = static_cast<int>(bytes.size());
                 bytes_to_send.append_range(bytes);
                 num_values_serialized += num_values_per_rank[i];
             }
+
+            const auto num_values_to_send_myself = num_values_per_rank[root];
+            const auto my_values = std::vector<T>{values.begin() + num_values_serialized,
+                                                  values.begin() + num_values_serialized +
+                                                          num_values_to_send_myself};
+            bytes_per_rank[root] = 0;// I do not want to send bytes to myself, I already have them
+            num_values_serialized += num_values_to_send_myself;
+
+            for (int i = root + 1; i < num_values_per_rank.size(); ++i) {
+                const auto bytes = reshuffle::internal::serialize(
+                        values.subspan(num_values_serialized, num_values_per_rank[i]));
+                bytes_per_rank[i] = static_cast<int>(bytes.size());
+                bytes_to_send.append_range(bytes);
+                num_values_serialized += num_values_per_rank[i];
+            }
+
+            const auto _ = block_scatter(std::span{bytes_to_send}, bytes_per_rank, root, comm);
+
+            return my_values;
         }
 
         const auto received_bytes =
