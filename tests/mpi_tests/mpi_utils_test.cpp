@@ -237,3 +237,21 @@ TEST(BlockScatter, CanBeUsedWithNonFundamentalDatatypes) {
         EXPECT_THAT(values, Eq(std::vector{AggregateData{"two", 2}, AggregateData{"three", 3}}));
     }
 }
+
+TEST(BlockScatter, ValuesPerRankIsOnlyRelevantForRootRank) {
+    if (is_root(MPI_COMM_WORLD)) {
+        auto values_to_scatter = std::vector{AggregateData{"one", 1}, AggregateData{"two", 2},
+                                             AggregateData{"three", 3}};
+        const auto values_per_rank = std::map<reshuffle::rank_id, int>{{0, 1}, {1, 2}};
+        const auto values =
+                block_scatter(std::span{values_to_scatter}, values_per_rank, 0, MPI_COMM_WORLD);
+        EXPECT_THAT(values, Eq(std::vector{AggregateData{"one", 1}}));
+    } else {
+        auto dummy = std::vector<AggregateData>{};
+        const auto dummy_values_per_rank =
+                std::map<reshuffle::rank_id, int>{{0, 100'000}, {1, 100'000}};
+        const auto values =
+                block_scatter(std::span{dummy}, dummy_values_per_rank, 0, MPI_COMM_WORLD);
+        EXPECT_THAT(values, Eq(std::vector{AggregateData{"two", 2}, AggregateData{"three", 3}}));
+    }
+}

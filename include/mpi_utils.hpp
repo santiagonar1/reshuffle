@@ -150,22 +150,27 @@ namespace reshuffle::mpi {
                                      const std::map<rank_id, int> &values_per_rank,
                                      const rank_id root, const MPI_Comm &comm) -> std::vector<T> {
         const auto num_ranks = get_num_ranks(comm);
+        const auto rank = get_rank_id(comm);
 
         auto num_values_per_rank = std::vector<int>(num_ranks);
-        for (int i = 0; i < num_ranks; ++i) {
-            num_values_per_rank[i] = reshuffle::internal::find(values_per_rank, i).value_or(0);
-        }
-
-        // TODO: This can be simplified if we have a T with fixed size
-        auto num_values_serialized{0};
-        auto send_buffer = std::vector<std::byte>{};
         auto num_bytes_per_rank = std::vector<int>(num_ranks);
-        for (int i = 0; i < num_values_per_rank.size(); ++i) {
-            const auto bytes = reshuffle::internal::serialize(
-                    values.subspan(num_values_serialized, num_values_per_rank[i]));
-            num_bytes_per_rank[i] = static_cast<int>(bytes.size());
-            send_buffer.append_range(bytes);
-            num_values_serialized += num_values_per_rank[i];
+        auto send_buffer = std::vector<std::byte>{};
+
+
+        if (rank == root) {
+            for (int i = 0; i < num_ranks; ++i) {
+                num_values_per_rank[i] = reshuffle::internal::find(values_per_rank, i).value_or(0);
+            }
+
+            // TODO: This can be simplified if we have a T with fixed size
+            auto num_values_serialized{0};
+            for (int i = 0; i < num_values_per_rank.size(); ++i) {
+                const auto bytes = reshuffle::internal::serialize(
+                        values.subspan(num_values_serialized, num_values_per_rank[i]));
+                num_bytes_per_rank[i] = static_cast<int>(bytes.size());
+                send_buffer.append_range(bytes);
+                num_values_serialized += num_values_per_rank[i];
+            }
         }
 
         auto num_bytes_to_receive{0};
