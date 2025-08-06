@@ -38,7 +38,7 @@ TEST(GridLayout, CanReturnTheOwnerOfABlock) {
     EXPECT_THAT(grid_layout.get_block_owner(Coordinates<1>{1}, processor_grid), Eq(1));
 }
 
-TEST(GridLayout, CanReturnTheOwnerOfABlockIn2DVerticalPartition) {
+TEST(GridLayout, CanReturnTheOwnerOfABlockIn2DHorizontalPartition) {
     constexpr auto num_processors_x = 2;
     constexpr auto num_processors_y = 1;
 
@@ -52,7 +52,7 @@ TEST(GridLayout, CanReturnTheOwnerOfABlockIn2DVerticalPartition) {
     EXPECT_THAT(grid_layout.get_block_owner(Coordinates<2>{0, 1}, processor_grid), Eq(1));
 }
 
-TEST(GridLayout, CanReturnTheOwnerOfABlockIn2DHorizontalPartition) {
+TEST(GridLayout, CanReturnTheOwnerOfABlockIn2DVerticalPartition) {
     constexpr auto num_processors_x = 1;
     constexpr auto num_processors_y = 2;
 

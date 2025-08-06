@@ -106,7 +106,7 @@ TEST(Shuffle, CanShuffleAutoPasParticles) {
     }
 }
 
-TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplit) {
+TEST(Shuffle, CanShuffleFromOneToManyIn2DHorizontalSplit) {
     const auto values =
             is_root(MPI_COMM_WORLD) ? std::vector{0, 1, 2, 3, 4, 5} : std::vector<int>();
     constexpr auto num_global_rows = 2;
@@ -137,7 +137,7 @@ TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplit) {
     }
 }
 
-TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplitVectorOfVectors) {
+TEST(Shuffle, CanShuffleFromOneToManyIn2DHorizontalSplitVectorOfVectors) {
     const auto values = is_root(MPI_COMM_WORLD)
                                 ? std::vector{std::vector{0, 1, 2}, std::vector{3, 4, 5}}
                                 : std::vector<std::vector<int>>();
@@ -166,7 +166,7 @@ TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplitVectorOfVectors) {
     }
 }
 
-TEST(Shuffle, CanShuffleFromOneToManyIn2DHorizontalSplit) {
+TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplit) {
     const auto values =
             is_root(MPI_COMM_WORLD) ? std::vector{0, 1, 2, 3, 4, 5} : std::vector<int>();
     constexpr auto num_global_rows = 2;
@@ -223,7 +223,7 @@ TEST(Shuffle, CanShuffleFromManyToOne) {
     }
 }
 
-TEST(Shuffle, CanShuffleFromManyToOneIn2DVerticalSplit) {
+TEST(Shuffle, CanShuffleFromManyToOneIn2DHorizontalSplit) {
     const auto values = is_root(MPI_COMM_WORLD) ? std::vector{0, 1, 3, 4} : std::vector{2, 5};
     constexpr auto num_global_rows = 2;
     constexpr auto num_global_columns = 3;
@@ -253,7 +253,7 @@ TEST(Shuffle, CanShuffleFromManyToOneIn2DVerticalSplit) {
     }
 }
 
-TEST(Shuffle, CanShuffleFromManyToOneIn2DHorizontalSplit) {
+TEST(Shuffle, CanShuffleFromManyToOneIn2DVerticalSplit) {
     const auto values = is_root(MPI_COMM_WORLD) ? std::vector{0, 1, 2} : std::vector{3, 4, 5};
     constexpr auto num_global_rows = 2;
     constexpr auto num_global_columns = 3;
