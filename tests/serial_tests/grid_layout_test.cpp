@@ -22,9 +22,9 @@ TEST(GridLayout, WorksIn2D) {
     const auto x_blocks = get_blocks(2);
     const auto y_blocks = get_blocks(2);
 
-    const auto grid_layout = GridLayout(std::array{x_blocks, y_blocks});
+    const auto grid_layout = GridLayout(std::array{y_blocks, x_blocks});
 
-    EXPECT_THAT(grid_layout.get_blocks(), Eq(std::array{x_blocks, y_blocks}));
+    EXPECT_THAT(grid_layout.get_blocks(), Eq(std::array{y_blocks, x_blocks}));
 }
 
 TEST(GridLayout, CanReturnTheOwnerOfABlock) {
@@ -46,7 +46,7 @@ TEST(GridLayout, CanReturnTheOwnerOfABlockIn2DHorizontalPartition) {
     const auto x_blocks = get_blocks(num_processors_x);
     const auto y_blocks = get_blocks(num_processors_y);
 
-    const auto grid_layout = GridLayout(std::array{x_blocks, y_blocks});
+    const auto grid_layout = GridLayout(std::array{y_blocks, x_blocks});
 
     EXPECT_THAT(grid_layout.get_block_owner(Coordinates<2>{0, 0}, processor_grid), Eq(0));
     EXPECT_THAT(grid_layout.get_block_owner(Coordinates<2>{0, 1}, processor_grid), Eq(1));
@@ -60,7 +60,7 @@ TEST(GridLayout, CanReturnTheOwnerOfABlockIn2DVerticalPartition) {
     const auto x_blocks = get_blocks(num_processors_x);
     const auto y_blocks = get_blocks(num_processors_y);
 
-    const auto grid_layout = GridLayout(std::array{x_blocks, y_blocks});
+    const auto grid_layout = GridLayout(std::array{y_blocks, x_blocks});
 
     EXPECT_THAT(grid_layout.get_block_owner(Coordinates<2>{0, 0}, processor_grid), Eq(0));
     EXPECT_THAT(grid_layout.get_block_owner(Coordinates<2>{1, 0}, processor_grid), Eq(1));
@@ -74,7 +74,7 @@ TEST(GridLayout, CanReturnTheOwnerOfABlockIn2DCrossPartition) {
     const auto x_blocks = get_blocks(num_processors_x);
     const auto y_blocks = get_blocks(num_processors_y);
 
-    const auto grid_layout = GridLayout(std::array{x_blocks, y_blocks});
+    const auto grid_layout = GridLayout(std::array{y_blocks, x_blocks});
 
     EXPECT_THAT(grid_layout.get_block_owner(Coordinates<2>{0, 0}, processor_grid), Eq(0));
     EXPECT_THAT(grid_layout.get_block_owner(Coordinates<2>{0, 1}, processor_grid), Eq(1));
@@ -126,13 +126,13 @@ TEST(GridLayout, CalculatesTheOverlayOfTwoGridsIn2D) {
     const auto x_origin_blocks = std::vector{{Block{{0, 2}, 0}, Block{{2, 4}, 1}}};
     const auto &y_origin_blocks = x_origin_blocks;
 
-    const auto grid = GridLayout(std::array{x_origin_blocks, y_origin_blocks});
+    const auto grid = GridLayout(std::array{y_origin_blocks, x_origin_blocks});
 
     const auto x_target_blocks =
             std::vector{{Block{{0, 1}, 0}, Block{{1, 2}, 1}, Block{{2, 4}, 1}}};
     const auto &y_target_blocks = x_target_blocks;
 
-    const auto target_grid = GridLayout(std::array{x_target_blocks, y_target_blocks});
+    const auto target_grid = GridLayout(std::array{y_target_blocks, x_target_blocks});
 
     const auto overlay = grid.get_overlay(target_grid, processor_grid);
     const auto &grid_overlay = overlay.get_grid();
@@ -247,7 +247,7 @@ TEST(GridLayout, CanReturnTheLocalGridOfAProcessorIn2D) {
     const auto x_blocks = get_blocks(num_processors_x);
     const auto y_blocks = get_blocks(num_processors_y);
 
-    const auto grid_layout = GridLayout(std::array{x_blocks, y_blocks});
+    const auto grid_layout = GridLayout(std::array{y_blocks, x_blocks});
 
     const auto expected_blocks_local_grid_0 =
             std::array{std::vector{Block{{0, 1}, 0}}, std::vector{Block{{0, 1}, 0}}};
