@@ -79,8 +79,9 @@ namespace reshuffle {
     }
 
     template<std::size_t N>
-    auto make_block_wise_distribution(const Dimensions<N> &num_global_values,
-                                      const ProcessorGrid<N> &processor_grid) -> BlockCyclic<N> {
+    [[nodiscard]] auto make_block_wise_distribution(const Dimensions<N> &num_global_values,
+                                                    const ProcessorGrid<N> &processor_grid)
+            -> BlockCyclic<N> {
         auto block_sizes = Dimensions<N>{};
         for (int i = 0; i < N; ++i) {
             const auto num_processors = processor_grid.get_dimensions()[i];
