@@ -39,6 +39,7 @@ namespace reshuffle {
         [[nodiscard]] auto get_grid_layout() const -> const internal::GridLayout<N> &;
         [[nodiscard]] auto get_num_global_values(int dimension) const -> int;
         [[nodiscard]] auto get_processor_grid() const -> const ProcessorGrid<N> &;
+        [[nodiscard]] auto get_num_blocks_per_dimension() const -> Dimensions<N>;
 
         auto operator==(const BlockCyclic &other) const -> bool;
 
@@ -79,6 +80,18 @@ namespace reshuffle {
     }
 
     template<std::size_t N>
+    auto BlockCyclic<N>::get_num_blocks_per_dimension() const -> Dimensions<N> {
+        auto num_blocks_per_dimension = Dimensions<N>{};
+        for (int i = 0; i < N; ++i) {
+            const auto num_blocks =
+                    std::ceil(static_cast<double>(_num_global_values[i]) / _block_sizes[i]);
+            num_blocks_per_dimension[i] = static_cast<int>(num_blocks);
+        }
+        return num_blocks_per_dimension;
+    }
+
+
+    template<std::size_t N>
     [[nodiscard]] auto make_block_wise_distribution(const Dimensions<N> &num_global_values,
                                                     const ProcessorGrid<N> &processor_grid)
             -> BlockCyclic<N> {
@@ -88,6 +101,20 @@ namespace reshuffle {
             block_sizes[i] = std::ceil(static_cast<double>(num_global_values[i]) / num_processors);
         }
         return BlockCyclic{num_global_values, block_sizes, processor_grid};
+    }
+
+    template<std::size_t N>
+    [[nodiscard]] auto is_block_wise_distribution(const BlockCyclic<N> &distribution) -> bool {
+        const auto num_processors_per_dimension =
+                distribution.get_processor_grid().get_dimensions();
+        const auto num_blocks_per_dimension = distribution.get_num_blocks_per_dimension();
+        for (int dim = 0; dim < N; ++dim) {
+            if (num_blocks_per_dimension[dim] != num_processors_per_dimension[dim] and
+                num_processors_per_dimension[dim] != 1) {
+                return false;
+            }
+        }
+        return true;
     }
 }// namespace reshuffle
 

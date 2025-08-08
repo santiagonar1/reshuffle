@@ -34,6 +34,17 @@ TEST(BlockCyclic, MakesLastBlockSmallerIfNumValuesNoDivisible) {
     EXPECT_THAT(blocks, Eq(expected));
 }
 
+TEST(BlockCyclic, CalculatesTheNumberOfBlocksPerDimension) {
+    constexpr int block_size = 2;
+    constexpr int num_values = 5;
+    constexpr int num_ranks = 1;
+
+    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    const auto data_distribution = BlockCyclic({num_values}, {block_size}, processor_grid);
+
+    EXPECT_THAT(data_distribution.get_num_blocks_per_dimension(), Eq(Dimensions{3}));
+}
+
 TEST(BlockCyclic, AssignsBlocksInRoundRobbinFashion) {
     constexpr int block_size = 2;
     constexpr int num_values = 6;
@@ -136,4 +147,35 @@ TEST(MakeBlockWise, MakesLastBlocksSmallerIfNotDivisible) {
     const auto size_last_block = blocks.at(1).get_interval().get_length();
 
     EXPECT_THAT(size_last_block, Lt(size_first_block));
+}
+
+TEST(IsBlockWise, ReturnsTrueIfDistributionIsBlockWise) {
+    constexpr int num_values = 10;
+    constexpr int num_ranks = 3;
+    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    const auto block_wise_distribution = make_block_wise_distribution({num_values}, processor_grid);
+
+    EXPECT_TRUE(is_block_wise_distribution(block_wise_distribution));
+}
+
+TEST(IsBlockWise, ReturnsFlaseIfDistributionIsNotBlockWise) {
+    constexpr int block_size = 2;
+    constexpr int num_values = 9;
+    constexpr int num_ranks = 2;
+
+    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    const auto data_distribution = BlockCyclic({num_values}, {block_size}, processor_grid);
+
+    EXPECT_FALSE(is_block_wise_distribution(data_distribution));
+}
+
+TEST(IsBlockWise, ADistributionWithOnlyOneRankOnEachDimensionIsBlockWise) {
+    constexpr int block_size = 2;
+    constexpr int num_values = 5;
+    constexpr int num_ranks = 1;
+
+    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    const auto data_distribution = BlockCyclic({num_values}, {block_size}, processor_grid);
+
+    EXPECT_TRUE(is_block_wise_distribution(data_distribution));
 }
