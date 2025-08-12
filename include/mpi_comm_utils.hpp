@@ -76,6 +76,32 @@ namespace reshuffle::internal {
 
     template<typename T, typename Extents>
         requires concepts::FundamentalType<T> or concepts::Serializable<T>
+    auto scatter_values(std::mdspan<const T, Extents> local_values,
+                        const std::array<std::vector<Block>, Extents::rank()> &blocks_to_send,
+                        const std::array<std::vector<Block>, Extents::rank()> &blocks_to_receive,
+                        const ProcessorGrid<Extents::rank()> &final_processor_grid,
+                        const rank_id root, const Intercommunicator &intercomm)
+            -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> {
+        PROFILE_SCOPE_NAMED("scatter_values");
+
+        const auto multidimensional_blocks_to_send = get_cartesian_product(blocks_to_send);
+        auto [send_buffer, intervals_to_send_per_rank] = get_send_package(
+                local_values, multidimensional_blocks_to_send, final_processor_grid);
+
+        auto values_per_rank = std::map<rank_id, int>{};
+        for (const auto &[rank, interval]: intervals_to_send_per_rank) {
+            values_per_rank.emplace(rank, interval.get_length());
+        }
+
+        const auto values = mpi::block_scatter(std::span{send_buffer}, values_per_rank, root,
+                                               intercomm.get_intercommunicator());
+        const auto dimensions = get_dimensions(blocks_to_receive);
+
+        return {values, dimensions};
+    }
+
+    template<typename T, typename Extents>
+        requires concepts::FundamentalType<T> or concepts::Serializable<T>
     auto exchange_values(std::mdspan<const T, Extents> local_values,
                          const std::array<std::vector<Block>, Extents::rank()> &blocks_to_send,
                          const std::array<std::vector<Block>, Extents::rank()> &blocks_to_receive,

@@ -33,6 +33,25 @@ double time_shuffle(const std::vector<T> &local_values, const Context<1> &initia
     return max_elapsed_second;
 }
 
+template<typename T>
+double time_scatter(std::vector<T> &local_values, const std::map<rank_id, int> &values_per_rank) {
+    // Do the work and time it on each proc
+    const auto start = std::chrono::high_resolution_clock::now();
+    const auto _ = mpi::block_scatter(std::span{local_values}, values_per_rank, 0, MPI_COMM_WORLD);
+    const auto end = std::chrono::high_resolution_clock::now();
+
+    // Now get the max time across all procs:
+    // for better or for worse, the slowest processor is the one that is
+    // holding back the others in the benchmark.
+    const auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+    const auto elapsed_seconds = duration.count();
+
+    double max_elapsed_second{};
+    MPI_Allreduce(&elapsed_seconds, &max_elapsed_second, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+    return max_elapsed_second;
+}
+
 void shuffle_from_N_to_one(benchmark::State &state) {
     const auto num_global_values = static_cast<int>(state.range(0));
 
@@ -140,6 +159,28 @@ void shuffle_serialization_from_one_to_N(benchmark::State &state) {
 
     while (state.KeepRunning()) {
         state.SetIterationTime(time_shuffle(original_values, initial_context, final_context));
+    }
+}
+
+void shuffle_scatter_from_one_to_N(benchmark::State &state) {
+    const auto num_global_values = static_cast<int>(state.range(0));
+
+    const auto num_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
+
+    if (num_global_values % num_ranks != 0) {
+        throw std::runtime_error("Number of values not divisible by number of ranks");
+    }
+
+    auto original_values = mpi::is_root(MPI_COMM_WORLD)
+                                   ? std::vector<SerializationType>(num_global_values)
+                                   : std::vector<SerializationType>{};
+
+    const auto num_values_per_rank = num_global_values / num_ranks;
+    auto values_per_rank = std::map<rank_id, int>{};
+    for (int rank = 0; rank < num_ranks; ++rank) { values_per_rank[rank] = num_values_per_rank; }
+
+    while (state.KeepRunning()) {
+        state.SetIterationTime(time_scatter(original_values, values_per_rank));
     }
 }
 
@@ -256,6 +297,7 @@ BENCHMARK(shuffle_from_N_to_one)->UseManualTime()->DenseRange(START, LIMIT, STEP
 BENCHMARK(shuffle_serialization_from_N_to_one)->UseManualTime()->DenseRange(START, LIMIT, STEP);
 BENCHMARK(shuffle_from_one_to_N)->UseManualTime()->DenseRange(START, LIMIT, STEP);
 BENCHMARK(shuffle_serialization_from_one_to_N)->UseManualTime()->DenseRange(START, LIMIT, STEP);
+BENCHMARK(shuffle_scatter_from_one_to_N)->UseManualTime()->DenseRange(START, LIMIT, STEP);
 BENCHMARK(shuffle_reduction)->UseManualTime()->DenseRange(START, LIMIT, STEP);
 BENCHMARK(shuffle_from_N_to_N_same_distribution)->UseManualTime()->DenseRange(START, LIMIT, STEP);
 BENCHMARK(shuffle_from_N_to_N)->UseManualTime()->DenseRange(START, LIMIT, STEP);

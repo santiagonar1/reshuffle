@@ -113,6 +113,20 @@ namespace reshuffle {
         const auto [blocks_to_send, blocks_to_receive] = internal::get_send_and_receive_blocks(
                 grid_overlay, rank_coordinates_initial_grid, rank_coordinates_final_grid);
 
+        if (initial_context.distribution.get_processor_grid().get_num_processors() == 1 and
+            is_block_wise_distribution(final_context.distribution)) {
+            const auto &multidimensional_blocks =
+                    grid_overlay.get_grid().get_multidimensional_blocks();
+            const auto root_coordinates = get_owner_coordinates(multidimensional_blocks[0]);
+            const auto root_rank_initial_comm =
+                    initial_processor_grid.get_processor_id(root_coordinates);
+            const auto root_intercomm = intercomm.get_intercomm_rank(
+                    root_rank_initial_comm,
+                    internal::Intercommunicator::SelectCommunicator::INITIAL_COMM);
+            return internal::scatter_values(local_values, blocks_to_send, blocks_to_receive,
+                                            final_processor_grid, root_intercomm, intercomm);
+        }
+
         return internal::exchange_values(local_values, blocks_to_send, blocks_to_receive,
                                          initial_processor_grid, final_processor_grid, intercomm);
     }
