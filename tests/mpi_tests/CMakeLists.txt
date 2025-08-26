@@ -3,7 +3,8 @@ find_package(MPI REQUIRED)
 
 include(GoogleTest)
 
-function(reshuffle_register_mpi_test TEST_NAME)
+function(reshuffle_register_mpi_test TEST_BASENAME NUM_CORES)
+    set(TEST_NAME "${TEST_BASENAME}.${NUM_CORES}cores")
     # create an executable in which the tests will be stored
     add_executable(${TEST_NAME} ${ARGN})
 
@@ -19,7 +20,7 @@ function(reshuffle_register_mpi_test TEST_NAME)
             GTest::gtest
             MPI::MPI_CXX)
 
-    set(RESHUFFLE_TESTS_NUM_MPI_RANKS 2 CACHE STRING "Number of MPI Ranks to run Reshuffle tests with.")
+    set(RESHUFFLE_TESTS_NUM_MPI_RANKS ${NUM_CORES} CACHE STRING "Number of MPI Ranks to run Reshuffle tests with.")
 
     # Fix taken from: https://gist.github.com/scivision/27a35a3ae69ea59959ac0693447d0764
     if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.29)
@@ -42,5 +43,5 @@ file(GLOB SOURCES
         *.cpp
 )
 
-reshuffle_register_mpi_test(reshuffle_mpi_tests
+reshuffle_register_mpi_test(reshuffle_mpi_tests 2
         ${SOURCES})
