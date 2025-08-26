@@ -3,7 +3,7 @@ find_package(MPI REQUIRED)
 
 include(GoogleTest)
 
-function(package_add_mpi_test TEST_NAME)
+function(reshuffle_register_mpi_test TEST_NAME)
     # create an executable in which the tests will be stored
     add_executable(${TEST_NAME} ${ARGN})
 
@@ -42,5 +42,5 @@ file(GLOB SOURCES
         *.cpp
 )
 
-package_add_mpi_test(reshuffle_mpi_tests
+reshuffle_register_mpi_test(reshuffle_mpi_tests
         ${SOURCES})

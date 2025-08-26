@@ -1,7 +1,7 @@
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-function(package_add_test TEST_NAME)
+function(reshuffle_register_test TEST_NAME)
     # create an executable in which the tests will be stored
     add_executable(${TEST_NAME} ${ARGN})
 
@@ -30,5 +30,5 @@ file(GLOB SOURCES
         *.cpp
 )
 
-package_add_test(reshuffle_tests
+reshuffle_register_test(reshuffle_tests
         ${SOURCES})
