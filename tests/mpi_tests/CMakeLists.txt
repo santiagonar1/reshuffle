@@ -6,7 +6,7 @@ include(GoogleTest)
 function(reshuffle_register_mpi_test TEST_BASENAME NUM_CORES)
     set(TEST_NAME "${TEST_BASENAME}.${NUM_CORES}cores")
     # create an executable in which the tests will be stored
-    add_executable(${TEST_NAME} ${ARGN})
+    add_executable(${TEST_NAME} ${ARGN} main.cpp)
 
     target_include_directories(${TEST_NAME}
             PRIVATE include
@@ -39,9 +39,10 @@ function(reshuffle_register_mpi_test TEST_BASENAME NUM_CORES)
     set_target_properties(${TEST_NAME} PROPERTIES FOLDER mpi_tests)
 endfunction()
 
-file(GLOB SOURCES
-        *.cpp
-)
-
 reshuffle_register_mpi_test(reshuffle_mpi_tests 2
-        ${SOURCES})
+        dummy_mpi_test.cpp
+        intercommunicator_test.cpp
+        mpi_comm_utils_test.cpp
+        mpi_utils_test.cpp
+        shuffle_test.cpp
+)
