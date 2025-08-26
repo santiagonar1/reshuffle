@@ -3,7 +3,7 @@ find_package(MPI REQUIRED)
 
 include(GoogleTest)
 
-macro(package_add_mpi_test TEST_NAME)
+function(package_add_mpi_test TEST_NAME)
     # create an executable in which the tests will be stored
     add_executable(${TEST_NAME} ${ARGN})
 
@@ -36,7 +36,7 @@ macro(package_add_mpi_test TEST_NAME)
             PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     )
     set_target_properties(${TEST_NAME} PROPERTIES FOLDER mpi_tests)
-endmacro()
+endfunction()
 
 file(GLOB SOURCES
         *.cpp
