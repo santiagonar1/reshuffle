@@ -1,23 +1,7 @@
-import matplotlib.pyplot as plt
 import argparse
 
-from common import utils
-
-
-def plot_comparison(base_metrics, compare_metrics, metric_name: str, experiment: str, title: str = "s"):
-    plt.plot(base_metrics[experiment]["num_elements"], base_metrics[experiment][metric_name], label=f"Base")
-    plt.plot(compare_metrics[experiment]["num_elements"], compare_metrics[experiment][metric_name],
-             label=f"Contender")
-
-    plt.title(f"{title}")
-    plt.xlabel("Number of Elements")
-    plt.ylabel("Value")
-    plt.legend()
-    plt.show()
-
-
-def get_common_experiments(base_metrics, contender_metrics):
-    return set(base_metrics.keys()).intersection(contender_metrics.keys())
+from common.results import Results
+from common import plotter
 
 
 def get_args():
@@ -26,30 +10,30 @@ def get_args():
     parser.add_argument(
         "--base_file",
         type=str,
-        required=True,
-        help="Path to the JSON file with benchmark results"
+        help="Path to the JSON file with base benchmark results"
     )
 
     parser.add_argument(
-        "--contender_file",
+        "--contender_files",
+        nargs='+',
         type=str,
-        required=True,
-        help="Compare the results of the base benchmark with the results of this benchmark"
+        help="Paths to the JSON files with contender benchmark results"
     )
 
     parser.add_argument(
-        "--metrics",
+        "--metric_names",
         type=str,
         nargs='*',
         default=["cpu_time", "real_time"],
-        help="List of metric names to plot, e.g., --metrics cpu_time real_time"
+        help="List of metric names to plot, e.g., --metric_names cpu_time real_time"
     )
 
     parser.add_argument(
-        "--benchmark_filter",
-        required=False,
+        "--experiments",
         type=str,
-        help="Show the results of the benchmarks that contain the given string in their name"
+        nargs='*',
+        required=False,
+        help="Show the results of the benchmarks for the specified experiments"
     )
 
     return parser.parse_args()
@@ -58,31 +42,22 @@ def get_args():
 def main():
     args = get_args()
 
-    metric_names = args.metrics
     base_file = args.base_file
-    benchmark_filter = args.benchmark_filter
-    contender_file = args.contender_file
+    contender_files = args.contender_files
+    metric_names = args.metric_names
+    experiments = args.experiments
 
-    base_results = utils.load_benchmark_results(base_file, benchmark_filter)
-    base_metrics = utils.get_metrics(base_results, metric_names)
+    base_results = Results.from_file(base_file).filter_by_metric_names(metric_names).filter_by_experiment_names(
+        experiments)
 
-    contender_results = utils.load_benchmark_results(contender_file, benchmark_filter)
-    contender_metrics = utils.get_metrics(contender_results, metric_names)
+    contender_results = []
+    for contender_file in contender_files:
+        contender_result = Results.from_file(contender_file).filter_by_metric_names(
+            metric_names).filter_by_experiment_names(
+            experiments)
+        contender_results.append(contender_result)
 
-    common_experiments = get_common_experiments(base_metrics, contender_metrics)
-
-    base_time_unit = base_results[0]["time_unit"]
-    contender_time_unit = contender_results[0]["time_unit"]
-
-    if base_time_unit != contender_time_unit:
-        raise ValueError("Time units of the base and contender benchmarks are different")
-
-    time_unit = base_time_unit
-
-    for metric_name in metric_names:
-        for experiment in common_experiments:
-            plot_comparison(base_metrics, contender_metrics, metric_name, experiment,
-                            f"{experiment} + {metric_name} ({time_unit})")
+    plotter.compare_results(base_results, contender_results)
 
 
 if __name__ == "__main__":
