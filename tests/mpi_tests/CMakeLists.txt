@@ -20,13 +20,11 @@ function(reshuffle_register_mpi_test TEST_BASENAME NUM_CORES)
             GTest::gtest
             MPI::MPI_CXX)
 
-    set(RESHUFFLE_TESTS_NUM_MPI_RANKS ${NUM_CORES} CACHE STRING "Number of MPI Ranks to run Reshuffle tests with.")
-
     # Fix taken from: https://gist.github.com/scivision/27a35a3ae69ea59959ac0693447d0764
     if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.29)
-        set_property(TARGET ${TEST_NAME} PROPERTY TEST_LAUNCHER ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${RESHUFFLE_TESTS_NUM_MPI_RANKS} ${MPIEXEC_PREFLAGS})
+        set_property(TARGET ${TEST_NAME} PROPERTY TEST_LAUNCHER ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${NUM_CORES} ${MPIEXEC_PREFLAGS})
     else ()
-        set_property(TARGET ${TEST_NAME} PROPERTY CROSSCOMPILING_EMULATOR ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${RESHUFFLE_TESTS_NUM_MPI_RANKS} ${MPIEXEC_PREFLAGS})
+        set_property(TARGET ${TEST_NAME} PROPERTY CROSSCOMPILING_EMULATOR ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${NUM_CORES} ${MPIEXEC_PREFLAGS})
     endif ()
 
     # gtest_discover_tests replaces gtest_add_tests,
@@ -45,4 +43,7 @@ reshuffle_register_mpi_test(reshuffle_mpi_tests 2
         mpi_comm_utils_test.cpp
         mpi_utils_test.cpp
         shuffle_test.cpp
+)
+reshuffle_register_mpi_test(reshuffle_reorder_test 6
+        reorder_test.cpp
 )
