@@ -9,9 +9,12 @@
 #include "concepts.hpp"
 #include "context.hpp"
 #include "dimensions.hpp"
+#include "greedy_rank_order_strategy.hpp"
+#include "hungarian_rank_order_strategy.hpp"
 #include "mpi_comm_utils.hpp"
 #include "mpi_utils.hpp"
 #include "profiler.hpp"
+#include "rank_order.hpp"
 #include "utils.hpp"
 
 
@@ -121,6 +124,32 @@ namespace reshuffle {
         const auto dimensions = internal::get_dimensions(local_values);
         return shuffle(std::mdspan(std::as_const(flat_data).data(), dimensions), initial_context,
                        final_context);
+    }
+
+    template<std::size_t N>
+    auto get_optimal_communicator(const Context<N> &initial_context,
+                                  const Context<N> &final_context)
+            -> std::optional<std::pair<MPI_Comm, std::vector<rank_id>>> {
+        const auto commWeight =
+                internal::RankOrder<N>(initial_context.distribution, final_context.distribution,
+                                       internal::HungarianRankOrderStrategy{});
+        const auto reordering = commWeight.get_optimal_rank_order();
+        return std::make_optional(std::make_pair(
+                internal::RankOrder<N>::get_reordered_comm(final_context.comm, reordering),
+                reordering));
+    }
+
+    template<std::size_t N>
+    auto get_optimal_communicator_greedy(const Context<N> &initial_context,
+                                         const Context<N> &final_context)
+            -> std::optional<std::pair<MPI_Comm, std::vector<rank_id>>> {
+        const auto commWeight =
+                internal::RankOrder<N>(initial_context.distribution, final_context.distribution,
+                                       internal::GreedyRankOrderStrategy{});
+        const auto reordering = commWeight.get_optimal_rank_order();
+        return std::make_optional(std::make_pair(
+                internal::RankOrder<N>::get_reordered_comm(final_context.comm, reordering),
+                reordering));
     }
 }// namespace reshuffle
 
