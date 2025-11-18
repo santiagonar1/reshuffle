@@ -16,6 +16,9 @@ function(reshuffle_register_test TEST_NAME)
             PRIVATE GTest::gtest_main
             PRIVATE reshuffle)
 
+    target_compile_definitions(${TEST_NAME} PRIVATE RESHUFFLE_TESTING)
+
+
     # gtest_discover_tests replaces gtest_add_tests,
     # see https://cmake.org/cmake/help/v3.10/module/GoogleTest.html for more options to pass to it
     gtest_discover_tests(${TEST_NAME}
