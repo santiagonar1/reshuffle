@@ -4,6 +4,7 @@
 #include <iterator>
 #include <optional>
 #include <utility>
+#include <vector>
 
 namespace reshuffle::internal {
     class LeftClosedRange {
@@ -61,6 +62,8 @@ namespace reshuffle::internal {
     private:
         std::pair<int, int> _interval;
     };
+
+    auto chain(const std::vector<LeftClosedRange> &intervals) -> std::vector<LeftClosedRange>;
 }// namespace reshuffle::internal
 
 #endif// RESHUFFLE_LEFT_CLOSED_RANGE_HPP

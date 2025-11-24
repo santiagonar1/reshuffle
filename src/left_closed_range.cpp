@@ -1,6 +1,7 @@
 #include "left_closed_range.hpp"
 
 #include <algorithm>
+#include <ranges>
 #include <stdexcept>
 #include <utility>
 
@@ -48,5 +49,18 @@ namespace reshuffle::internal {
         return _interval.second <=> other._interval.second;
     }
 
+    auto chain(const std::vector<LeftClosedRange> &intervals) -> std::vector<LeftClosedRange> {
+        if (intervals.empty()) { return {}; }
+
+        auto chained_intervals = std::vector{LeftClosedRange{0, intervals.front().get_length()}};
+        for (const auto &interval: intervals | std::views::drop(1)) {
+            const auto last_interval = chained_intervals.back();
+            const auto from = last_interval.get_right_bound();
+            const auto to = from + interval.get_length();
+            chained_intervals.emplace_back(from, to);
+        }
+
+        return chained_intervals;
+    }
 
 }// namespace reshuffle::internal
