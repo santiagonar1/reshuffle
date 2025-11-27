@@ -24,12 +24,10 @@ namespace reshuffle::mpi {
         }
     }// namespace internal
 
-    auto get_rank_id(const MPI_Comm &comm) -> rank_id {
+    auto get_rank_id(const MPI_Comm &comm) -> std::optional<rank_id> {
         int rank{MPI_ERR_RANK};
 
-        if (is_comm_null(comm)) {
-            throw std::invalid_argument("Invalid MPI_COMM_NULL communicator");
-        }
+        if (is_comm_null(comm) or not belongs_to_comm(comm)) { return std::nullopt; }
 
         MPI_Comm_rank(comm, &rank);
         return rank;

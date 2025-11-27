@@ -75,7 +75,7 @@ namespace reshuffle::internal {
     auto RankOrder<N>::get_reordered_comm(const MPI_Comm &comm,
                                           const std::vector<rank_id> &new_order) -> MPI_Comm {
 
-        const auto final_rank_phys = reshuffle::mpi::get_rank_id(comm);
+        const auto final_rank_phys = mpi::get_rank_id(comm).value();
 
         std::vector<rank_id> position_in_final_communicator(new_order.size(), -1);
         for (int i = 0; i < position_in_final_communicator.size(); ++i) {

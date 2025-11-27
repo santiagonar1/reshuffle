@@ -19,18 +19,20 @@ namespace reshuffle::internal {
         : _intercommunicator{create_intercommunicator(initial_comm, final_comm)},
           _initial_comm{initial_comm}, _final_comm{final_comm} {
         //gets the rank in the MPI_Comm that is NOT the sub communicator
-        const auto rank_intercomm = mpi::get_rank_id(_intercommunicator);
+        const auto rank_intercomm = mpi::get_rank_id(_intercommunicator).value();
 
         auto rank_first_comm{INVALID_RANK_ID};
         auto rank_second_comm{INVALID_RANK_ID};
 
         if (mpi::belongs_to_comm(initial_comm)) {
-            rank_first_comm = mpi::get_rank_id(initial_comm);
+            rank_first_comm = mpi::get_rank_id(initial_comm).value();
         }
 
-        if (mpi::belongs_to_comm(final_comm)) { rank_second_comm = mpi::get_rank_id(final_comm); }
+        if (mpi::belongs_to_comm(final_comm)) {
+            rank_second_comm = mpi::get_rank_id(final_comm).value();
+        }
 
-        auto info_rank = std::array{rank_first_comm, rank_second_comm, rank_intercomm};
+        const auto info_rank = std::array{rank_first_comm, rank_second_comm, rank_intercomm};
         const auto num_ranks = mpi::get_num_ranks(_intercommunicator);
 
         const auto info_rank_datatype = mpi::ContiguousMPIDatatype{MPI_INT, info_rank.size()};

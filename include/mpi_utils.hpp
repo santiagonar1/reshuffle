@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <mpi.h>
+#include <optional>
 #include <stdexcept>
 #include <vector>
 
@@ -52,7 +53,7 @@ namespace reshuffle::mpi {
         throw std::invalid_argument("No MPI Datatype");
     }
 
-    [[nodiscard]] auto get_rank_id(const MPI_Comm &comm) -> rank_id;
+    [[nodiscard]] auto get_rank_id(const MPI_Comm &comm) -> std::optional<rank_id>;
 
     [[nodiscard]] auto is_root(const MPI_Comm &comm) -> bool;
 

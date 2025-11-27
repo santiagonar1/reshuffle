@@ -96,7 +96,7 @@ namespace reshuffle {
                 internal::Intercommunicator(initial_context.comm, final_context.comm);
 
         const auto comm = intercomm.get_intercommunicator();
-        const auto rank_intercomm = mpi::get_rank_id(comm);
+        const auto rank_intercomm = mpi::get_rank_id(comm).value();
         const auto rank_initial_grid =
                 intercomm.get_initial_comm_rank(rank_intercomm).value_or(INVALID_RANK_ID);
         const auto rank_final_grid =

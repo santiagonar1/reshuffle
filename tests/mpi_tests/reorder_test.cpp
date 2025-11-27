@@ -24,7 +24,7 @@ auto calcValues(auto rank, auto global_values, auto num_ranks) -> std::vector<in
 }
 
 TEST(get_optimal_communicator, CanRelabelFromLessToMoreProcessors) {
-    const auto rank = get_rank_id(MPI_COMM_WORLD);
+    const auto rank = get_rank_id(MPI_COMM_WORLD).value();
     constexpr auto num_global_values = 18;
 
     const auto initial_distribution = reshuffle::make_block_wise_distribution(
@@ -79,7 +79,7 @@ TEST(get_optimal_communicator, CanRelabelFromLessToMoreProcessors) {
 }
 
 TEST(get_optimal_communicator, CanRelabelFromMoreToLessProcessors) {
-    const auto rank = get_rank_id(MPI_COMM_WORLD);
+    const auto rank = get_rank_id(MPI_COMM_WORLD).value();
     constexpr auto num_global_values = 18;
 
     const auto initial_distribution = reshuffle::make_block_wise_distribution(

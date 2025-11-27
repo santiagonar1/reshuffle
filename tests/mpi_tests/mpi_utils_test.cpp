@@ -38,11 +38,11 @@ TEST(GetRankId, ReturnsRankId) {
     auto rank{MPI_ERR_RANK};
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    EXPECT_THAT(get_rank_id(MPI_COMM_WORLD), Eq(rank));
+    EXPECT_THAT(get_rank_id(MPI_COMM_WORLD).value(), Eq(rank));
 }
 
-TEST(GetRankId, ThrowsIfCommIsNull) {
-    EXPECT_THROW(auto _ = get_rank_id(MPI_COMM_NULL), std::invalid_argument);
+TEST(GetRankId, ReturnsNullOptionIfCommIsNull) {
+    EXPECT_FALSE(get_rank_id(MPI_COMM_NULL).has_value());
 }
 
 TEST(IsRoot, ReturnsTrueForRankZero) {
