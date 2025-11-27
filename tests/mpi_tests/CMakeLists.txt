@@ -39,7 +39,7 @@ endfunction()
 
 reshuffle_register_mpi_test(reshuffle_mpi_tests 2
         dummy_mpi_test.cpp
-        intercommunicator_test.cpp
+        inter_communicator_test.cpp
         mpi_comm_utils_test.cpp
         mpi_utils_test.cpp
         shuffle_test.cpp

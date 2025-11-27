@@ -8,7 +8,7 @@
 #include "cartesian_product.hpp"
 #include "communication_package.hpp"
 #include "concepts.hpp"
-#include "intercommunicator.hpp"
+#include "inter_communicator.hpp"
 #include "mpi_utils.hpp"
 #include "profiler.hpp"
 #include "serialize.hpp"
@@ -30,15 +30,15 @@ namespace reshuffle::internal {
     template<typename T>
         requires concepts::FundamentalType<T> || concepts::Serializable<T>
     auto async_send(std::span<T> values, const std::map<RankId, LeftClosedRange> &data_mapping,
-                    const Intercommunicator &intercomm) -> std::vector<MPI_Request> {
+                    const InterCommunicator &inter_communicator) -> std::vector<MPI_Request> {
         auto send_requests = std::vector<MPI_Request>{};
-        const auto comm = intercomm.get_intercommunicator();
+        const auto comm = inter_communicator.get_inter_communicator();
 
         for (const auto &[rank, interval]: data_mapping) {
             const auto num_values = interval.get_length();
             // The rank here is relative to the final communicator
-            const auto destiny = intercomm.get_intercomm_rank(
-                    rank, Intercommunicator::SelectCommunicator::FINAL_COMM);
+            const auto destiny = inter_communicator.get_inter_comm_rank(
+                    rank, InterCommunicator::SelectCommunicator::FINAL_COMM);
             auto values_to_send = std::span(values.data() + interval.get_left_bound(), num_values);
             send_requests.emplace_back(mpi::async_send(values_to_send, destiny, comm));
         }
@@ -80,7 +80,7 @@ namespace reshuffle::internal {
                         const std::array<std::vector<Block>, Extents::rank()> &blocks_to_send,
                         const std::array<std::vector<Block>, Extents::rank()> &blocks_to_receive,
                         const ProcessorGrid<Extents::rank()> &final_processor_grid,
-                        const RankId root, const Intercommunicator &intercomm)
+                        const RankId root, const InterCommunicator &inter_communicator)
             -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> {
         PROFILE_SCOPE_NAMED("scatter_values");
 
@@ -94,7 +94,7 @@ namespace reshuffle::internal {
         }
 
         const auto values = mpi::block_scatter(std::span{send_buffer}, values_per_rank, root,
-                                               intercomm.get_intercommunicator());
+                                               inter_communicator.get_inter_communicator());
         const auto dimensions = get_dimensions(blocks_to_receive);
 
         return {values, dimensions};
@@ -107,7 +107,7 @@ namespace reshuffle::internal {
                          const std::array<std::vector<Block>, Extents::rank()> &blocks_to_receive,
                          const ProcessorGrid<Extents::rank()> &initial_processor_grid,
                          const ProcessorGrid<Extents::rank()> &final_processor_grid,
-                         const Intercommunicator &intercomm)
+                         const InterCommunicator &inter_communicator)
             -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> {
         PROFILE_SCOPE_NAMED("exchange_values");
 
@@ -122,8 +122,10 @@ namespace reshuffle::internal {
         auto [send_buffer, intervals_to_send_per_rank] = get_send_package(
                 local_values, multidimensional_blocks_to_send, final_processor_grid);
 
-        const auto intercomm_rank = mpi::get_rank_id(intercomm.get_intercommunicator()).value();
-        const auto rank_final_comm = intercomm.get_final_comm_rank().value_or(INVALID_RANK_ID);
+        const auto inter_comm_rank =
+                mpi::get_rank_id(inter_communicator.get_inter_communicator()).value();
+        const auto rank_final_comm =
+                inter_communicator.get_final_comm_rank().value_or(INVALID_RANK_ID);
         const auto send_to_myself_optional = find(intervals_to_send_per_rank, rank_final_comm);
         intervals_to_send_per_rank.erase(rank_final_comm);
 
@@ -133,20 +135,21 @@ namespace reshuffle::internal {
         if (send_to_myself_optional.has_value()) { num_messages_to_receive -= 1; }
 
         auto send_requests =
-                async_send(std::span{send_buffer}, intervals_to_send_per_rank, intercomm);
+                async_send(std::span{send_buffer}, intervals_to_send_per_rank, inter_communicator);
 
         const auto num_new_local_values = get_num_elements(multidimensional_blocks_to_receive);
         auto new_local_values = std::vector<T>(num_new_local_values);
 
         if (send_to_myself_optional.has_value()) {
             const auto send_to_myself = send_to_myself_optional.value();
-            auto blocks_from_source = multidimensional_blocks_to_receive |
-                                      std::views::filter([intercomm_rank, initial_processor_grid,
-                                                          intercomm](auto block) {
-                                          return initial_processor_grid.get_processor_id(
-                                                         get_owner_coordinates(block)) ==
-                                                 intercomm.get_initial_comm_rank(intercomm_rank);
-                                      });
+            auto blocks_from_source =
+                    multidimensional_blocks_to_receive |
+                    std::views::filter([inter_comm_rank, initial_processor_grid,
+                                        inter_communicator](auto block) {
+                        return initial_processor_grid.get_processor_id(
+                                       get_owner_coordinates(block)) ==
+                               inter_communicator.get_initial_comm_rank(inter_comm_rank);
+                    });
 
             auto received_values_view =
                     std::span{std::as_const(send_buffer).data() + send_to_myself.get_left_bound(),
@@ -158,14 +161,16 @@ namespace reshuffle::internal {
 
 
         for (int i = 0; i < num_messages_to_receive; i++) {
-            const auto [source, data] = mpi::block_receive<T>(intercomm.get_intercommunicator());
+            const auto [source, data] =
+                    mpi::block_receive<T>(inter_communicator.get_inter_communicator());
 
-            auto blocks_from_source =
-                    multidimensional_blocks_to_receive |
-                    std::views::filter([source, initial_processor_grid, intercomm](auto block) {
-                        return initial_processor_grid.get_processor_id(get_owner_coordinates(
-                                       block)) == intercomm.get_initial_comm_rank(source);
-                    });
+            auto blocks_from_source = multidimensional_blocks_to_receive |
+                                      std::views::filter([source, initial_processor_grid,
+                                                          inter_communicator](auto block) {
+                                          return initial_processor_grid.get_processor_id(
+                                                         get_owner_coordinates(block)) ==
+                                                 inter_communicator.get_initial_comm_rank(source);
+                                      });
 
             auto received_values_view = std::span{data};
             process_received_blocks(received_values_view,

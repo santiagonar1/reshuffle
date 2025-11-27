@@ -92,11 +92,13 @@ namespace reshuffle {
                 final_context.distribution.get_processor_grid());
 
         // TODO: Deal with partially disjoint communicators
-        const auto intercomm =
-                internal::Intercommunicator(initial_context.comm, final_context.comm);
+        const auto inter_communicator =
+                internal::InterCommunicator(initial_context.comm, final_context.comm);
 
-        const auto rank_initial_grid = intercomm.get_initial_comm_rank().value_or(INVALID_RANK_ID);
-        const auto rank_final_grid = intercomm.get_final_comm_rank().value_or(INVALID_RANK_ID);
+        const auto rank_initial_grid =
+                inter_communicator.get_initial_comm_rank().value_or(INVALID_RANK_ID);
+        const auto rank_final_grid =
+                inter_communicator.get_final_comm_rank().value_or(INVALID_RANK_ID);
 
         const auto initial_processor_grid = initial_context.distribution.get_processor_grid();
         const auto final_processor_grid = final_context.distribution.get_processor_grid();
@@ -116,15 +118,17 @@ namespace reshuffle {
             const auto root_coordinates = get_owner_coordinates(multidimensional_blocks[0]);
             const auto root_rank_initial_comm =
                     initial_processor_grid.get_processor_id(root_coordinates);
-            const auto root_intercomm = intercomm.get_intercomm_rank(
+            const auto root_inter_comm = inter_communicator.get_inter_comm_rank(
                     root_rank_initial_comm,
-                    internal::Intercommunicator::SelectCommunicator::INITIAL_COMM);
+                    internal::InterCommunicator::SelectCommunicator::INITIAL_COMM);
             return internal::scatter_values(local_values, blocks_to_send, blocks_to_receive,
-                                            final_processor_grid, root_intercomm, intercomm);
+                                            final_processor_grid, root_inter_comm,
+                                            inter_communicator);
         }
 
         return internal::exchange_values(local_values, blocks_to_send, blocks_to_receive,
-                                         initial_processor_grid, final_processor_grid, intercomm);
+                                         initial_processor_grid, final_processor_grid,
+                                         inter_communicator);
     }
 
     template<typename T>
