@@ -29,7 +29,7 @@ namespace reshuffle::internal {
 
     template<typename T>
         requires concepts::FundamentalType<T> || concepts::Serializable<T>
-    auto async_send(std::span<T> values, const std::map<rank_id, LeftClosedRange> &data_mapping,
+    auto async_send(std::span<T> values, const std::map<RankId, LeftClosedRange> &data_mapping,
                     const Intercommunicator &intercomm) -> std::vector<MPI_Request> {
         auto send_requests = std::vector<MPI_Request>{};
         const auto comm = intercomm.get_intercommunicator();
@@ -80,7 +80,7 @@ namespace reshuffle::internal {
                         const std::array<std::vector<Block>, Extents::rank()> &blocks_to_send,
                         const std::array<std::vector<Block>, Extents::rank()> &blocks_to_receive,
                         const ProcessorGrid<Extents::rank()> &final_processor_grid,
-                        const rank_id root, const Intercommunicator &intercomm)
+                        const RankId root, const Intercommunicator &intercomm)
             -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> {
         PROFILE_SCOPE_NAMED("scatter_values");
 
@@ -88,7 +88,7 @@ namespace reshuffle::internal {
         auto [send_buffer, intervals_to_send_per_rank] = get_send_package(
                 local_values, multidimensional_blocks_to_send, final_processor_grid);
 
-        auto values_per_rank = std::map<rank_id, int>{};
+        auto values_per_rank = std::map<RankId, int>{};
         for (const auto &[rank, interval]: intervals_to_send_per_rank) {
             values_per_rank.emplace(rank, interval.get_length());
         }

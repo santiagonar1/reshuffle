@@ -28,9 +28,9 @@ namespace reshuffle::internal {
         void _test_set_matrix(Matrix2D<int> m);
 #endif
 
-        [[nodiscard]] auto get_optimal_rank_order() const -> std::vector<rank_id>;
+        [[nodiscard]] auto get_optimal_rank_order() const -> std::vector<RankId>;
 
-        static auto get_reordered_comm(const MPI_Comm &comm, const std::vector<rank_id> &new_order)
+        static auto get_reordered_comm(const MPI_Comm &comm, const std::vector<RankId> &new_order)
                 -> MPI_Comm;
 
         auto compute_communication_weights(BlockCyclic<N> initial_distribution,
@@ -67,24 +67,24 @@ namespace reshuffle::internal {
 
 
     template<std::size_t N>
-    auto RankOrder<N>::get_optimal_rank_order() const -> std::vector<rank_id> {
+    auto RankOrder<N>::get_optimal_rank_order() const -> std::vector<RankId> {
         return _strategy.get_optimal_order(_matrix);
     }
 
     template<std::size_t N>
     auto RankOrder<N>::get_reordered_comm(const MPI_Comm &comm,
-                                          const std::vector<rank_id> &new_order) -> MPI_Comm {
+                                          const std::vector<RankId> &new_order) -> MPI_Comm {
 
         const auto final_rank_phys = mpi::get_rank_id(comm).value();
 
-        std::vector<rank_id> position_in_final_communicator(new_order.size(), -1);
+        std::vector<RankId> position_in_final_communicator(new_order.size(), -1);
         for (int i = 0; i < position_in_final_communicator.size(); ++i) {
             const auto r = new_order[i];
             position_in_final_communicator[r] = i;
         }
 
         auto reordered_comm_final = MPI_COMM_NULL;
-        const rank_id key = position_in_final_communicator[final_rank_phys];
+        const RankId key = position_in_final_communicator[final_rank_phys];
         MPI_Comm_split(comm, 0, key, &reordered_comm_final);
 
         return reordered_comm_final;

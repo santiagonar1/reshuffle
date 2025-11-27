@@ -8,12 +8,12 @@ namespace reshuffle::internal {
 
     Block::Block() : _interval{0, 0}, _owner{-1} {};
 
-    Block::Block(const LeftClosedRange &interval, const rank_id owner)
+    Block::Block(const LeftClosedRange &interval, const RankId owner)
         : _interval{interval}, _owner{owner} {};
 
     auto Block::get_interval() const -> const LeftClosedRange & { return _interval; }
 
-    auto Block::get_owner() const -> rank_id { return _owner; }
+    auto Block::get_owner() const -> RankId { return _owner; }
 
     auto Block::get_overlay(const Block &other) const -> std::optional<Block> {
         const auto interval_overlay = _interval.get_overlay(other._interval);
@@ -58,9 +58,8 @@ namespace reshuffle::internal {
         return joined_blocks;
     }
 
-    auto get_num_elements_per_processor(const std::vector<Block> &blocks)
-            -> std::map<rank_id, int> {
-        auto num_elements_per_process = std::map<rank_id, int>{};
+    auto get_num_elements_per_processor(const std::vector<Block> &blocks) -> std::map<RankId, int> {
+        auto num_elements_per_process = std::map<RankId, int>{};
         for (const auto &block: blocks) {
             const auto owner = block.get_owner();
             const auto num_elements = block.get_interval().get_length();
@@ -88,4 +87,4 @@ namespace reshuffle::internal {
 
         return blocks_grouped_by_owner;
     }
-}// namespace reshuffle::dev
+}// namespace reshuffle::internal

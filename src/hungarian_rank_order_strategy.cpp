@@ -2,7 +2,7 @@
 
 namespace reshuffle::internal {
     auto HungarianRankOrderStrategy::get_optimal_order(const Matrix2D<int> &matrix) const
-            -> std::vector<rank_id> {
+            -> std::vector<RankId> {
         if (matrix.empty()) { return {}; }
 
         const auto rows = matrix.size();
@@ -75,7 +75,7 @@ namespace reshuffle::internal {
 
         // p now contains the mapping by the following rule:
         // permutation[p[j]] = j
-        std::vector<rank_id> permutation(cols, -1);
+        std::vector<RankId> permutation(cols, -1);
         std::vector<bool> col_used(cols, false);
 
         for (auto j = 1; j <= n; ++j) {
@@ -86,7 +86,7 @@ namespace reshuffle::internal {
                 const auto row_idx = static_cast<std::size_t>(i - 1);
                 const auto col_idx = static_cast<std::size_t>(j - 1);
                 if (row_idx < rows && col_idx < cols && row_idx < cols) {
-                    permutation[row_idx] = static_cast<rank_id>(col_idx);
+                    permutation[row_idx] = static_cast<RankId>(col_idx);
                     col_used[col_idx] = true;
                 }
             }
@@ -105,7 +105,7 @@ namespace reshuffle::internal {
         }
 
         if (cols < rows) {
-            std::vector<rank_id> extend_permutation(rows, INVALID_RANK_ID);
+            std::vector<RankId> extend_permutation(rows, INVALID_RANK_ID);
             std::ranges::copy(permutation, extend_permutation.begin());
             std::iota(extend_permutation.begin() + static_cast<long>(cols),
                       extend_permutation.end(), cols);

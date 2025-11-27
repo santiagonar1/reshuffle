@@ -125,10 +125,10 @@ namespace reshuffle::internal {
     [[nodiscard]] auto
     get_num_elements_per_processor(const std::vector<MultidimensionalBlock<N>> &blocks,
                                    const ProcessorGrid<N> &processor_grid)
-            -> std::map<rank_id, int> {
+            -> std::map<RankId, int> {
         PROFILE_SCOPE_NAMED("get_num_elements_per_processor");
 
-        auto num_elements_per_process = std::map<rank_id, int>{};
+        auto num_elements_per_process = std::map<RankId, int>{};
 
         for (const auto &block: blocks) {
             const auto owner_coordinates = get_owner_coordinates(block);

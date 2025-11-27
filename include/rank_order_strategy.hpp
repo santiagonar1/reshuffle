@@ -12,7 +12,7 @@ namespace reshuffle::internal {
     class IOptimalRankOrderStrategy {
     public:
         virtual ~IOptimalRankOrderStrategy() = default;
-        [[nodiscard]] virtual std::vector<rank_id>
+        [[nodiscard]] virtual std::vector<RankId>
         get_optimal_order(const Matrix2D<int> &matrix) const = 0;
     };
 }// namespace reshuffle::internal

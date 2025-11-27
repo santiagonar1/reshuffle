@@ -143,7 +143,7 @@ namespace reshuffle {
     template<std::size_t N>
     auto get_optimal_communicator(const Context<N> &initial_context,
                                   const Context<N> &final_context)
-            -> std::optional<std::pair<MPI_Comm, std::vector<rank_id>>> {
+            -> std::optional<std::pair<MPI_Comm, std::vector<RankId>>> {
         const auto commWeight =
                 internal::RankOrder<N>(initial_context.distribution, final_context.distribution,
                                        internal::HungarianRankOrderStrategy{});
@@ -156,7 +156,7 @@ namespace reshuffle {
     template<std::size_t N>
     auto get_optimal_communicator_greedy(const Context<N> &initial_context,
                                          const Context<N> &final_context)
-            -> std::optional<std::pair<MPI_Comm, std::vector<rank_id>>> {
+            -> std::optional<std::pair<MPI_Comm, std::vector<RankId>>> {
         const auto commWeight =
                 internal::RankOrder<N>(initial_context.distribution, final_context.distribution,
                                        internal::GreedyRankOrderStrategy{});

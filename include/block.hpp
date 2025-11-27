@@ -13,10 +13,10 @@ namespace reshuffle::internal {
     class Block {
     public:
         Block();
-        Block(const LeftClosedRange &interval, rank_id owner);
+        Block(const LeftClosedRange &interval, RankId owner);
 
         [[nodiscard]] auto get_interval() const -> const LeftClosedRange &;
-        [[nodiscard]] auto get_owner() const -> rank_id;
+        [[nodiscard]] auto get_owner() const -> RankId;
         [[nodiscard]] auto get_overlay(const Block &other) const -> std::optional<Block>;
         [[nodiscard]] auto get_num_elements() const -> int;
 
@@ -27,14 +27,14 @@ namespace reshuffle::internal {
 
     private:
         LeftClosedRange _interval;
-        rank_id _owner;
+        RankId _owner;
     };
 
     // Takes a group of disjoint blocks and transform them in a series of
     // contiguous blocks
     auto join(const std::vector<Block> &blocks) -> std::vector<Block>;
 
-    auto get_num_elements_per_processor(const std::vector<Block> &blocks) -> std::map<rank_id, int>;
+    auto get_num_elements_per_processor(const std::vector<Block> &blocks) -> std::map<RankId, int>;
 
     auto group_by_processor(const std::vector<Block> &blocks) -> std::vector<Block>;
 

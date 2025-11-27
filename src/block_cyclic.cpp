@@ -9,7 +9,7 @@ namespace reshuffle::internal {
         for (int i = 0; i < num_values; i += block_size) {
             const auto starting_index = i;
             const auto last_index = starting_index + block_size;
-            const auto owner = static_cast<rank_id>(blocks.size()) % num_processors;
+            const auto owner = static_cast<RankId>(blocks.size()) % num_processors;
             blocks.emplace_back(reshuffle::internal::LeftClosedRange{starting_index, last_index},
                                 owner);
         }

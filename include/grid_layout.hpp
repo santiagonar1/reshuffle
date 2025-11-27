@@ -26,12 +26,11 @@ namespace reshuffle::internal {
 
         [[nodiscard]] auto get_blocks() const -> const std::array<std::vector<Block>, N> &;
         [[nodiscard]] auto get_block_owner(const Coordinates<N> &block_coordinates,
-                                           const ProcessorGrid<N> &processor_grid) const -> rank_id;
+                                           const ProcessorGrid<N> &processor_grid) const -> RankId;
         [[nodiscard]] auto get_overlay(const GridLayout &target_grid,
                                        const ProcessorGrid<N> &target_processor_grid) const
                 -> GridOverlay<N>;
-        [[nodiscard]] auto get_local_grid(rank_id rank,
-                                          const ProcessorGrid<N> &processor_grid) const
+        [[nodiscard]] auto get_local_grid(RankId rank, const ProcessorGrid<N> &processor_grid) const
                 -> GridLayout;
         [[nodiscard]] auto get_multidimensional_blocks() const
                 -> const std::vector<MultidimensionalBlock<N>> &;
@@ -49,14 +48,14 @@ namespace reshuffle::internal {
     template<std::size_t N>
     class GridOverlay {
     public:
-        GridOverlay(GridLayout<N> grid, std::array<std::vector<rank_id>, N> owners_target_grid)
+        GridOverlay(GridLayout<N> grid, std::array<std::vector<RankId>, N> owners_target_grid)
             : _grid(std::move(grid)),
               _coordinates_owners_target_grid(get_cartesian_product(owners_target_grid)),
               _owners_target_grid(std::move(owners_target_grid)) {}
 
         [[nodiscard]] auto get_grid() const -> const GridLayout<N> & { return _grid; }
         [[nodiscard]] auto get_owners_target_grid() const
-                -> const std::array<std::vector<rank_id>, N> & {
+                -> const std::array<std::vector<RankId>, N> & {
             return _owners_target_grid;
         }
         [[nodiscard]] auto get_coordinates_owners_target_grid() const
@@ -68,7 +67,7 @@ namespace reshuffle::internal {
         const GridLayout<N> _grid;
         // Here the order matters, as _coordinates_owners_target_grid needs to be initialized before _owners_target_gid
         const std::vector<Coordinates<N>> _coordinates_owners_target_grid;
-        const std::array<std::vector<rank_id>, N> _owners_target_grid;
+        const std::array<std::vector<RankId>, N> _owners_target_grid;
     };
 
     template<std::size_t N>
@@ -82,7 +81,7 @@ namespace reshuffle::internal {
 
     template<std::size_t N>
     auto GridLayout<N>::get_block_owner(const Coordinates<N> &block_coordinates,
-                                        const ProcessorGrid<N> &processor_grid) const -> rank_id {
+                                        const ProcessorGrid<N> &processor_grid) const -> RankId {
         const auto processor_coordinates = get_processor_coordinates(block_coordinates);
         return map_indices(processor_coordinates, processor_grid.get_dimensions()).value();
     }
@@ -105,7 +104,7 @@ namespace reshuffle::internal {
         }
 
         auto sub_blocks = std::vector<Block>{};
-        auto owners_target_grid = std::vector<rank_id>{};
+        auto owners_target_grid = std::vector<RankId>{};
 
         int pos_target_grid{};
         for (const auto &block: origin_blocks) {
@@ -149,7 +148,7 @@ namespace reshuffle::internal {
                                                    target_processor_grid.get_dimensions());
 
         auto blocks_overlay = std::array<std::vector<Block>, N>{};
-        auto owners_target_grid = std::array<std::vector<rank_id>, N>{};
+        auto owners_target_grid = std::array<std::vector<RankId>, N>{};
 
         int i{};
         for (const auto &[blocks_origin, blocks_target, num_processors]: pairs_per_dimension) {
@@ -167,7 +166,7 @@ namespace reshuffle::internal {
     }
 
     template<std::size_t N>
-    auto GridLayout<N>::get_local_grid(const rank_id rank,
+    auto GridLayout<N>::get_local_grid(const RankId rank,
                                        const ProcessorGrid<N> &processor_grid) const -> GridLayout {
 
         const auto filter_fn = [rank, &processor_grid](const auto &block_tuple) {

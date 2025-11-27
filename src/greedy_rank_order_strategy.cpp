@@ -3,12 +3,12 @@
 namespace reshuffle::internal {
 
     auto GreedyRankOrderStrategy::get_optimal_order(const Matrix2D<int> &matrix) const
-            -> std::vector<rank_id> {
+            -> std::vector<RankId> {
         if (matrix.empty()) { return {}; }
         const auto rows = matrix.size();
         const auto cols = matrix[0].size();
         const auto num_considered_rows = std::min(rows, cols);
-        auto permutation = std::vector<rank_id>(cols, INVALID_RANK_ID);
+        auto permutation = std::vector<RankId>(cols, INVALID_RANK_ID);
         auto used = std::vector<bool>(cols, false);
 
         std::vector<int> row_sums(rows);
@@ -17,7 +17,7 @@ namespace reshuffle::internal {
         }
 
         for (std::size_t i = 0; i < num_considered_rows; ++i) {
-            rank_id best_rank = -1;
+            RankId best_rank = -1;
             int best_score = std::numeric_limits<int>::lowest();
 
             for (std::size_t candidate = 0; candidate < cols; ++candidate) {
@@ -44,7 +44,7 @@ namespace reshuffle::internal {
         }
 
         if (cols < rows) {
-            std::vector<rank_id> extend_permutation(rows, INVALID_RANK_ID);
+            std::vector<RankId> extend_permutation(rows, INVALID_RANK_ID);
             std::ranges::copy(permutation, extend_permutation.begin());
             std::iota(extend_permutation.begin() + static_cast<long>(cols),
                       extend_permutation.end(), cols);

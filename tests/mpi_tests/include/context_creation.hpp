@@ -11,7 +11,7 @@ public:
         : _num_values_per_rank(num_values_per_rank), _num_ranks(num_ranks),
           _values(generate_values(1, num_values_per_rank * num_ranks)) {}
 
-    [[nodiscard]] auto get_values_for_rank(const reshuffle::rank_id rank_id) const
+    [[nodiscard]] auto get_values_for_rank(const reshuffle::RankId rank_id) const
             -> std::vector<int> {
         const auto start = rank_id * _num_values_per_rank;
         const auto end = start + _num_values_per_rank;

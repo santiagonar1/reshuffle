@@ -14,8 +14,8 @@ namespace reshuffle {
         [[nodiscard]] auto get_num_processors() const -> int;
         [[nodiscard]] auto get_dimensions() const -> Dimensions<N>;
         [[nodiscard]] auto get_processor_id(const internal::Coordinates<N> &coordinates) const
-                -> rank_id;
-        [[nodiscard]] auto get_processor_coordinates(rank_id processor) const
+                -> RankId;
+        [[nodiscard]] auto get_processor_coordinates(RankId processor) const
                 -> internal::Coordinates<N>;
 
         auto operator==(const ProcessorGrid &other) const -> bool;
@@ -42,12 +42,12 @@ namespace reshuffle {
 
     template<std::size_t N>
     auto ProcessorGrid<N>::get_processor_id(const internal::Coordinates<N> &coordinates) const
-            -> rank_id {
+            -> RankId {
         return internal::map_indices(coordinates, _dimensions).value_or(INVALID_RANK_ID);
     }
 
     template<std::size_t N>
-    auto ProcessorGrid<N>::get_processor_coordinates(rank_id processor) const
+    auto ProcessorGrid<N>::get_processor_coordinates(RankId processor) const
             -> internal::Coordinates<N> {
         return internal::map_index(processor, _dimensions)
                 .value_or(internal::get_invalid_coordinates<N>());

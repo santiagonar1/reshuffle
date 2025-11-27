@@ -18,7 +18,7 @@ TEST(GetSendPackage, ConstructsACommunicationPackageBasedOnSendBlocksWithMultidi
 
     const auto expected_data_send_to_0 = std::vector{2, 3};
     const auto expected_data_send_to_1 = std::vector{0, 1, 4, 5};
-    const auto expected_destinies = std::map<rank_id, LeftClosedRange>{{0, {0, 2}}, {1, {2, 6}}};
+    const auto expected_destinies = std::map<RankId, LeftClosedRange>{{0, {0, 2}}, {1, {2, 6}}};
 
     const auto num_values_for_0 = static_cast<int>(expected_data_send_to_0.size());
 
@@ -45,7 +45,7 @@ TEST(GetSendPackage, WorksIn2D) {
     const auto processor_grid = ProcessorGrid<2>{{2, 2}};
 
     const auto expected_destinies =
-            std::map<rank_id, LeftClosedRange>{{0, {0, 4}}, {1, {4, 6}}, {2, {6, 8}}, {3, {8, 9}}};
+            std::map<RankId, LeftClosedRange>{{0, {0, 4}}, {1, {4, 6}}, {2, {6, 8}}, {3, {8, 9}}};
 
     const auto expected_send_buffer = std::vector{0, 1, 3, 4, 2, 5, 6, 7, 8};
 

@@ -53,7 +53,7 @@ namespace reshuffle::mpi {
         throw std::invalid_argument("No MPI Datatype");
     }
 
-    [[nodiscard]] auto get_rank_id(const MPI_Comm &comm) -> std::optional<rank_id>;
+    [[nodiscard]] auto get_rank_id(const MPI_Comm &comm) -> std::optional<RankId>;
 
     [[nodiscard]] auto is_root(const MPI_Comm &comm) -> bool;
 
@@ -61,20 +61,20 @@ namespace reshuffle::mpi {
 
     [[nodiscard]] auto is_comm_null(const MPI_Comm &comm) -> bool;
 
-    [[nodiscard]] auto get_sub_comm(const MPI_Comm &base_comm, const std::vector<rank_id> &ranks)
+    [[nodiscard]] auto get_sub_comm(const MPI_Comm &base_comm, const std::vector<RankId> &ranks)
             -> MPI_Comm;
 
     [[nodiscard]] auto get_group(const MPI_Comm &comm) -> std::optional<MPI_Group>;
 
     [[nodiscard]] auto belongs_to_comm(const MPI_Comm &comm) -> bool;
 
-    [[nodiscard]] auto get_sub_group(const MPI_Group &group, const std::vector<rank_id> &ranks)
+    [[nodiscard]] auto get_sub_group(const MPI_Group &group, const std::vector<RankId> &ranks)
             -> MPI_Group;
 
     [[nodiscard]] auto is_sub_comm(const MPI_Comm &comm, const MPI_Comm &possible_sub_comm) -> bool;
 
     template<concepts::MPIType T>
-    [[nodiscard]] auto async_send(std::span<T> values, const rank_id destiny, const MPI_Comm &comm)
+    [[nodiscard]] auto async_send(std::span<T> values, const RankId destiny, const MPI_Comm &comm)
             -> MPI_Request {
         auto request = MPI_Request{};
         MPI_Isend(values.data(), values.size(), mpi::to_mpi_datatype<std::remove_cv_t<T>>(),
@@ -84,7 +84,7 @@ namespace reshuffle::mpi {
 
     template<concepts::NeedsSerialization T>
         requires concepts::Serializable<T>
-    [[nodiscard]] auto async_send(std::span<T> values, const rank_id destiny, const MPI_Comm &comm)
+    [[nodiscard]] auto async_send(std::span<T> values, const RankId destiny, const MPI_Comm &comm)
             -> MPI_Request {
         auto request = MPI_Request{};
         auto serialized_values = reshuffle::internal::serialize(values);
@@ -94,7 +94,7 @@ namespace reshuffle::mpi {
     }
 
     template<concepts::MPIType T>
-    [[nodiscard]] auto block_receive(const MPI_Comm &comm) -> std::pair<rank_id, std::vector<T>> {
+    [[nodiscard]] auto block_receive(const MPI_Comm &comm) -> std::pair<RankId, std::vector<T>> {
 
         const auto [source, tag, count] = internal::block_until_message_is_received(
                 mpi::to_mpi_datatype<std::remove_cv_t<T>>(), comm);
@@ -108,7 +108,7 @@ namespace reshuffle::mpi {
 
     template<concepts::NeedsSerialization T>
         requires concepts::Serializable<T>
-    [[nodiscard]] auto block_receive(const MPI_Comm &comm) -> std::pair<rank_id, std::vector<T>> {
+    [[nodiscard]] auto block_receive(const MPI_Comm &comm) -> std::pair<RankId, std::vector<T>> {
         const auto [source, tag, count] = internal::block_until_message_is_received(MPI_BYTE, comm);
 
         auto buffer = std::vector<std::byte>(count);
@@ -120,8 +120,8 @@ namespace reshuffle::mpi {
 
     template<concepts::MPIType T>
     [[nodiscard]] auto block_scatter(std::span<T> values,
-                                     const std::map<rank_id, int> &values_per_rank,
-                                     const rank_id root, const MPI_Comm &comm) -> std::vector<T> {
+                                     const std::map<RankId, int> &values_per_rank,
+                                     const RankId root, const MPI_Comm &comm) -> std::vector<T> {
         const auto num_ranks = get_num_ranks(comm);
 
         auto num_values_per_rank = std::vector<int>(num_ranks);
@@ -149,10 +149,10 @@ namespace reshuffle::mpi {
         template<typename T>
         [[nodiscard]] auto
         get_send_buffer_and_mapping(std::span<T> values,
-                                    const std::map<rank_id, int> &values_per_rank,
-                                    const int num_ranks, const rank_id root)
-                -> std::tuple<std::vector<T>, std::vector<std::byte>, std::map<rank_id, int>> {
-            auto bytes_per_rank = std::map<rank_id, int>{};
+                                                       const std::map<RankId, int> &values_per_rank,
+                                                       const int num_ranks, const RankId root)
+                -> std::tuple<std::vector<T>, std::vector<std::byte>, std::map<RankId, int>> {
+            auto bytes_per_rank = std::map<RankId, int>{};
             auto bytes_to_send = std::vector<std::byte>{};
             auto num_values_per_rank = std::vector<int>(num_ranks);
 
@@ -197,10 +197,10 @@ namespace reshuffle::mpi {
         template<concepts::FixedSizeSerializable T>
         [[nodiscard]] auto
         get_send_buffer_and_mapping(std::span<T> values,
-                                    const std::map<rank_id, int> &values_per_rank,
-                                    const int num_ranks, const rank_id root)
-                -> std::tuple<std::vector<T>, std::vector<std::byte>, std::map<rank_id, int>> {
-            auto bytes_per_rank = std::map<rank_id, int>{};
+                                                       const std::map<RankId, int> &values_per_rank,
+                                                       const int num_ranks, const RankId root)
+                -> std::tuple<std::vector<T>, std::vector<std::byte>, std::map<RankId, int>> {
+            auto bytes_per_rank = std::map<RankId, int>{};
             const auto dummy_vector = std::vector<T>(1);
             const auto num_bytes_per_value = get_num_bytes<T>();
             auto num_values_per_rank = std::vector<int>(num_ranks);
@@ -242,8 +242,8 @@ namespace reshuffle::mpi {
     template<concepts::NeedsSerialization T>
         requires concepts::Serializable<T>
     [[nodiscard]] auto block_scatter(std::span<T> values,
-                                     const std::map<rank_id, int> &values_per_rank,
-                                     const rank_id root, const MPI_Comm &comm) -> std::vector<T> {
+                                     const std::map<RankId, int> &values_per_rank,
+                                     const RankId root, const MPI_Comm &comm) -> std::vector<T> {
         const auto rank = get_rank_id(comm);
 
 
@@ -258,7 +258,7 @@ namespace reshuffle::mpi {
         }
 
         auto dummy_bytes = std::vector<std::byte>{};
-        const auto dummy_values_per_rank = std::map<rank_id, int>{};
+        const auto dummy_values_per_rank = std::map<RankId, int>{};
         const auto received_bytes =
                 block_scatter(std::span{dummy_bytes}, dummy_values_per_rank, root, comm);
 

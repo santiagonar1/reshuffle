@@ -7,7 +7,7 @@
 
 bool is_root(const MPI_Comm &comm = MPI_COMM_WORLD);
 bool is_rank_active(int num_active_ranks);
-reshuffle::rank_id get_rank(const MPI_Comm &comm = MPI_COMM_WORLD);
+reshuffle::RankId get_rank(const MPI_Comm &comm = MPI_COMM_WORLD);
 int get_num_ranks(const MPI_Comm &comm = MPI_COMM_WORLD);
 
 MPI_Comm simulate_adaptation(int num_active_ranks);
@@ -73,8 +73,8 @@ bool is_rank_active(const int num_active_ranks) {
     return rank < num_active_ranks;
 }
 
-reshuffle::rank_id get_rank(const MPI_Comm &comm) {
-    reshuffle::rank_id id{};
+reshuffle::RankId get_rank(const MPI_Comm &comm) {
+    reshuffle::RankId id{};
     MPI_Comm_rank(comm, &id);
 
     return id;

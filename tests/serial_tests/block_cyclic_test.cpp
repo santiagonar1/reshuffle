@@ -52,7 +52,7 @@ TEST(BlockCyclic, AssignsBlocksInRoundRobbinFashion) {
     const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
     const auto data_distribution = BlockCyclic({num_values}, {block_size}, processor_grid);
 
-    auto result = std::vector<reshuffle::rank_id>{};
+    auto result = std::vector<reshuffle::RankId>{};
     const auto blocks = data_distribution.get_grid_layout().get_blocks().at(0);
     for (int i = 0; i < blocks.size(); ++i) {
         const auto block_coordinates = Coordinates<1>{i};

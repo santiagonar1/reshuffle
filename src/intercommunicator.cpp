@@ -56,9 +56,9 @@ namespace reshuffle::internal {
 
     auto Intercommunicator::get_intercommunicator() const -> MPI_Comm { return _intercommunicator; }
 
-    auto Intercommunicator::get_intercomm_rank(const rank_id original_rank,
+    auto Intercommunicator::get_intercomm_rank(const RankId original_rank,
                                                const SelectCommunicator original_comm) const
-            -> rank_id {
+            -> RankId {
         switch (original_comm) {
             case SelectCommunicator::INITIAL_COMM:
                 if (_initial_comm_to_intercomm.contains(original_rank)) {
@@ -75,16 +75,16 @@ namespace reshuffle::internal {
         throw std::runtime_error("It should never reach here");
     }
 
-    auto Intercommunicator::get_initial_comm_rank(rank_id intercomm_rank) const
-            -> std::optional<rank_id> {
+    auto Intercommunicator::get_initial_comm_rank(RankId intercomm_rank) const
+            -> std::optional<RankId> {
         if (_intercomm_to_initial_comm.contains(intercomm_rank)) {
             return _intercomm_to_initial_comm.at(intercomm_rank);
         }
 
         return std::nullopt;
     }
-    auto Intercommunicator::get_final_comm_rank(rank_id intercomm_rank) const
-            -> std::optional<rank_id> {
+    auto Intercommunicator::get_final_comm_rank(RankId intercomm_rank) const
+            -> std::optional<RankId> {
         if (_intercomm_to_final_comm.contains(intercomm_rank)) {
             return _intercomm_to_final_comm.at(intercomm_rank);
         }

@@ -15,10 +15,10 @@ namespace reshuffle::internal {
     template<typename T>
     struct SendCommunicationPackage {
         std::vector<T> buffer;
-        std::map<rank_id, LeftClosedRange> data_assignments;
+        std::map<RankId, LeftClosedRange> data_assignments;
     };
 
-    auto get_starting_positions(const std::vector<Block> &blocks) -> std::map<rank_id, int>;
+    auto get_starting_positions(const std::vector<Block> &blocks) -> std::map<RankId, int>;
 
     template<typename T, typename Extents>
     auto get_send_package(std::mdspan<const T, Extents> local_data,
@@ -27,9 +27,7 @@ namespace reshuffle::internal {
             -> SendCommunicationPackage<T> {
         PROFILE_SCOPE_NAMED("get_send_package");
 
-        if (send_blocks.empty()) {
-            return {std::vector<T>{}, std::map<rank_id, LeftClosedRange>{}};
-        }
+        if (send_blocks.empty()) { return {std::vector<T>{}, std::map<RankId, LeftClosedRange>{}}; }
 
         auto send_buffer = std::vector<T>(local_data.size());
 
@@ -37,7 +35,7 @@ namespace reshuffle::internal {
                 group_by_processor(send_blocks, final_processor_grid);
         const auto starting_positions = get_starting_positions(send_blocks_grouped_by_owner);
 
-        auto num_elements_packed_per_process = std::map<rank_id, int>{};
+        auto num_elements_packed_per_process = std::map<RankId, int>{};
 
         for (const auto &block: send_blocks) {
             const auto destiny =
@@ -52,7 +50,7 @@ namespace reshuffle::internal {
             num_elements_packed_per_process[destiny] += block_data.size();
         }
 
-        std::map<rank_id, LeftClosedRange> data_assignments{};
+        std::map<RankId, LeftClosedRange> data_assignments{};
         for (const auto &block: send_blocks_grouped_by_owner) {
             data_assignments.emplace(block.get_owner(), block.get_interval());
         }

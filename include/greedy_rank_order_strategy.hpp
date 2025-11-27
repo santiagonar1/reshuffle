@@ -9,7 +9,7 @@ namespace reshuffle::internal {
     class GreedyRankOrderStrategy final : public IOptimalRankOrderStrategy {
     public:
         [[nodiscard]] auto get_optimal_order(const Matrix2D<int> &matrix) const
-                -> std::vector<rank_id> override;
+                -> std::vector<RankId> override;
     };
 
 }// namespace reshuffle::internal

@@ -24,7 +24,7 @@ namespace reshuffle::mpi {
         }
     }// namespace internal
 
-    auto get_rank_id(const MPI_Comm &comm) -> std::optional<rank_id> {
+    auto get_rank_id(const MPI_Comm &comm) -> std::optional<RankId> {
         int rank{MPI_ERR_RANK};
 
         if (is_comm_null(comm) or not belongs_to_comm(comm)) { return std::nullopt; }
@@ -51,7 +51,7 @@ namespace reshuffle::mpi {
     auto is_comm_null(const MPI_Comm &comm) -> bool { return comm == MPI_COMM_NULL; }
 
 
-    auto get_sub_comm(const MPI_Comm &base_comm, const std::vector<rank_id> &ranks) -> MPI_Comm {
+    auto get_sub_comm(const MPI_Comm &base_comm, const std::vector<RankId> &ranks) -> MPI_Comm {
         const auto base_group = get_group(base_comm).value();
         const auto sub_group = get_sub_group(base_group, ranks);
         auto sub_comm{MPI_COMM_NULL};
@@ -86,7 +86,7 @@ namespace reshuffle::mpi {
         return err == MPI_SUCCESS;
     }
 
-    auto get_sub_group(const MPI_Group &group, const std::vector<rank_id> &ranks) -> MPI_Group {
+    auto get_sub_group(const MPI_Group &group, const std::vector<RankId> &ranks) -> MPI_Group {
         MPI_Group sub_group;
         MPI_Group_incl(group, static_cast<int>(ranks.size()), ranks.data(), &sub_group);
         return sub_group;

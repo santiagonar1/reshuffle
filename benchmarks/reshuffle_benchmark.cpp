@@ -34,7 +34,7 @@ double time_shuffle(const std::vector<T> &local_values, const Context<1> &initia
 }
 
 template<typename T>
-double time_scatter(std::vector<T> &local_values, const std::map<rank_id, int> &values_per_rank) {
+double time_scatter(std::vector<T> &local_values, const std::map<RankId, int> &values_per_rank) {
     // Do the work and time it on each proc
     const auto start = std::chrono::high_resolution_clock::now();
     const auto _ = mpi::block_scatter(std::span{local_values}, values_per_rank, 0, MPI_COMM_WORLD);
@@ -176,7 +176,7 @@ void shuffle_scatter_from_one_to_N(benchmark::State &state) {
                                    : std::vector<SerializationType>{};
 
     const auto num_values_per_rank = num_global_values / num_ranks;
-    auto values_per_rank = std::map<rank_id, int>{};
+    auto values_per_rank = std::map<RankId, int>{};
     for (int rank = 0; rank < num_ranks; ++rank) { values_per_rank[rank] = num_values_per_rank; }
 
     while (state.KeepRunning()) {

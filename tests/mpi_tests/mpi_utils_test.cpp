@@ -205,14 +205,14 @@ TEST(GetNumElements, ReturnsNumberOfElementsInAReceivedMessage) {
 TEST(BlockScatter, CanScatterFundamentalDatatypes) {
     if (is_root(MPI_COMM_WORLD)) {
         auto values_to_scatter = std::vector{1, 2, 3};
-        const auto values_per_rank = std::map<reshuffle::rank_id, int>{{0, 1}, {1, 2}};
+        const auto values_per_rank = std::map<reshuffle::RankId, int>{{0, 1}, {1, 2}};
         const auto values =
                 block_scatter(std::span{values_to_scatter}, values_per_rank, 0, MPI_COMM_WORLD);
 
         EXPECT_THAT(values, Eq(std::vector{1}));
     } else {
         auto dummy = std::vector<int>{};
-        const auto values = block_scatter(std::span{dummy}, std::map<reshuffle::rank_id, int>{}, 0,
+        const auto values = block_scatter(std::span{dummy}, std::map<reshuffle::RankId, int>{}, 0,
                                           MPI_COMM_WORLD);
         EXPECT_THAT(values, Eq(std::vector{2, 3}));
     }
@@ -222,13 +222,13 @@ TEST(BlockScatter, CanBeUsedWithNonFundamentalDatatypes) {
     if (is_root(MPI_COMM_WORLD)) {
         auto values_to_scatter = std::vector{AggregateData{"one", 1}, AggregateData{"two", 2},
                                              AggregateData{"three", 3}};
-        const auto values_per_rank = std::map<reshuffle::rank_id, int>{{0, 1}, {1, 2}};
+        const auto values_per_rank = std::map<reshuffle::RankId, int>{{0, 1}, {1, 2}};
         const auto values =
                 block_scatter(std::span{values_to_scatter}, values_per_rank, 0, MPI_COMM_WORLD);
         EXPECT_THAT(values, Eq(std::vector{AggregateData{"one", 1}}));
     } else {
         auto dummy = std::vector<AggregateData>{};
-        const auto values = block_scatter(std::span{dummy}, std::map<reshuffle::rank_id, int>{}, 0,
+        const auto values = block_scatter(std::span{dummy}, std::map<reshuffle::RankId, int>{}, 0,
                                           MPI_COMM_WORLD);
         EXPECT_THAT(values, Eq(std::vector{AggregateData{"two", 2}, AggregateData{"three", 3}}));
     }
@@ -237,13 +237,13 @@ TEST(BlockScatter, CanBeUsedWithNonFundamentalDatatypes) {
 TEST(BlockScatter, WorksWithFixedSizedDatatypes) {
     if (is_root(MPI_COMM_WORLD)) {
         auto values_to_scatter = std::vector{FixedSizeData{1}, FixedSizeData{2}, FixedSizeData{3}};
-        const auto values_per_rank = std::map<reshuffle::rank_id, int>{{0, 1}, {1, 2}};
+        const auto values_per_rank = std::map<reshuffle::RankId, int>{{0, 1}, {1, 2}};
         const auto values =
                 block_scatter(std::span{values_to_scatter}, values_per_rank, 0, MPI_COMM_WORLD);
         EXPECT_THAT(values, Eq(std::vector{FixedSizeData{1}}));
     } else {
         auto dummy = std::vector<FixedSizeData>{};
-        const auto values = block_scatter(std::span{dummy}, std::map<reshuffle::rank_id, int>{}, 0,
+        const auto values = block_scatter(std::span{dummy}, std::map<reshuffle::RankId, int>{}, 0,
                                           MPI_COMM_WORLD);
         EXPECT_THAT(values, Eq(std::vector{FixedSizeData{2}, FixedSizeData{3}}));
     }
@@ -252,13 +252,13 @@ TEST(BlockScatter, WorksWithFixedSizedDatatypes) {
 TEST(BlockScatter, WorksWithAutopasParticles) {
     if (is_root(MPI_COMM_WORLD)) {
         auto values_to_scatter = std::vector<MoleculeLJ>(3);
-        const auto values_per_rank = std::map<reshuffle::rank_id, int>{{0, 1}, {1, 2}};
+        const auto values_per_rank = std::map<reshuffle::RankId, int>{{0, 1}, {1, 2}};
         const auto values =
                 block_scatter(std::span{values_to_scatter}, values_per_rank, 0, MPI_COMM_WORLD);
         // EXPECT_THAT(values, Eq(std::vector{FixedSizeData{1}}));
     } else {
         auto dummy = std::vector<MoleculeLJ>{};
-        const auto values = block_scatter(std::span{dummy}, std::map<reshuffle::rank_id, int>{}, 0,
+        const auto values = block_scatter(std::span{dummy}, std::map<reshuffle::RankId, int>{}, 0,
                                           MPI_COMM_WORLD);
         // EXPECT_THAT(values, Eq(std::vector{FixedSizeData{2}, FixedSizeData{3}}));
     }
@@ -268,14 +268,14 @@ TEST(BlockScatter, ValuesPerRankIsOnlyRelevantForRootRank) {
     if (is_root(MPI_COMM_WORLD)) {
         auto values_to_scatter = std::vector{AggregateData{"one", 1}, AggregateData{"two", 2},
                                              AggregateData{"three", 3}};
-        const auto values_per_rank = std::map<reshuffle::rank_id, int>{{0, 1}, {1, 2}};
+        const auto values_per_rank = std::map<reshuffle::RankId, int>{{0, 1}, {1, 2}};
         const auto values =
                 block_scatter(std::span{values_to_scatter}, values_per_rank, 0, MPI_COMM_WORLD);
         EXPECT_THAT(values, Eq(std::vector{AggregateData{"one", 1}}));
     } else {
         auto dummy = std::vector<AggregateData>{};
         const auto dummy_values_per_rank =
-                std::map<reshuffle::rank_id, int>{{0, 100'000}, {1, 100'000}};
+                std::map<reshuffle::RankId, int>{{0, 100'000}, {1, 100'000}};
         const auto values =
                 block_scatter(std::span{dummy}, dummy_values_per_rank, 0, MPI_COMM_WORLD);
         EXPECT_THAT(values, Eq(std::vector{AggregateData{"two", 2}, AggregateData{"three", 3}}));
