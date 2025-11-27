@@ -83,10 +83,37 @@ namespace reshuffle::internal {
 
         return std::nullopt;
     }
+
+    auto Intercommunicator::get_initial_comm_rank() const -> std::optional<RankId> {
+        const auto inter_comm_rank_opt = mpi::get_rank_id(_intercommunicator);
+
+        if (not inter_comm_rank_opt.has_value()) { return std::nullopt; }
+
+        if (const auto inter_comm_rank = inter_comm_rank_opt.value();
+            _intercomm_to_initial_comm.contains(inter_comm_rank)) {
+            return _intercomm_to_initial_comm.at(inter_comm_rank);
+        }
+
+        return std::nullopt;
+    }
+
     auto Intercommunicator::get_final_comm_rank(RankId intercomm_rank) const
             -> std::optional<RankId> {
         if (_intercomm_to_final_comm.contains(intercomm_rank)) {
             return _intercomm_to_final_comm.at(intercomm_rank);
+        }
+
+        return std::nullopt;
+    }
+
+    auto Intercommunicator::get_final_comm_rank() const -> std::optional<RankId> {
+        const auto inter_comm_rank_opt = mpi::get_rank_id(_intercommunicator);
+
+        if (not inter_comm_rank_opt.has_value()) { return std::nullopt; }
+
+        if (const auto inter_comm_rank = inter_comm_rank_opt.value();
+            _intercomm_to_final_comm.contains(inter_comm_rank)) {
+            return _intercomm_to_final_comm.at(inter_comm_rank);
         }
 
         return std::nullopt;

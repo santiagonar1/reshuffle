@@ -123,8 +123,7 @@ namespace reshuffle::internal {
                 local_values, multidimensional_blocks_to_send, final_processor_grid);
 
         const auto intercomm_rank = mpi::get_rank_id(intercomm.get_intercommunicator()).value();
-        const auto rank_final_comm =
-                intercomm.get_final_comm_rank(intercomm_rank).value_or(INVALID_RANK_ID);
+        const auto rank_final_comm = intercomm.get_final_comm_rank().value_or(INVALID_RANK_ID);
         const auto send_to_myself_optional = find(intervals_to_send_per_rank, rank_final_comm);
         intervals_to_send_per_rank.erase(rank_final_comm);
 

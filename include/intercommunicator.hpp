@@ -22,8 +22,10 @@ namespace reshuffle::internal {
                                               SelectCommunicator original_comm) const -> RankId;
         [[nodiscard]] auto get_initial_comm_rank(RankId intercomm_rank) const
                 -> std::optional<RankId>;
+        [[nodiscard]] auto get_initial_comm_rank() const -> std::optional<RankId>;
         [[nodiscard]] auto get_final_comm_rank(RankId intercomm_rank) const
                 -> std::optional<RankId>;
+        [[nodiscard]] auto get_final_comm_rank() const -> std::optional<RankId>;
 
     private:
         const MPI_Comm _intercommunicator;

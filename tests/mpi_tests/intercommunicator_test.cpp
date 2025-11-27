@@ -86,6 +86,18 @@ TEST(Intercommunicator, CanGetRankInFinalCommunicatorFromRankIntercommunicator) 
     EXPECT_THAT(intercomm.get_final_comm_rank(1), Eq(1));
 }
 
+TEST(Intercommunicator, GetFinalCommRankUsesCallingRankIdByDefault) {
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
+
+    const auto intercomm = Intercommunicator(comm_rank_0, MPI_COMM_WORLD);
+
+    if (const auto rank = get_rank_id(intercomm.get_intercommunicator()).value(); rank == 0) {
+        EXPECT_THAT(intercomm.get_final_comm_rank(), Eq(0));
+    } else {
+        EXPECT_THAT(intercomm.get_final_comm_rank(), Eq(1));
+    }
+}
+
 TEST(Intercommunicator, ReturnsNulloptWhileGettingRankIfIntercommRankNotInFinal) {
     const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
 
@@ -101,6 +113,18 @@ TEST(Intercommunicator, CanGetRankInInitialCommunicatorFromRankIntercommunicator
     const auto intercomm = Intercommunicator(comm_rank_1, MPI_COMM_WORLD);
 
     EXPECT_THAT(intercomm.get_initial_comm_rank(1), Eq(0));
+}
+
+TEST(Intercommunicator, GetInitialCommRankUsesCallingRankIdByDefault) {
+    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1));
+
+    const auto intercomm = Intercommunicator(comm_rank_1, MPI_COMM_WORLD);
+
+    if (const auto rank = get_rank_id(intercomm.get_intercommunicator()).value(); rank == 0) {
+        EXPECT_FALSE(intercomm.get_initial_comm_rank().has_value());
+    } else {
+        EXPECT_THAT(intercomm.get_initial_comm_rank(), Eq(0));
+    }
 }
 
 TEST(Intercommunicator, ReturnsNulloptWhileGettingRankIfIntercommRankNotInInitial) {
