@@ -60,7 +60,7 @@ namespace reshuffle {
 
             if (container.empty()) { return dimensions; }
 
-            // Add size of current dimension
+            // Add size of the current dimension
             dimensions[0] = container.size();
 
             // Check if we have nested containers
@@ -81,7 +81,7 @@ namespace reshuffle {
                             }
                         }
                     }
-                    // If container is empty, remaining dimensions are already 0 from initialization
+                    // If the container is empty, the remaining dimensions are already 0 from initialization
                 }
             }
 
