@@ -7,6 +7,7 @@
 
 #include "aggregate_data.hpp"
 #include "autopas_particle.hpp"
+#include "context_creation.hpp"
 #include "fixed_size_data.hpp"
 
 using namespace reshuffle::internal;
@@ -43,6 +44,16 @@ TEST(GetRankId, ReturnsRankId) {
 
 TEST(GetRankId, ReturnsNullOptionIfCommIsNull) {
     EXPECT_FALSE(get_rank_id(MPI_COMM_NULL).has_value());
+}
+
+TEST(GetRankId, ReturnsNullOptionIfRankNotInComm) {
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+
+    if (const auto rank = get_rank_id(MPI_COMM_WORLD).value(); rank == 0) {
+        EXPECT_TRUE(get_rank_id(comm_rank_0).has_value());
+    } else {
+        EXPECT_FALSE(get_rank_id(comm_rank_0).has_value());
+    }
 }
 
 TEST(IsRoot, ReturnsTrueForRankZero) {
