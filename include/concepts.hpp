@@ -25,6 +25,9 @@ namespace reshuffle::concepts {
 
     template<typename T>
     concept FixedSizeSerializable = internal::is_fixed_size_serializable_v<T>;
+
+    template<typename T>
+    concept Exchangeable = concepts::FundamentalType<T> or concepts::Serializable<T>;
 }// namespace reshuffle::concepts
 
 #endif//CONCEPTS_HPP

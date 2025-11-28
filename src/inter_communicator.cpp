@@ -14,6 +14,7 @@ namespace reshuffle::internal {
                                  " to be a sub_communicator");
     }
 
+    // TODO: Deal with partially disjoint communicators
     //InterCommunicator enables communication between ranks with different MPI_Comm
     InterCommunicator::InterCommunicator(const MPI_Comm initial_comm, const MPI_Comm final_comm)
         : _inter_communicator{create_inter_communicator(initial_comm, final_comm)},
