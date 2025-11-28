@@ -14,6 +14,7 @@
 #include "mpi_comm_utils.hpp"
 #include "mpi_utils.hpp"
 #include "profiler.hpp"
+#include "rank_information.hpp"
 #include "rank_order.hpp"
 #include "utils.hpp"
 
@@ -95,21 +96,16 @@ namespace reshuffle {
         const auto inter_communicator =
                 internal::InterCommunicator(initial_context.comm, final_context.comm);
 
-        const auto rank_initial_grid =
-                inter_communicator.get_initial_comm_rank().value_or(INVALID_RANK_ID);
-        const auto rank_final_grid =
-                inter_communicator.get_final_comm_rank().value_or(INVALID_RANK_ID);
-
         const auto initial_processor_grid = initial_context.distribution.get_processor_grid();
         const auto final_processor_grid = final_context.distribution.get_processor_grid();
 
-        const auto rank_coordinates_initial_grid =
-                initial_processor_grid.get_processor_coordinates(rank_initial_grid);
-        const auto rank_coordinates_final_grid =
-                final_processor_grid.get_processor_coordinates(rank_final_grid);
+        const auto rank_information = internal::RankInformation{
+                inter_communicator, initial_context.distribution.get_processor_grid(),
+                final_context.distribution.get_processor_grid()};
 
         const auto [blocks_to_send, blocks_to_receive] = internal::get_send_and_receive_blocks(
-                grid_overlay, rank_coordinates_initial_grid, rank_coordinates_final_grid);
+                grid_overlay, rank_information.get_initial_rank_coordinates(),
+                rank_information.get_final_rank_coordinates());
 
         if (initial_context.distribution.get_processor_grid().get_num_processors() == 1 and
             is_block_wise_distribution(final_context.distribution)) {

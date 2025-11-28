@@ -43,6 +43,7 @@ reshuffle_register_mpi_test(reshuffle_mpi_tests 2
         mpi_comm_utils_test.cpp
         mpi_utils_test.cpp
         shuffle_test.cpp
+        rank_information_test.cpp
 )
 reshuffle_register_mpi_test(reshuffle_reorder_test 6
         reorder_test.cpp
