@@ -22,6 +22,12 @@ namespace reshuffle::internal {
         auto exchange() const -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> override;
 
     private:
+        auto
+        exchange_values(const std::array<std::vector<Block>, Extents::rank()> &blocks_to_send,
+                        const std::array<std::vector<Block>, Extents::rank()> &blocks_to_receive,
+                        const InterCommunicator &inter_communicator) const
+                -> std::pair<std::vector<T>, Dimensions<Extents::rank()>>;
+
         std::mdspan<const T, Extents> _local_values;
         const Context<Extents::rank()> _initial_context;
         const Context<Extents::rank()> _final_context;
@@ -54,10 +60,89 @@ namespace reshuffle::internal {
                 grid_overlay, rank_information.get_initial_rank_coordinates(),
                 rank_information.get_final_rank_coordinates());
 
-        return internal::exchange_values(_local_values, blocks_to_send, blocks_to_receive,
-                                         _initial_context.distribution.get_processor_grid(),
-                                         _final_context.distribution.get_processor_grid(),
-                                         inter_communicator);
+        return exchange_values(blocks_to_send, blocks_to_receive, inter_communicator);
+    }
+
+    template<concepts::Exchangeable T, typename Extents>
+    auto GeneralDataExchanger<T, Extents>::exchange_values(
+            const std::array<std::vector<Block>, Extents::rank()> &blocks_to_send,
+            const std::array<std::vector<Block>, Extents::rank()> &blocks_to_receive,
+            const InterCommunicator &inter_communicator) const
+            -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> {
+        PROFILE_SCOPE_NAMED("exchange_values");
+
+        constexpr auto N = Extents::rank();
+        const auto initial_processor_grid = _initial_context.distribution.get_processor_grid();
+        const auto final_processor_grid = _final_context.distribution.get_processor_grid();
+
+        const auto dimensions = get_dimensions(blocks_to_receive);
+
+        // TODO: See if I can omit this by making get_send_receive_package return MultidimensionalBlocks
+        const auto multidimensional_blocks_to_send = get_cartesian_product(blocks_to_send);
+        const auto multidimensional_blocks_to_receive = get_cartesian_product(blocks_to_receive);
+
+        auto [send_buffer, intervals_to_send_per_rank] = get_send_package(
+                _local_values, multidimensional_blocks_to_send, final_processor_grid);
+
+        const auto inter_comm_rank =
+                mpi::get_rank_id(inter_communicator.get_inter_communicator()).value();
+        const auto rank_final_comm =
+                inter_communicator.get_final_comm_rank().value_or(INVALID_RANK_ID);
+        const auto send_to_myself_optional = find(intervals_to_send_per_rank, rank_final_comm);
+        intervals_to_send_per_rank.erase(rank_final_comm);
+
+        auto num_messages_to_receive =
+                get_number_of_receive_messages(multidimensional_blocks_to_receive);
+
+        if (send_to_myself_optional.has_value()) { num_messages_to_receive -= 1; }
+
+        auto send_requests =
+                async_send(std::span{send_buffer}, intervals_to_send_per_rank, inter_communicator);
+
+        const auto num_new_local_values = get_num_elements(multidimensional_blocks_to_receive);
+        auto new_local_values = std::vector<T>(num_new_local_values);
+
+        if (send_to_myself_optional.has_value()) {
+            const auto send_to_myself = send_to_myself_optional.value();
+            auto blocks_from_source =
+                    multidimensional_blocks_to_receive |
+                    std::views::filter([inter_comm_rank, initial_processor_grid,
+                                        inter_communicator](auto block) {
+                        return initial_processor_grid.get_processor_id(
+                                       get_owner_coordinates(block)) ==
+                               inter_communicator.get_initial_comm_rank(inter_comm_rank);
+                    });
+
+            auto received_values_view =
+                    std::span{std::as_const(send_buffer).data() + send_to_myself.get_left_bound(),
+                              static_cast<size_t>(send_to_myself.get_length())};
+            process_received_blocks(received_values_view,
+                                    std::mdspan(new_local_values.data(), dimensions),
+                                    blocks_from_source);
+        }
+
+
+        for (int i = 0; i < num_messages_to_receive; i++) {
+            const auto [source, data] =
+                    mpi::block_receive<T>(inter_communicator.get_inter_communicator());
+
+            auto blocks_from_source = multidimensional_blocks_to_receive |
+                                      std::views::filter([source, initial_processor_grid,
+                                                          inter_communicator](auto block) {
+                                          return initial_processor_grid.get_processor_id(
+                                                         get_owner_coordinates(block)) ==
+                                                 inter_communicator.get_initial_comm_rank(source);
+                                      });
+
+            auto received_values_view = std::span{data};
+            process_received_blocks(received_values_view,
+                                    std::mdspan(new_local_values.data(), dimensions),
+                                    blocks_from_source);
+        }
+
+        MPI_Waitall(send_requests.size(), send_requests.data(), MPI_STATUSES_IGNORE);
+
+        return {new_local_values, dimensions};
     }
 }// namespace reshuffle::internal
 
