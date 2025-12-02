@@ -1,6 +1,7 @@
 #include "left_closed_range.hpp"
 
 #include <algorithm>
+#include <ostream>
 #include <ranges>
 #include <stdexcept>
 #include <utility>
@@ -61,6 +62,10 @@ namespace reshuffle::internal {
         }
 
         return chained_intervals;
+    }
+
+    auto operator<<(std::ostream &os, const LeftClosedRange &range) -> std::ostream & {
+        return os << "[" << range.get_left_bound() << ", " << range.get_right_bound() << ")";
     }
 
 }// namespace reshuffle::internal

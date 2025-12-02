@@ -64,6 +64,8 @@ namespace reshuffle::internal {
     };
 
     auto chain(const std::vector<LeftClosedRange> &intervals) -> std::vector<LeftClosedRange>;
+
+    auto operator<<(std::ostream &os, const LeftClosedRange &range) -> std::ostream &;
 }// namespace reshuffle::internal
 
 #endif// RESHUFFLE_LEFT_CLOSED_RANGE_HPP
