@@ -22,10 +22,9 @@ namespace reshuffle::internal {
         auto exchange() const -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> override;
 
     private:
-        auto
-        exchange_values(const std::array<std::vector<Block>, Extents::rank()> &blocks_to_send,
-                        const std::array<std::vector<Block>, Extents::rank()> &blocks_to_receive,
-                        const InterCommunicator &inter_communicator) const
+        auto exchange_impl(const std::array<std::vector<Block>, Extents::rank()> &blocks_to_send,
+                           const std::array<std::vector<Block>, Extents::rank()> &blocks_to_receive,
+                           const InterCommunicator &inter_communicator) const
                 -> std::pair<std::vector<T>, Dimensions<Extents::rank()>>;
 
         std::mdspan<const T, Extents> _local_values;
@@ -60,11 +59,11 @@ namespace reshuffle::internal {
                 grid_overlay, rank_information.get_initial_rank_coordinates(),
                 rank_information.get_final_rank_coordinates());
 
-        return exchange_values(blocks_to_send, blocks_to_receive, inter_communicator);
+        return exchange_impl(blocks_to_send, blocks_to_receive, inter_communicator);
     }
 
     template<concepts::Exchangeable T, typename Extents>
-    auto GeneralDataExchanger<T, Extents>::exchange_values(
+    auto GeneralDataExchanger<T, Extents>::exchange_impl(
             const std::array<std::vector<Block>, Extents::rank()> &blocks_to_send,
             const std::array<std::vector<Block>, Extents::rank()> &blocks_to_receive,
             const InterCommunicator &inter_communicator) const
