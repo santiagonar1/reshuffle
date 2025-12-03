@@ -8,7 +8,7 @@
 
 namespace reshuffle::internal {
     template<std::size_t N>
-    auto get_send_and_receive_blocks(const GridOverlayDev<N> &grid_overlay,
+    auto get_send_and_receive_blocks(const GridOverlay<N> &grid_overlay,
                                      const Coordinates<N> &rank_initial_grid,
                                      const Coordinates<N> &rank_final_grid)
             -> std::pair<std::array<std::vector<Block>, N>, std::array<std::vector<Block>, N>>;
@@ -26,7 +26,7 @@ namespace reshuffle::internal {
     // I have not changed it yet to avoid having to modify the exchange, but that should
     // be my next modification
     template<std::size_t N>
-    auto get_send_and_receive_blocks(const GridOverlayDev<N> &grid_overlay,
+    auto get_send_and_receive_blocks(const GridOverlay<N> &grid_overlay,
                                      const Coordinates<N> &rank_initial_grid,
                                      const Coordinates<N> &rank_final_grid)
             -> std::pair<std::array<std::vector<Block>, N>, std::array<std::vector<Block>, N>> {

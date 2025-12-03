@@ -103,7 +103,7 @@ namespace reshuffle::internal {
         const auto initialProcessorGrid = initial_distribution.get_processor_grid();
         const auto finalProcessorGrid = final_distribution.get_processor_grid();
 
-        for (const auto initialOverlay = GridOverlayDev{initial_grid, final_grid};
+        for (const auto initialOverlay = GridOverlay{initial_grid, final_grid};
              auto [initialMultiBlock, target_owner_coordinates]:
              std::views::zip(initialOverlay.get_multidimensional_blocks_origin(),
                              initialOverlay.get_coordinates_owners_target_grid())) {

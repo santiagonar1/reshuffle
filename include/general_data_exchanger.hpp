@@ -45,8 +45,8 @@ namespace reshuffle::internal {
     template<concepts::Exchangeable T, typename Extents>
     auto GeneralDataExchanger<T, Extents>::exchange() const
             -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> {
-        const auto grid_overlay = GridOverlayDev{_initial_context.distribution.get_grid_layout(),
-                                                 _final_context.distribution.get_grid_layout()};
+        const auto grid_overlay = GridOverlay{_initial_context.distribution.get_grid_layout(),
+                                              _final_context.distribution.get_grid_layout()};
 
         const auto inter_communicator =
                 InterCommunicator(_initial_context.comm, _final_context.comm);

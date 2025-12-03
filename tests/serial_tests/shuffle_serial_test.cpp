@@ -26,7 +26,7 @@ TEST(GetSendAndReceiveBlocks, UsesAnOverlayToCheckWhatToSendAndWhatToReceive) {
             std::vector{Block{{0, 2}, 0}, Block{{2, 3}, 1}, Block{{3, 4}, 0}, Block{{4, 5}, 1}};
     const auto target_grid = GridLayout(std::array{target_blocks});
 
-    const auto grid_overlay = GridOverlayDev{origin_grid, target_grid};
+    const auto grid_overlay = GridOverlay{origin_grid, target_grid};
 
     const auto expected_send_0 = std::vector{Block{{0, 2}, 0}, Block{{2, 3}, 1}, Block{{3, 4}, 1}};
     const auto expected_receive_0 = std::vector{Block{{0, 2}, 0}, Block{{2, 3}, 1}};
@@ -58,7 +58,7 @@ TEST(GetSendAndReceiveBlocks, WorkFromOneToMany) {
     const auto &initial_grid = initial_distribution.get_grid_layout();
     const auto &final_grid = final_distribution.get_grid_layout();
 
-    const auto overlay = GridOverlayDev{initial_grid, final_grid};
+    const auto overlay = GridOverlay{initial_grid, final_grid};
 
     const auto [blocks_to_send_0, blocks_to_receive_0] =
             get_send_and_receive_blocks(overlay, {0}, {0});

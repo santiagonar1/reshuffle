@@ -13,9 +13,9 @@
 
 namespace reshuffle::internal {
     template<std::size_t N>
-    class GridOverlayDev {
+    class GridOverlay {
     public:
-        GridOverlayDev(const GridLayout<N> &origin, const GridLayout<N> &target);
+        GridOverlay(const GridLayout<N> &origin, const GridLayout<N> &target);
 
         [[nodiscard]] auto get_coordinates_owners_origin_grid() const
                 -> std::vector<Coordinates<N>>;
@@ -31,12 +31,11 @@ namespace reshuffle::internal {
     };
 
     template<std::size_t N>
-    GridOverlayDev<N>::GridOverlayDev(const GridLayout<N> &origin, const GridLayout<N> &target)
+    GridOverlay<N>::GridOverlay(const GridLayout<N> &origin, const GridLayout<N> &target)
         : _blocks_overlay(get_blocks_overlay(origin.get_blocks(), target.get_blocks())) {}
 
     template<std::size_t N>
-    auto GridOverlayDev<N>::get_coordinates_owners_origin_grid() const
-            -> std::vector<Coordinates<N>> {
+    auto GridOverlay<N>::get_coordinates_owners_origin_grid() const -> std::vector<Coordinates<N>> {
         auto result = std::vector<Coordinates<N>>{};
 
         for (const auto cartesian_product = get_cartesian_product(_blocks_overlay);
@@ -48,8 +47,7 @@ namespace reshuffle::internal {
     }
 
     template<std::size_t N>
-    auto GridOverlayDev<N>::get_coordinates_owners_target_grid() const
-            -> std::vector<Coordinates<N>> {
+    auto GridOverlay<N>::get_coordinates_owners_target_grid() const -> std::vector<Coordinates<N>> {
 
         auto result = std::vector<Coordinates<N>>{};
 
@@ -62,7 +60,7 @@ namespace reshuffle::internal {
     }
 
     template<std::size_t N>
-    auto GridOverlayDev<N>::get_multidimensional_blocks_origin() const
+    auto GridOverlay<N>::get_multidimensional_blocks_origin() const
             -> std::vector<MultidimensionalBlock<N>> {
         auto result = std::vector<MultidimensionalBlock<N>>{};
 
@@ -75,7 +73,7 @@ namespace reshuffle::internal {
     }
 
     template<std::size_t N>
-    auto GridOverlayDev<N>::get_multidimensional_blocks_target() const
+    auto GridOverlay<N>::get_multidimensional_blocks_target() const
             -> std::vector<MultidimensionalBlock<N>> {
         auto result = std::vector<MultidimensionalBlock<N>>{};
 
