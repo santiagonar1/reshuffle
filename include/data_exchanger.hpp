@@ -35,12 +35,13 @@ namespace reshuffle::internal {
         auto send_blocks = std::array<std::vector<Block>, N>{};
         auto receive_blocks = std::array<std::vector<Block>, N>{};
 
-        const auto &multidimensional_blocks = grid_overlay.get_multidimensional_blocks_origin();
-        const auto &coordinate_owners_target = grid_overlay.get_coordinates_owners_target_grid();
+        const auto multidimensional_blocks = grid_overlay.get_multidimensional_blocks_origin();
+        const auto coordinate_owners_target = grid_overlay.get_coordinates_owners_target_grid();
+        const auto coordinate_owners_initial = grid_overlay.get_coordinates_owners_origin_grid();
 
         for (int i = 0; i < multidimensional_blocks.size(); ++i) {
-            const auto owner_initial_grid = get_owner_coordinates(multidimensional_blocks[i]);
-            const auto &owner_target_grid = coordinate_owners_target[i];
+            const auto owner_initial_grid = coordinate_owners_initial[i];
+            const auto owner_target_grid = coordinate_owners_target[i];
 
             // The owners in the send_blocks are relative to the final grid
             if (owner_initial_grid == rank_initial_grid) {
