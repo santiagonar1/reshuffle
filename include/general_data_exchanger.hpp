@@ -51,13 +51,13 @@ namespace reshuffle::internal {
         const auto inter_communicator =
                 InterCommunicator(_initial_context.comm, _final_context.comm);
 
-        const auto rank_information = RankInformation{
-                inter_communicator, _initial_context.distribution.get_processor_grid(),
-                _final_context.distribution.get_processor_grid()};
+        const auto this_rank = RankInformation{inter_communicator,
+                                               _initial_context.distribution.get_processor_grid(),
+                                               _final_context.distribution.get_processor_grid()};
 
-        const auto [blocks_to_send, blocks_to_receive] = get_send_and_receive_blocks(
-                grid_overlay, rank_information.get_initial_rank_coordinates(),
-                rank_information.get_final_rank_coordinates());
+        const auto [blocks_to_send, blocks_to_receive] =
+                get_send_and_receive_blocks(grid_overlay, this_rank.get_initial_rank_coordinates(),
+                                            this_rank.get_final_rank_coordinates());
 
         return exchange_impl(blocks_to_send, blocks_to_receive, inter_communicator);
     }
