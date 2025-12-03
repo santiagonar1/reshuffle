@@ -6,7 +6,6 @@
 #include "coordinates.hpp"
 #include "multidimensional_block.hpp"
 #include "processor_grid.hpp"
-#include "profiler.hpp"
 #include "rank_id.hpp"
 #include "utils.hpp"
 
@@ -17,9 +16,6 @@
 
 namespace reshuffle::internal {
     template<std::size_t N>
-    class GridOverlay;
-
-    template<std::size_t N>
     class GridLayout {
     public:
         explicit GridLayout(std::array<std::vector<Block>, N> blocks);
@@ -27,9 +23,6 @@ namespace reshuffle::internal {
         [[nodiscard]] auto get_blocks() const -> const std::array<std::vector<Block>, N> &;
         [[nodiscard]] auto get_block_owner(const Coordinates<N> &block_coordinates,
                                            const ProcessorGrid<N> &processor_grid) const -> RankId;
-        [[nodiscard]] auto get_overlay(const GridLayout &target_grid,
-                                       const ProcessorGrid<N> &target_processor_grid) const
-                -> GridOverlay<N>;
         [[nodiscard]] auto get_local_grid(RankId rank, const ProcessorGrid<N> &processor_grid) const
                 -> GridLayout;
         [[nodiscard]] auto get_multidimensional_blocks() const
@@ -46,31 +39,6 @@ namespace reshuffle::internal {
     };
 
     template<std::size_t N>
-    class GridOverlay {
-    public:
-        GridOverlay(GridLayout<N> grid, std::array<std::vector<RankId>, N> owners_target_grid)
-            : _grid(std::move(grid)),
-              _coordinates_owners_target_grid(get_cartesian_product(owners_target_grid)),
-              _owners_target_grid(std::move(owners_target_grid)) {}
-
-        [[nodiscard]] auto get_grid() const -> const GridLayout<N> & { return _grid; }
-        [[nodiscard]] auto get_owners_target_grid() const
-                -> const std::array<std::vector<RankId>, N> & {
-            return _owners_target_grid;
-        }
-        [[nodiscard]] auto get_coordinates_owners_target_grid() const
-                -> const std::vector<Coordinates<N>> & {
-            return _coordinates_owners_target_grid;
-        }
-
-    private:
-        const GridLayout<N> _grid;
-        // Here the order matters, as _coordinates_owners_target_grid needs to be initialized before _owners_target_gid
-        const std::vector<Coordinates<N>> _coordinates_owners_target_grid;
-        const std::array<std::vector<RankId>, N> _owners_target_grid;
-    };
-
-    template<std::size_t N>
     GridLayout<N>::GridLayout(std::array<std::vector<Block>, N> blocks)
         : _multidimensional_blocks(get_cartesian_product(blocks)), _blocks(std::move(blocks)) {}
 
@@ -84,85 +52,6 @@ namespace reshuffle::internal {
                                         const ProcessorGrid<N> &processor_grid) const -> RankId {
         const auto processor_coordinates = get_processor_coordinates(block_coordinates);
         return map_indices(processor_coordinates, processor_grid.get_dimensions()).value();
-    }
-
-
-    inline auto get_overlay_imp(const GridLayout<1> &origin_grid, const GridLayout<1> &target_grid,
-                                const int target_num_processors) -> GridOverlay<1> {
-
-        const auto &origin_blocks = origin_grid.get_blocks()[0];
-        const auto &target_blocks = target_grid.get_blocks()[0];
-
-        if (target_blocks.front().get_interval().get_left_bound() !=
-            origin_blocks.front().get_interval().get_left_bound()) {
-            throw std::invalid_argument("target_grid does not start at same index as this grid");
-        }
-
-        if (target_blocks.back().get_interval().get_right_bound() !=
-            origin_blocks.back().get_interval().get_right_bound()) {
-            throw std::invalid_argument("target_grid does not end at same index as this grid");
-        }
-
-        auto sub_blocks = std::vector<Block>{};
-        auto owners_target_grid = std::vector<RankId>{};
-
-        int pos_target_grid{};
-        for (const auto &block: origin_blocks) {
-            while (pos_target_grid < target_blocks.size()) {
-                const auto block_overlay = block.get_overlay(target_blocks[pos_target_grid]);
-                if (not block_overlay.has_value()) { break; }
-                sub_blocks.emplace_back(block_overlay.value());
-                owners_target_grid.emplace_back(
-                        target_grid.get_block_owner(Coordinates<1>{pos_target_grid},
-                                                    ProcessorGrid<1>{{target_num_processors}}));
-                ++pos_target_grid;
-            }
-
-            const auto last_overlay = sub_blocks.back();
-            const auto checked_all_target_grid_blocks = pos_target_grid == target_blocks.size();
-            const auto there_are_missing_blocks =
-                    last_overlay.get_interval().get_right_bound() !=
-                    origin_blocks.back().get_interval().get_right_bound();
-            const auto have_not_checked_all_blocks_but_missed_some =
-                    not checked_all_target_grid_blocks and
-                    last_overlay.get_interval().get_right_bound() <
-                            target_blocks[pos_target_grid].get_interval().get_left_bound();
-
-            if ((checked_all_target_grid_blocks and there_are_missing_blocks) or
-                have_not_checked_all_blocks_but_missed_some) {
-                --pos_target_grid;
-            }
-        }
-
-        return GridOverlay{GridLayout{std::move(std::array{sub_blocks})},
-                           std::move(std::array{owners_target_grid})};
-    }
-
-    template<std::size_t N>
-    auto GridLayout<N>::get_overlay(const GridLayout &target_grid,
-                                    const ProcessorGrid<N> &target_processor_grid) const
-            -> GridOverlay<N> {
-
-        PROFILE_SCOPE_NAMED("get_overlay");
-        auto pairs_per_dimension = std::views::zip(_blocks, target_grid._blocks,
-                                                   target_processor_grid.get_dimensions());
-
-        auto blocks_overlay = std::array<std::vector<Block>, N>{};
-        auto owners_target_grid = std::array<std::vector<RankId>, N>{};
-
-        int i{};
-        for (const auto &[blocks_origin, blocks_target, num_processors]: pairs_per_dimension) {
-            const auto one_dim_overlay =
-                    get_overlay_imp(GridLayout<1>{std::array{blocks_origin}},
-                                    GridLayout<1>{std::array{blocks_target}}, num_processors);
-            blocks_overlay[i] = one_dim_overlay.get_grid().get_blocks()[0];
-            owners_target_grid[i] = one_dim_overlay.get_owners_target_grid()[0];
-            ++i;
-        }
-
-
-        return GridOverlay<N>{GridLayout<N>{std::move(blocks_overlay)},
-                              std::move(owners_target_grid)};
     }
 
     template<std::size_t N>
