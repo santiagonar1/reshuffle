@@ -16,14 +16,6 @@ namespace reshuffle::internal {
 
     auto Block::get_owner() const -> RankId { return _owner; }
 
-    auto Block::get_overlay(const Block &other) const -> std::optional<Block> {
-        const auto interval_overlay = _interval.get_overlay(other._interval);
-
-        if (not interval_overlay.has_value()) { return std::nullopt; }
-
-        return Block{interval_overlay.value(), _owner};
-    }
-
     auto Block::get_num_elements() const -> int { return _interval.get_length(); }
 
 

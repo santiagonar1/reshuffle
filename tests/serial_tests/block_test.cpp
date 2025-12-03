@@ -7,22 +7,6 @@ using namespace reshuffle::internal;
 
 using testing::Eq;
 
-TEST(Block, CanCalculateAnOverlay) {
-    const auto block = Block{{0, 2}, 0};
-    const auto other_block = Block{{1, 2}, 0};
-
-    const auto expected_overlay = Block{{1, 2}, 0};
-
-    EXPECT_THAT(block.get_overlay(other_block), Eq(expected_overlay));
-}
-
-TEST(Block, OverlayHasNoValueIfNoOverlay) {
-    const auto block = Block{{0, 2}, 0};
-    const auto other_block = Block{{2, 3}, 0};
-
-    EXPECT_FALSE(block.get_overlay(other_block).has_value());
-}
-
 TEST(Block, ReturnsTheNumberOfElementsInTheBlock) {
     const auto block = Block{{0, 2}, 0};
 
