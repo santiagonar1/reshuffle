@@ -30,6 +30,8 @@ namespace reshuffle::internal {
         RankId _owner;
     };
 
+    auto operator<<(std::ostream &os, const Block &block) -> std::ostream &;
+
     // Takes a group of disjoint blocks and transform them in a series of
     // contiguous blocks
     auto join(const std::vector<Block> &blocks) -> std::vector<Block>;

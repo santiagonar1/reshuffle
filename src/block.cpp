@@ -2,6 +2,7 @@
 
 #include <compare>
 #include <map>
+#include <ostream>
 #include <ranges>
 
 namespace reshuffle::internal {
@@ -34,6 +35,10 @@ namespace reshuffle::internal {
 
     auto Block::operator<=>(const Block &other) const -> std::strong_ordering {
         return _interval <=> other._interval;
+    }
+
+    auto operator<<(std::ostream &os, const Block &block) -> std::ostream & {
+        return os << "[Interval: " << block.get_interval() << ", id: " << block.get_owner() << "]";
     }
 
 
