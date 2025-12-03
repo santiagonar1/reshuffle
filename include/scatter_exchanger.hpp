@@ -42,8 +42,7 @@ namespace reshuffle::internal {
                                                _final_context.distribution.get_processor_grid()};
 
         const auto [blocks_to_send, blocks_to_receive] =
-                get_send_and_receive_blocks(grid_overlay, this_rank.get_initial_rank_coordinates(),
-                                            this_rank.get_final_rank_coordinates());
+                get_send_and_receive_blocks(grid_overlay, this_rank);
 
         const auto multidimensional_blocks = grid_overlay.get_multidimensional_blocks_origin();
 

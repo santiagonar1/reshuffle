@@ -13,6 +13,11 @@ namespace reshuffle::internal {
                                      const Coordinates<N> &rank_final_grid)
             -> std::pair<std::array<std::vector<Block>, N>, std::array<std::vector<Block>, N>>;
 
+    template<std::size_t N>
+    auto get_send_and_receive_blocks(const GridOverlay<N> &grid_overlay,
+                                     const RankInformation<N> &rank_information)
+            -> std::pair<std::array<std::vector<Block>, N>, std::array<std::vector<Block>, N>>;
+
     template<concepts::Exchangeable T, std::size_t N>
     class DataExchanger {
     public:
@@ -71,6 +76,15 @@ namespace reshuffle::internal {
 
 
         return {send_blocks, receive_blocks};
+    }
+
+    template<std::size_t N>
+    auto get_send_and_receive_blocks(const GridOverlay<N> &grid_overlay,
+                                     const RankInformation<N> &rank_information)
+            -> std::pair<std::array<std::vector<Block>, N>, std::array<std::vector<Block>, N>> {
+        return get_send_and_receive_blocks(grid_overlay,
+                                           rank_information.get_initial_rank_coordinates(),
+                                           rank_information.get_final_rank_coordinates());
     }
 
 
