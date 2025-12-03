@@ -2,6 +2,7 @@
 #define RESHUFFLE_SCATTER_EXCHANGER_HPP
 
 #include "data_exchanger.hpp"
+#include "grid_overlay.hpp"
 
 namespace reshuffle::internal {
     template<concepts::Exchangeable T, typename Extents>
@@ -30,9 +31,8 @@ namespace reshuffle::internal {
     template<concepts::Exchangeable T, typename Extents>
     auto ScatterExchanger<T, Extents>::exchange() const
             -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> {
-        const auto grid_overlay = _initial_context.distribution.get_grid_layout().get_overlay(
-                _final_context.distribution.get_grid_layout(),
-                _final_context.distribution.get_processor_grid());
+        const auto grid_overlay = GridOverlayDev{_initial_context.distribution.get_grid_layout(),
+                                                 _final_context.distribution.get_grid_layout()};
 
         const auto inter_communicator =
                 InterCommunicator(_initial_context.comm, _final_context.comm);
@@ -45,7 +45,7 @@ namespace reshuffle::internal {
                 grid_overlay, rank_information.get_initial_rank_coordinates(),
                 rank_information.get_final_rank_coordinates());
 
-        const auto &multidimensional_blocks = grid_overlay.get_grid().get_multidimensional_blocks();
+        const auto multidimensional_blocks = grid_overlay.get_multidimensional_blocks_origin();
 
         const auto root_coordinates = get_owner_coordinates(multidimensional_blocks[0]);
 

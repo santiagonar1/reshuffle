@@ -2,6 +2,7 @@
 #define RANK_ORDER_HPP
 
 #include "context.hpp"
+#include "grid_overlay.hpp"
 #include "mpi_utils.hpp"
 #include "rank_order_strategy.hpp"
 
@@ -102,9 +103,9 @@ namespace reshuffle::internal {
         const auto initialProcessorGrid = initial_distribution.get_processor_grid();
         const auto finalProcessorGrid = final_distribution.get_processor_grid();
 
-        for (const auto initialOverlay = initial_grid.get_overlay(final_grid, finalProcessorGrid);
+        for (const auto initialOverlay = GridOverlayDev{initial_grid, final_grid};
              auto [initialMultiBlock, target_owner_coordinates]:
-             std::views::zip(initialOverlay.get_grid().get_multidimensional_blocks(),
+             std::views::zip(initialOverlay.get_multidimensional_blocks_origin(),
                              initialOverlay.get_coordinates_owners_target_grid())) {
             const auto block_size = internal::get_num_elements(initialMultiBlock);
             const auto owner_coordinates = internal::get_owner_coordinates(initialMultiBlock);

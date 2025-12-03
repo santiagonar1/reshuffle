@@ -2,13 +2,13 @@
 #define RESHUFFLE_DATA_EXCHANGER_HPP
 
 #include "concepts.hpp"
-#include "context.hpp"
+#include "grid_overlay.hpp"
 #include "mpi_comm_utils.hpp"
 #include "rank_information.hpp"
 
 namespace reshuffle::internal {
     template<std::size_t N>
-    auto get_send_and_receive_blocks(const GridOverlay<N> &grid_overlay,
+    auto get_send_and_receive_blocks(const GridOverlayDev<N> &grid_overlay,
                                      const Coordinates<N> &rank_initial_grid,
                                      const Coordinates<N> &rank_final_grid)
             -> std::pair<std::array<std::vector<Block>, N>, std::array<std::vector<Block>, N>>;
@@ -26,7 +26,7 @@ namespace reshuffle::internal {
     // I have not changed it yet to avoid having to modify the exchange, but that should
     // be my next modification
     template<std::size_t N>
-    auto get_send_and_receive_blocks(const GridOverlay<N> &grid_overlay,
+    auto get_send_and_receive_blocks(const GridOverlayDev<N> &grid_overlay,
                                      const Coordinates<N> &rank_initial_grid,
                                      const Coordinates<N> &rank_final_grid)
             -> std::pair<std::array<std::vector<Block>, N>, std::array<std::vector<Block>, N>> {
@@ -35,7 +35,7 @@ namespace reshuffle::internal {
         auto send_blocks = std::array<std::vector<Block>, N>{};
         auto receive_blocks = std::array<std::vector<Block>, N>{};
 
-        const auto &multidimensional_blocks = grid_overlay.get_grid().get_multidimensional_blocks();
+        const auto &multidimensional_blocks = grid_overlay.get_multidimensional_blocks_origin();
         const auto &coordinate_owners_target = grid_overlay.get_coordinates_owners_target_grid();
 
         for (int i = 0; i < multidimensional_blocks.size(); ++i) {
