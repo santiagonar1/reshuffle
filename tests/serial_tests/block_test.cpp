@@ -14,11 +14,11 @@ TEST(Block, ReturnsTheNumberOfElementsInTheBlock) {
     EXPECT_THAT(block.get_num_elements(), Eq(expected));
 }
 
-TEST(Join, CreatesFromADisjointVectorOfBlocksAUnifiedList) {
+TEST(MakeContiguous, CreatesFromADisjointVectorOfBlocksAUnifiedList) {
     const auto blocks = std::vector{Block{{0, 2}, 0}, Block{{3, 4}, 1}, Block{{7, 8}, 0}};
     const auto expected = std::vector{Block{{0, 2}, 0}, Block{{2, 3}, 1}, Block{{3, 4}, 0}};
 
-    EXPECT_THAT(join(blocks), Eq(expected));
+    EXPECT_THAT(make_contiguous(blocks), Eq(expected));
 }
 
 TEST(ExtractData, TakesABufferAndReturnsAViewOfTheDataContainedByTheBlock) {

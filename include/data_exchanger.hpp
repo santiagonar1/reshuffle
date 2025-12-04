@@ -67,13 +67,15 @@ namespace reshuffle::internal {
         }
 
         std::ranges::transform(send_blocks, send_blocks.begin(), [](const auto &block_vector) {
-            return join(remove_duplicates(block_vector));
+            return make_contiguous(remove_duplicates(block_vector));
         });
 
 
         std::ranges::transform(
                 receive_blocks, receive_blocks.begin(),
-                [](const auto &block_vector) { return join(remove_duplicates(block_vector)); });
+                               [](const auto &block_vector) {
+                                   return make_contiguous(remove_duplicates(block_vector));
+                               });
 
 
         return {send_blocks, receive_blocks};

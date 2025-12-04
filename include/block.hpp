@@ -33,7 +33,7 @@ namespace reshuffle::internal {
 
     // Takes a group of disjoint blocks and transform them in a series of
     // contiguous blocks
-    auto join(const std::vector<Block> &blocks) -> std::vector<Block>;
+    auto make_contiguous(const std::vector<Block> &blocks) -> std::vector<Block>;
 
     auto get_num_elements_per_processor(const std::vector<Block> &blocks) -> std::map<RankId, int>;
 

@@ -34,7 +34,7 @@ namespace reshuffle::internal {
     }
 
 
-    auto join(const std::vector<Block> &blocks) -> std::vector<Block> {
+    auto make_contiguous(const std::vector<Block> &blocks) -> std::vector<Block> {
         if (blocks.empty()) { return {}; }
 
         const auto first_block = blocks.front();

@@ -72,7 +72,7 @@ namespace reshuffle::internal {
         auto local_blocks = internal::unzip(local_multidimensional_blocks);
 
         std::ranges::transform(local_blocks, local_blocks.begin(), [](const auto &block_vector) {
-            return join(remove_duplicates(block_vector));
+            return make_contiguous(remove_duplicates(block_vector));
         });
 
         return GridLayout{std::move(local_blocks)};
