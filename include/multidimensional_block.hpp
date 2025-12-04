@@ -13,6 +13,29 @@ namespace reshuffle::internal {
 
     template<std::size_t N>
     [[nodiscard]] auto get_owner_coordinates(const MultidimensionalBlock<N> &multidimensional_block)
+            -> Coordinates<N>;
+
+    template<std::size_t N>
+    [[nodiscard]] auto get_num_elements(const MultidimensionalBlock<N> &multidimensional_block)
+            -> int;
+
+    template<std::size_t N>
+    [[nodiscard]] auto get_num_elements(const std::vector<MultidimensionalBlock<N>> &blocks) -> int;
+
+    template<std::size_t N>
+    [[nodiscard]] auto replace_block(const MultidimensionalBlock<N> &multidimensional_block,
+                                     const Block &block, int dim) -> MultidimensionalBlock<N>;
+
+    template<std::size_t N>
+    [[nodiscard]] auto make_contiguous(const std::vector<MultidimensionalBlock<N>> &blocks, int dim)
+            -> std::vector<MultidimensionalBlock<N>>;
+
+    template<std::size_t N>
+    [[nodiscard]] auto make_contiguous(const std::vector<MultidimensionalBlock<N>> &blocks)
+            -> std::vector<MultidimensionalBlock<N>>;
+
+    template<std::size_t N>
+    auto get_owner_coordinates(const MultidimensionalBlock<N> &multidimensional_block)
             -> Coordinates<N> {
         PROFILE_SCOPE_NAMED("get_owner_coordinates");
         auto owner_coordinates = Coordinates<N>{};
@@ -23,8 +46,7 @@ namespace reshuffle::internal {
     }
 
     template<std::size_t N>
-    [[nodiscard]] auto get_num_elements(const MultidimensionalBlock<N> &multidimensional_block)
-            -> int {
+    auto get_num_elements(const MultidimensionalBlock<N> &multidimensional_block) -> int {
         PROFILE_SCOPE_NAMED("get_num_elements");
         auto num_elements = 1;
         for (int i = 0; i < N; ++i) {
@@ -34,16 +56,15 @@ namespace reshuffle::internal {
     }
 
     template<std::size_t N>
-    [[nodiscard]] auto get_num_elements(const std::vector<MultidimensionalBlock<N>> &blocks)
-            -> int {
+    auto get_num_elements(const std::vector<MultidimensionalBlock<N>> &blocks) -> int {
         return std::accumulate(blocks.cbegin(), blocks.cend(), 0, [](int sum, const auto &block) {
             return sum + get_num_elements(block);
         });
     }
 
     template<std::size_t N>
-    [[nodiscard]] auto replace_block(const MultidimensionalBlock<N> &multidimensional_block,
-                                     const Block &block, int dim) -> MultidimensionalBlock<N> {
+    auto replace_block(const MultidimensionalBlock<N> &multidimensional_block, const Block &block,
+                       int dim) -> MultidimensionalBlock<N> {
 
         if (dim < 0 or dim >= N) {
             const auto err_msg = std::format("dim must be in [0, {}), but got {}", N, dim);
@@ -56,7 +77,7 @@ namespace reshuffle::internal {
     }
 
     template<std::size_t N>
-    [[nodiscard]] auto make_contiguous(const std::vector<MultidimensionalBlock<N>> &blocks, int dim)
+    auto make_contiguous(const std::vector<MultidimensionalBlock<N>> &blocks, const int dim)
             -> std::vector<MultidimensionalBlock<N>> {
 
         if (dim < 0 or dim >= N) {
@@ -90,7 +111,7 @@ namespace reshuffle::internal {
     }
 
     template<std::size_t N>
-    [[nodiscard]] auto make_contiguous(const std::vector<MultidimensionalBlock<N>> &blocks)
+    auto make_contiguous(const std::vector<MultidimensionalBlock<N>> &blocks)
             -> std::vector<MultidimensionalBlock<N>> {
         auto contiguous_blocks = blocks;
         for (int dim = 0; dim < N; ++dim) {
