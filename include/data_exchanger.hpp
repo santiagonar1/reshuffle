@@ -6,6 +6,8 @@
 #include "mpi_comm_utils.hpp"
 #include "rank_information.hpp"
 
+#include <ranges>
+
 namespace reshuffle::internal {
     template<std::size_t N>
     auto get_send_and_receive_blocks(const GridOverlay<N> &grid_overlay,
@@ -44,22 +46,20 @@ namespace reshuffle::internal {
         const auto coordinate_owners_target = grid_overlay.get_coordinates_owners_target_grid();
         const auto coordinate_owners_origin = grid_overlay.get_coordinates_owners_origin_grid();
 
-        for (int i = 0; i < multidimensional_blocks.size(); ++i) {
-            const auto owner_origin_grid = coordinate_owners_origin[i];
-            const auto owner_target_grid = coordinate_owners_target[i];
-
+        for (const auto &[multidimensional_block, owner_origin, owner_target]: std::views::zip(
+                     multidimensional_blocks, coordinate_owners_origin, coordinate_owners_target)) {
             // The owners in the send_blocks are relative to the final grid
-            if (owner_origin_grid == rank_initial_grid) {
+            if (owner_origin == rank_initial_grid) {
                 for (int dim = 0; dim < N; ++dim) {
-                    const auto &block = multidimensional_blocks[i][dim];
-                    send_blocks[dim].emplace_back(block.get_interval(), owner_target_grid[dim]);
+                    const auto &block = multidimensional_block[dim];
+                    send_blocks[dim].emplace_back(block.get_interval(), owner_target[dim]);
                 }
             }
 
             // The owners in the receive_blocks are relative to the initial grid
-            if (owner_target_grid == rank_final_grid) {
+            if (owner_target == rank_final_grid) {
                 for (int dim = 0; dim < N; ++dim) {
-                    const auto &block = multidimensional_blocks[i][dim];
+                    const auto &block = multidimensional_block[dim];
                     receive_blocks[dim].emplace_back(block);
                 }
             }
