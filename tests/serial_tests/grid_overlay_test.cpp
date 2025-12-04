@@ -44,14 +44,22 @@ TEST(GridOverlay, HasCoordinatesOwnersTargetGrid) {
 }
 
 TEST(GridOverlay, HasMultidimensionalBlocksOrigin) {
+    // 0     2     4
+    // |--0--|--1--|
     const auto origin_blocks = std::vector{{Block{{0, 2}, 0}, Block{{2, 4}, 1}}};
     const auto origin_grid = GridLayout(std::array{origin_blocks});
 
+    // 0           4
+    // |-----0-----|
     const auto target_blocks = std::vector{{Block{{0, 4}, 0}}};
     const auto target_grid = GridLayout(std::array{target_blocks});
 
+    // 0     2     4
+    // |-----|-----|
     const auto overlay = GridOverlay{origin_grid, target_grid};
 
+    // 0     2     4
+    // |--0--|--1--|
     const auto expected = std::vector{MultidimensionalBlock{Block{{0, 2}, 0}},
                                       MultidimensionalBlock{Block{{2, 4}, 1}}};
 
@@ -59,14 +67,22 @@ TEST(GridOverlay, HasMultidimensionalBlocksOrigin) {
 }
 
 TEST(GridOverlay, HasMultidimensionalBlocksTarget) {
+    // 0     2     4
+    // |--0--|--1--|
     const auto origin_blocks = std::vector{{Block{{0, 2}, 0}, Block{{2, 4}, 1}}};
     const auto origin_grid = GridLayout(std::array{origin_blocks});
 
+    // 0           4
+    // |-----0-----|
     const auto target_blocks = std::vector{{Block{{0, 4}, 0}}};
     const auto target_grid = GridLayout(std::array{target_blocks});
 
+    // 0     2     4
+    // |-----|-----|
     const auto overlay = GridOverlay{origin_grid, target_grid};
 
+    // 0     2     4
+    // |--0--|--0--|
     const auto expected = std::vector{MultidimensionalBlock{Block{{0, 2}, 0}},
                                       MultidimensionalBlock{Block{{2, 4}, 0}}};
 
