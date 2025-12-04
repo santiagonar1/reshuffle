@@ -43,21 +43,22 @@ namespace reshuffle::internal {
         auto receive_blocks = std::array<std::vector<Block>, N>{};
 
         const auto multidimensional_blocks = grid_overlay.get_multidimensional_blocks_origin();
-        const auto coordinate_owners_target = grid_overlay.get_coordinates_owners_target_grid();
-        const auto coordinate_owners_origin = grid_overlay.get_coordinates_owners_origin_grid();
+        const auto coordinate_owners_final = grid_overlay.get_coordinates_owners_target_grid();
+        const auto coordinate_owners_initial = grid_overlay.get_coordinates_owners_origin_grid();
 
-        for (const auto &[multidimensional_block, owner_origin, owner_target]: std::views::zip(
-                     multidimensional_blocks, coordinate_owners_origin, coordinate_owners_target)) {
+        for (const auto &[multidimensional_block, owner_initial_grid, owner_final_grid]:
+             std::views::zip(multidimensional_blocks, coordinate_owners_initial,
+                             coordinate_owners_final)) {
             // The owners in the send_blocks are relative to the final grid
-            if (owner_origin == rank_initial_grid) {
+            if (owner_initial_grid == rank_initial_grid) {
                 for (int dim = 0; dim < N; ++dim) {
                     const auto &block = multidimensional_block[dim];
-                    send_blocks[dim].emplace_back(block.get_interval(), owner_target[dim]);
+                    send_blocks[dim].emplace_back(block.get_interval(), owner_final_grid[dim]);
                 }
             }
 
             // The owners in the receive_blocks are relative to the initial grid
-            if (owner_target == rank_final_grid) {
+            if (owner_final_grid == rank_final_grid) {
                 for (int dim = 0; dim < N; ++dim) {
                     const auto &block = multidimensional_block[dim];
                     receive_blocks[dim].emplace_back(block);
