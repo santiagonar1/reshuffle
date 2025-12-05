@@ -39,7 +39,7 @@ namespace reshuffle {
         template<typename C>
         constexpr auto get_rank_impl() -> int {
             if constexpr (requires { typename C::value_type; }) {
-                using ElementType = typename C::value_type;
+                using ElementType = C::value_type;
                 if constexpr (
                         requires { typename ElementType::value_type; } &&
                         requires(const ElementType &e) { e.size(); }) {
@@ -83,7 +83,7 @@ namespace reshuffle {
 
             // Check if we have nested containers
             if constexpr (requires { typename C::value_type; }) {
-                using ElementType = typename C::value_type;
+                using ElementType = C::value_type;
                 if constexpr (requires(const ElementType &e) { e.size(); }) {
                     if (!container.empty()) {
                         // Get dimensions of nested containers
