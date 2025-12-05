@@ -19,7 +19,7 @@ namespace reshuffle {
         }
 
         template<typename C>
-        constexpr auto get_rank_impl() -> int {
+        [[nodiscard]] constexpr auto get_rank_impl() -> int {
             if constexpr (requires { typename C::value_type; }) {
                 using ElementType = typename C::value_type;
                 if constexpr (
@@ -35,12 +35,12 @@ namespace reshuffle {
 
         // Convenience overload that deduces the container type from an instance
         template<typename C>
-        constexpr auto get_rank(const C &) -> int {
+        [[nodiscard]] constexpr auto get_rank(const C &) -> int {
             return get_rank_impl<C>();
         }
 
         template<typename T, typename Extents>
-        auto get_dimensions(std::mdspan<const T, Extents> local_values)
+        [[nodiscard]] auto get_dimensions(std::mdspan<const T, Extents> local_values)
                 -> Dimensions<Extents::rank()> {
             PROFILE_SCOPE_NAMED("mdspan::get_dimensions");
             constexpr auto N = Extents::rank();
@@ -54,7 +54,8 @@ namespace reshuffle {
         }
 
         template<typename C>
-        constexpr auto get_dimensions(const C &container) -> Dimensions<get_rank_impl<C>()> {
+        [[nodiscard]] constexpr auto get_dimensions(const C &container)
+                -> Dimensions<get_rank_impl<C>()> {
             PROFILE_SCOPE_NAMED("container::get_dimensions");
             auto dimensions = Dimensions<get_rank_impl<C>()>{};
 
