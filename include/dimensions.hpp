@@ -12,12 +12,12 @@ namespace reshuffle {
     template<std::size_t N>
     using Dimensions = std::array<int, N>;
 
-    template<std::size_t N>
-    auto calc_total_num_values(const Dimensions<N> &d) -> int {
-        return std::accumulate(d.cbegin(), d.cend(), 1, std::multiplies());
-    }
-
     namespace internal {
+        template<std::size_t N>
+        [[nodiscard]] auto calc_total_num_values(const Dimensions<N> &d) -> int {
+            return std::accumulate(d.cbegin(), d.cend(), 1, std::multiplies());
+        }
+
         template<typename C>
         constexpr auto get_rank_impl() -> int {
             if constexpr (requires { typename C::value_type; }) {
