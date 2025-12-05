@@ -6,6 +6,7 @@
 using namespace reshuffle::internal;
 
 using testing::Eq;
+using testing::UnorderedElementsAreArray;
 
 TEST(GridOverlay, IsConstructedWithTwoGridLayouts) {
     const auto origin_blocks = std::vector{{Block{{0, 2}, 0}, Block{{2, 4}, 1}}};
@@ -87,4 +88,75 @@ TEST(GridOverlay, HasMultidimensionalBlocksTarget) {
                                       MultidimensionalBlock{Block{{2, 4}, 0}}};
 
     EXPECT_THAT(overlay.get_multidimensional_blocks_target(), Eq(expected));
+}
+
+TEST(GridOverlay, WorksIn2D) {
+    //                 4        6
+    //   +-------------+---------+
+    //   |             |         |
+    //   |             |         |
+    //   |    (0,0)    |  (0,1)  |
+    //   |             |         |
+    //   |             |         |
+    // 5 +-------------+---------+
+    //   |    (1,0)    |  (1,1)  |
+    // 6 +-------------+---------+
+    const auto origin_blocks_x = std::vector{Block{{0, 4}, 0}, Block{{4, 6}, 1}};
+    const auto origin_blocks_y = std::vector{Block{{0, 5}, 0}, Block{{5, 6}, 1}};
+    const auto origin_grid = GridLayout(std::array{origin_blocks_y, origin_blocks_x});
+
+
+    //           2              6
+    //   +-------+---------------+
+    //   |       |               |
+    //   | (0,0) |     (0,1)     |
+    //   |       |               |
+    // 3 +-------+---------------+
+    //   |       |               |
+    //   | (1,0) |     (1,1)     |
+    //   |       |               |
+    // 6 +-------+---------------+
+    const auto target_blocks_x = std::vector{Block{{0, 2}, 0}, Block{{2, 6}, 1}};
+    const auto target_blocks_y = std::vector{Block{{0, 3}, 0}, Block{{3, 6}, 1}};
+    const auto target_grid = GridLayout(std::array{target_blocks_y, target_blocks_x});
+
+    //           2      4       6
+    //   +-------+------+--------+
+    //   |       |      |        |
+    //   |       |      |        |
+    //   |       |      |        |
+    // 3 +-------+------+--------+
+    //   |       |      |        |
+    // 5 +-------+------+--------+
+    //   |       |      |        |
+    // 6 +-------+------+--------+
+    const auto overlay = GridOverlay{origin_grid, target_grid};
+
+    const auto expected_multidimensional_blocks_origin =
+            std::vector{MultidimensionalBlock{Block{{0, 3}, 0}, Block{{0, 2}, 0}},
+                        MultidimensionalBlock{Block{{0, 3}, 0}, Block{{2, 4}, 0}},
+                        MultidimensionalBlock{Block{{0, 3}, 0}, Block{{4, 6}, 1}},
+                        MultidimensionalBlock{Block{{3, 5}, 0}, Block{{0, 2}, 0}},
+                        MultidimensionalBlock{Block{{3, 5}, 0}, Block{{2, 4}, 0}},
+                        MultidimensionalBlock{Block{{3, 5}, 0}, Block{{4, 6}, 1}},
+                        MultidimensionalBlock{Block{{5, 6}, 1}, Block{{0, 2}, 0}},
+                        MultidimensionalBlock{Block{{5, 6}, 1}, Block{{2, 4}, 0}},
+                        MultidimensionalBlock{Block{{5, 6}, 1}, Block{{4, 6}, 1}}};
+
+    EXPECT_THAT(overlay.get_multidimensional_blocks_origin(),
+                UnorderedElementsAreArray(expected_multidimensional_blocks_origin));
+
+    const auto expected_multidimensional_blocks_target =
+            std::vector{MultidimensionalBlock{Block{{0, 3}, 0}, Block{{0, 2}, 0}},
+                        MultidimensionalBlock{Block{{0, 3}, 0}, Block{{2, 4}, 1}},
+                        MultidimensionalBlock{Block{{0, 3}, 0}, Block{{4, 6}, 1}},
+                        MultidimensionalBlock{Block{{3, 5}, 1}, Block{{0, 2}, 0}},
+                        MultidimensionalBlock{Block{{3, 5}, 1}, Block{{2, 4}, 1}},
+                        MultidimensionalBlock{Block{{3, 5}, 1}, Block{{4, 6}, 1}},
+                        MultidimensionalBlock{Block{{5, 6}, 1}, Block{{0, 2}, 0}},
+                        MultidimensionalBlock{Block{{5, 6}, 1}, Block{{2, 4}, 1}},
+                        MultidimensionalBlock{Block{{5, 6}, 1}, Block{{4, 6}, 1}}};
+
+    EXPECT_THAT(overlay.get_multidimensional_blocks_target(),
+                UnorderedElementsAreArray(expected_multidimensional_blocks_target));
 }
