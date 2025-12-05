@@ -13,6 +13,7 @@ function(reshuffle_register_test TEST_NAME)
     # the test executable.  Remove g_test_main if writing your own main function.
     target_link_libraries(${TEST_NAME}
             PRIVATE GTest::gtest
+            PRIVATE GTest::gmock
             PRIVATE GTest::gtest_main
             PRIVATE reshuffle)
 
