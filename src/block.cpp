@@ -38,7 +38,7 @@ namespace reshuffle::internal {
         if (blocks.empty()) { return {}; }
 
         const auto first_block = blocks.front();
-        const auto num_elements_first_block = first_block.get_interval().get_length();
+        const auto num_elements_first_block = first_block.get_num_elements();
 
         auto joined_blocks = std::vector<Block>{};
         joined_blocks.emplace_back(Block{{0, num_elements_first_block}, first_block.get_owner()});
