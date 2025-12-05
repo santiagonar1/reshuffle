@@ -3,6 +3,7 @@
 
 #include "block.hpp"
 #include "coordinates.hpp"
+#include "dimensions.hpp"
 #include "profiler.hpp"
 
 #include <format>
@@ -33,6 +34,14 @@ namespace reshuffle::internal {
     template<std::size_t N>
     [[nodiscard]] auto make_contiguous(const std::vector<MultidimensionalBlock<N>> &blocks)
             -> std::vector<MultidimensionalBlock<N>>;
+
+    template<std::size_t N>
+    [[nodiscard]] auto get_dimensions(const MultidimensionalBlock<N> &multidimensional_block)
+            -> Dimensions<N>;
+
+    template<std::size_t N>
+    [[nodiscard]] auto get_dimensions(const std::vector<MultidimensionalBlock<N>> &blocks)
+            -> Dimensions<N>;
 
     template<std::size_t N>
     auto get_owner_coordinates(const MultidimensionalBlock<N> &multidimensional_block)
@@ -118,6 +127,31 @@ namespace reshuffle::internal {
             contiguous_blocks = make_contiguous(contiguous_blocks, dim);
         }
         return contiguous_blocks;
+    }
+
+    template<std::size_t N>
+    [[nodiscard]] auto get_dimensions(const MultidimensionalBlock<N> &multidimensional_block)
+            -> Dimensions<N> {
+
+        auto dimensions = Dimensions<N>{};
+
+        for (int dim = 0; dim < N; ++dim) {
+            dimensions[dim] = multidimensional_block[dim].get_num_elements();
+        }
+
+        return dimensions;
+    }
+
+    template<std::size_t N>
+    [[nodiscard]] auto get_dimensions(const std::vector<MultidimensionalBlock<N>> &blocks)
+            -> Dimensions<N> {
+        auto dimensions = Dimensions<N>{};
+
+        for (const auto &multidimensional_block: blocks) {
+            dimensions = dimensions + get_dimensions(multidimensional_block);
+        }
+
+        return dimensions;
     }
 
 }// namespace reshuffle::internal
