@@ -14,12 +14,30 @@ namespace reshuffle {
 
     namespace internal {
         template<std::size_t N>
-        [[nodiscard]] auto calc_total_num_values(const Dimensions<N> &d) -> int {
+        [[nodiscard]] auto calc_total_num_values(const Dimensions<N> &d) -> int;
+
+        template<typename C>
+        [[nodiscard]] constexpr auto get_rank_impl() -> int;
+
+        // Convenience overload that deduces the container type from an instance
+        template<typename C>
+        [[nodiscard]] constexpr auto get_rank(const C &) -> int;
+
+        template<typename T, typename Extents>
+        [[nodiscard]] auto get_dimensions(std::mdspan<const T, Extents> local_values)
+                -> Dimensions<Extents::rank()>;
+
+        template<typename C>
+        [[nodiscard]] constexpr auto get_dimensions(const C &container)
+                -> Dimensions<get_rank_impl<C>()>;
+
+        template<std::size_t N>
+        auto calc_total_num_values(const Dimensions<N> &d) -> int {
             return std::accumulate(d.cbegin(), d.cend(), 1, std::multiplies());
         }
 
         template<typename C>
-        [[nodiscard]] constexpr auto get_rank_impl() -> int {
+        constexpr auto get_rank_impl() -> int {
             if constexpr (requires { typename C::value_type; }) {
                 using ElementType = typename C::value_type;
                 if constexpr (
@@ -35,12 +53,12 @@ namespace reshuffle {
 
         // Convenience overload that deduces the container type from an instance
         template<typename C>
-        [[nodiscard]] constexpr auto get_rank(const C &) -> int {
+        constexpr auto get_rank(const C &) -> int {
             return get_rank_impl<C>();
         }
 
         template<typename T, typename Extents>
-        [[nodiscard]] auto get_dimensions(std::mdspan<const T, Extents> local_values)
+        auto get_dimensions(std::mdspan<const T, Extents> local_values)
                 -> Dimensions<Extents::rank()> {
             PROFILE_SCOPE_NAMED("mdspan::get_dimensions");
             constexpr auto N = Extents::rank();
@@ -54,8 +72,7 @@ namespace reshuffle {
         }
 
         template<typename C>
-        [[nodiscard]] constexpr auto get_dimensions(const C &container)
-                -> Dimensions<get_rank_impl<C>()> {
+        constexpr auto get_dimensions(const C &container) -> Dimensions<get_rank_impl<C>()> {
             PROFILE_SCOPE_NAMED("container::get_dimensions");
             auto dimensions = Dimensions<get_rank_impl<C>()>{};
 
