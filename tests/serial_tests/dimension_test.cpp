@@ -21,6 +21,14 @@ TEST(Dimension, CanCalculateTheTotalNumberOfValues) {
     EXPECT_THAT(calc_total_num_values(dimension), Eq(4));
 }
 
+TEST(Dimension, CanBeAdded) {
+    constexpr auto dimension1 = Dimensions<2>{1, 2};
+    constexpr auto dimension2 = Dimensions<2>{2, 3};
+
+    constexpr auto expected = Dimensions<2>{3, 5};
+    EXPECT_THAT(dimension1 + dimension2, Eq(expected));
+}
+
 
 TEST(GetRank, ReturnsTheNumberOfDimensionsOfANestedContainer) {
     const auto one_dim = std::vector{1, 2, 3};

@@ -12,6 +12,10 @@ namespace reshuffle {
     template<std::size_t N>
     using Dimensions = std::array<int, N>;
 
+    template<std::size_t N>
+    [[nodiscard]] auto operator+(const Dimensions<N> &lhs, const Dimensions<N> &rhs)
+            -> Dimensions<N>;
+
     namespace internal {
         template<std::size_t N>
         [[nodiscard]] auto calc_total_num_values(const Dimensions<N> &d) -> int;
@@ -106,6 +110,14 @@ namespace reshuffle {
             return dimensions;
         }
     }// namespace internal
+
+    template<std::size_t N>
+    auto operator+(const Dimensions<N> &lhs, const Dimensions<N> &rhs)
+            -> Dimensions<N> {
+        auto result = Dimensions<N>{};
+        for (size_t i = 0; i < N; ++i) { result[i] = lhs[i] + rhs[i]; }
+        return result;
+    }
 }// namespace reshuffle
 
 #endif//RESHUFFLE_DIMENSIONS_HPP
