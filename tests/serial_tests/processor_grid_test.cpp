@@ -13,3 +13,12 @@ TEST(ProcessorGrid, ReturnsNumberOfProcessorsInGrid) {
 
     EXPECT_THAT(processor_grid.get_num_processors(), Eq(num_processors));
 }
+
+TEST(ProcessorGrid, EnumeratesProcessorsRowWise) {
+    const auto processor_grid = ProcessorGrid<2>{{2, 2}};
+
+    EXPECT_THAT(processor_grid.get_processor_id({0, 0}), Eq(0));
+    EXPECT_THAT(processor_grid.get_processor_id({0, 1}), Eq(1));
+    EXPECT_THAT(processor_grid.get_processor_id({1, 0}), Eq(2));
+    EXPECT_THAT(processor_grid.get_processor_id({1, 1}), Eq(3));
+}
