@@ -132,8 +132,7 @@ namespace reshuffle::internal {
     }
 
     template<std::size_t N>
-    [[nodiscard]] auto get_dimensions(const MultidimensionalBlock<N> &multidimensional_block)
-            -> Dimensions<N> {
+    auto get_dimensions(const MultidimensionalBlock<N> &multidimensional_block) -> Dimensions<N> {
 
         auto dimensions = Dimensions<N>{};
 
@@ -145,8 +144,7 @@ namespace reshuffle::internal {
     }
 
     template<std::size_t N>
-    [[nodiscard]] auto get_dimensions(const std::vector<MultidimensionalBlock<N>> &blocks)
-            -> Dimensions<N> {
+    auto get_dimensions(const std::vector<MultidimensionalBlock<N>> &blocks) -> Dimensions<N> {
         if (blocks.empty()) { return {}; }
 
         auto dimensions = Dimensions<N>{};
