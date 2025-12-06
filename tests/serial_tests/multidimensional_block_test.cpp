@@ -128,3 +128,13 @@ TEST(GetDimensions, AlsoWorksForVectorOfBlocks) {
     constexpr auto expected = 5;
     EXPECT_THAT(get_dimensions(blocks), Eq(expected));
 }
+
+TEST(ToUnidimensionalBlocks, DecomposeVectorOfMultidimensionalBlocks) {
+    const auto blocks = std::vector{MultidimensionalBlock<2>{Block{{0, 1}, 0}, Block{{1, 3}, 1}},
+                                    MultidimensionalBlock<2>{Block{{0, 1}, 0}, Block{{3, 5}, 1}}};
+
+    const auto expected_y = std::vector{Block{{0, 1}, 0}};
+    const auto expected_x = std::vector{Block{{1, 3}, 1}, Block{{3, 5}, 1}};
+
+    EXPECT_THAT(to_unidimensional_blocks(blocks), Eq(std::array{expected_y, expected_x}));
+}

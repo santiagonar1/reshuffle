@@ -49,6 +49,10 @@ namespace reshuffle::internal {
     [[nodiscard]] auto get_dimensions(const std::vector<Block> &blocks) -> int;
 
     template<std::size_t N>
+    [[nodiscard]] auto to_unidimensional_blocks(const std::vector<MultidimensionalBlock<N>> &blocks)
+            -> std::array<std::vector<Block>, N>;
+
+    template<std::size_t N>
     auto get_owner_coordinates(const MultidimensionalBlock<N> &multidimensional_block)
             -> Coordinates<N> {
         PROFILE_SCOPE_NAMED("get_owner_coordinates");
@@ -101,14 +105,9 @@ namespace reshuffle::internal {
 
         if (blocks.empty()) { return {}; }
 
-        auto unidimensional_blocks = std::array<std::vector<Block>, N>{};
-        for (const auto &multidimensional_block: blocks) {
-            for (int i = 0; i < N; ++i) {
-                unidimensional_blocks[i].emplace_back(multidimensional_block[i]);
-            }
-        }
+        auto unidimensional_blocks = to_unidimensional_blocks(blocks);
 
-        unidimensional_blocks[dim] = make_contiguous(remove_duplicates(unidimensional_blocks[dim]));
+        unidimensional_blocks[dim] = make_contiguous(unidimensional_blocks[dim]);
         return get_cartesian_product(unidimensional_blocks);
     }
 
@@ -117,15 +116,10 @@ namespace reshuffle::internal {
             -> std::vector<MultidimensionalBlock<N>> {
         if (blocks.empty()) { return {}; }
 
-        auto unidimensional_blocks = std::array<std::vector<Block>, N>{};
-        for (const auto &multidimensional_block: blocks) {
-            for (int i = 0; i < N; ++i) {
-                unidimensional_blocks[i].emplace_back(multidimensional_block[i]);
-            }
-        }
+        auto unidimensional_blocks = to_unidimensional_blocks(blocks);
 
         for (auto &unidimensional_block: unidimensional_blocks) {
-            unidimensional_block = make_contiguous(remove_duplicates(unidimensional_block));
+            unidimensional_block = make_contiguous(unidimensional_block);
         }
 
         return get_cartesian_product(unidimensional_blocks);
@@ -149,18 +143,31 @@ namespace reshuffle::internal {
 
         auto dimensions = Dimensions<N>{};
 
-        auto unidimensional_blocks = std::array<std::vector<Block>, N>{};
-        for (const auto &multidimensional_block: blocks) {
-            for (int i = 0; i < N; ++i) {
-                unidimensional_blocks[i].emplace_back(multidimensional_block[i]);
-            }
-        }
+        const auto unidimensional_blocks = to_unidimensional_blocks(blocks);
 
         for (int dim = 0; dim < N; ++dim) {
             dimensions[dim] = get_dimensions(unidimensional_blocks[dim]);
         }
 
         return dimensions;
+    }
+
+    template<std::size_t N>
+    auto to_unidimensional_blocks(const std::vector<MultidimensionalBlock<N>> &blocks)
+            -> std::array<std::vector<Block>, N> {
+        auto unidimensional_blocks = std::array<std::vector<Block>, N>{};
+
+        for (const auto &multidimensional_block: blocks) {
+            for (int dim = 0; dim < N; ++dim) {
+                unidimensional_blocks[dim].emplace_back(multidimensional_block[dim]);
+            }
+        }
+
+        for (auto &unidimensional_block: unidimensional_blocks) {
+            unidimensional_block = remove_duplicates(unidimensional_block);
+        }
+
+        return unidimensional_blocks;
     }
 
 }// namespace reshuffle::internal
