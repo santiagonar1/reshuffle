@@ -121,3 +121,10 @@ TEST(GetDimensions, ForAVectorOfBlocksDimensionsAreTheDiffBetweenLargestAndSmall
     constexpr auto expected = Dimensions{5, 4};
     EXPECT_THAT(get_dimensions(blocks), Eq(expected));
 }
+
+TEST(GetDimensions, AlsoWorksForVectorOfBlocks) {
+    const auto blocks = std::vector{Block{{1, 3}, 0}, Block{{4, 6}, 1}};
+
+    constexpr auto expected = 5;
+    EXPECT_THAT(get_dimensions(blocks), Eq(expected));
+}

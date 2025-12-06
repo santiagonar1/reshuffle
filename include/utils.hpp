@@ -41,6 +41,14 @@ namespace reshuffle::internal {
     }
 
     template<typename T>
+    auto sort(const std::vector<T> &values) -> std::vector<T> {
+        PROFILE_SCOPE_NAMED("sort");
+        auto sorted_values = values;
+        std::sort(sorted_values.begin(), sorted_values.end());
+        return sorted_values;
+    }
+
+    template<typename T>
     [[nodiscard]] auto to_vector(const std::vector<std::vector<T>> &values) -> std::vector<T> {
         PROFILE_SCOPE_NAMED("to_vector");
         auto flat_values = std::vector<T>{};

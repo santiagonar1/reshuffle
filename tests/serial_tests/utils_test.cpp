@@ -33,3 +33,8 @@ TEST(Find, ReturnsNulloptIfNoKeyWithThatValue) {
     const auto map = std::map<int, int>{{1, 2}, {3, 4}};
     EXPECT_FALSE(find(map, 5).has_value());
 }
+
+TEST(Sort, SortsAVector) {
+    const auto values = std::vector{3, 1, 2};
+    EXPECT_THAT(sort(values), Eq(std::vector{1, 2, 3}));
+}

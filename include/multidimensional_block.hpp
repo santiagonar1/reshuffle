@@ -46,6 +46,8 @@ namespace reshuffle::internal {
     [[nodiscard]] auto get_dimensions(const std::vector<MultidimensionalBlock<N>> &blocks)
             -> Dimensions<N>;
 
+    [[nodiscard]] auto get_dimensions(const std::vector<Block> &blocks) -> int;
+
     template<std::size_t N>
     auto get_owner_coordinates(const MultidimensionalBlock<N> &multidimensional_block)
             -> Coordinates<N> {
@@ -157,11 +159,7 @@ namespace reshuffle::internal {
         }
 
         for (int dim = 0; dim < N; ++dim) {
-            auto &blocks_in_dimension = unidimensional_blocks[dim];
-            std::sort(blocks_in_dimension.begin(), blocks_in_dimension.end());
-            auto smallest_coordinate = blocks_in_dimension.front().get_interval().get_left_bound();
-            auto largest_coordinate = blocks_in_dimension.back().get_interval().get_right_bound();
-            dimensions[dim] = largest_coordinate - smallest_coordinate;
+            dimensions[dim] = get_dimensions(unidimensional_blocks[dim]);
         }
 
         return dimensions;
