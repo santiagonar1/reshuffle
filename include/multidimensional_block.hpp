@@ -2,9 +2,11 @@
 #define MULTIDIMENSIONAL_BLOCK_HPP
 
 #include "block.hpp"
+#include "cartesian_product.hpp"
 #include "coordinates.hpp"
 #include "dimensions.hpp"
 #include "profiler.hpp"
+#include "utils.hpp"
 
 #include <format>
 
@@ -96,37 +98,34 @@ namespace reshuffle::internal {
 
         if (blocks.empty()) { return {}; }
 
-        const auto first_block = blocks.front();
-        const auto num_elements_first_block = first_block[dim].get_num_elements();
-
-        auto contiguous_blocks = std::vector<MultidimensionalBlock<N>>{};
-        contiguous_blocks.emplace_back(replace_block(
-                first_block, Block{{0, num_elements_first_block}, first_block[dim].get_owner()},
-                dim));
-
-        for (const auto &multidimensional_block: blocks | std::views::drop(1)) {
-            const auto last_block = contiguous_blocks.back();
-            const auto num_elements_current_block = multidimensional_block[dim].get_num_elements();
-            contiguous_blocks.emplace_back(
-                    replace_block(multidimensional_block,
-                                  Block{{last_block[dim].get_interval().get_right_bound(),
-                                         last_block[dim].get_interval().get_right_bound() +
-                                                 num_elements_current_block},
-                                        multidimensional_block[dim].get_owner()},
-                                  dim));
+        auto unidimensional_blocks = std::array<std::vector<Block>, N>{};
+        for (const auto &multidimensional_block: blocks) {
+            for (int i = 0; i < N; ++i) {
+                unidimensional_blocks[i].emplace_back(multidimensional_block[i]);
+            }
         }
 
-        return contiguous_blocks;
+        unidimensional_blocks[dim] = make_contiguous(remove_duplicates(unidimensional_blocks[dim]));
+        return get_cartesian_product(unidimensional_blocks);
     }
 
     template<std::size_t N>
     auto make_contiguous(const std::vector<MultidimensionalBlock<N>> &blocks)
             -> std::vector<MultidimensionalBlock<N>> {
-        auto contiguous_blocks = blocks;
-        for (int dim = 0; dim < N; ++dim) {
-            contiguous_blocks = make_contiguous(contiguous_blocks, dim);
+        if (blocks.empty()) { return {}; }
+
+        auto unidimensional_blocks = std::array<std::vector<Block>, N>{};
+        for (const auto &multidimensional_block: blocks) {
+            for (int i = 0; i < N; ++i) {
+                unidimensional_blocks[i].emplace_back(multidimensional_block[i]);
+            }
         }
-        return contiguous_blocks;
+
+        for (auto &unidimensional_block: unidimensional_blocks) {
+            unidimensional_block = make_contiguous(remove_duplicates(unidimensional_block));
+        }
+
+        return get_cartesian_product(unidimensional_blocks);
     }
 
     template<std::size_t N>
