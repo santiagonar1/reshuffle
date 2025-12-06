@@ -8,6 +8,7 @@
 #include "profiler.hpp"
 #include "utils.hpp"
 
+#include <algorithm>
 #include <format>
 
 namespace reshuffle::internal {
@@ -144,10 +145,23 @@ namespace reshuffle::internal {
     template<std::size_t N>
     [[nodiscard]] auto get_dimensions(const std::vector<MultidimensionalBlock<N>> &blocks)
             -> Dimensions<N> {
+        if (blocks.empty()) { return {}; }
+
         auto dimensions = Dimensions<N>{};
 
+        auto unidimensional_blocks = std::array<std::vector<Block>, N>{};
         for (const auto &multidimensional_block: blocks) {
-            dimensions = dimensions + get_dimensions(multidimensional_block);
+            for (int i = 0; i < N; ++i) {
+                unidimensional_blocks[i].emplace_back(multidimensional_block[i]);
+            }
+        }
+
+        for (int dim = 0; dim < N; ++dim) {
+            auto &blocks_in_dimension = unidimensional_blocks[dim];
+            std::sort(blocks_in_dimension.begin(), blocks_in_dimension.end());
+            auto smallest_coordinate = blocks_in_dimension.front().get_interval().get_left_bound();
+            auto largest_coordinate = blocks_in_dimension.back().get_interval().get_right_bound();
+            dimensions[dim] = largest_coordinate - smallest_coordinate;
         }
 
         return dimensions;

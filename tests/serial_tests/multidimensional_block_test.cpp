@@ -112,11 +112,12 @@ TEST(GetDimensions, CalculatesTheDimensionsOfAMultidiemnsionalBlock) {
     EXPECT_THAT(get_dimensions(block), Eq(expected));
 }
 
-TEST(GetDimensions, CalculatesTheDimensionsOfVectorOfMultidimensionalBlockByAddingEachDimension) {
-    // The first block is 1x2, and the second one 2x2
+TEST(GetDimensions, ForAVectorOfBlocksDimensionsAreTheDiffBetweenLargestAndSmallestCoordinate) {
     const auto blocks = std::vector{MultidimensionalBlock<2>{Block{{0, 1}, 0}, Block{{1, 3}, 1}},
-                                    MultidimensionalBlock<2>{Block{{2, 4}, 1}, Block{{3, 5}, 0}}};
+                                    MultidimensionalBlock<2>{Block{{2, 5}, 1}, Block{{3, 5}, 0}}};
 
-    constexpr auto expected = Dimensions{3, 4};
+    // In Y: Goes from [0, 5) -> 5.
+    // In X: Goes from [1, 5) -> 4.
+    constexpr auto expected = Dimensions{5, 4};
     EXPECT_THAT(get_dimensions(blocks), Eq(expected));
 }
