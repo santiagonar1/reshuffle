@@ -30,7 +30,7 @@ TEST(GetSendAndReceiveBlocks, ReturnsMultidimensionalBlocksToSendAndReceive) {
                                                 MultidimensionalBlock{Block{{2, 4}, 1}}};
 
     const auto [send_0, receive_0] =
-            get_send_and_receive_blocks_dev(overlay, {0}, {0}, IntervalType::GLOBAL);
+            get_send_and_receive_blocks(overlay, {0}, {0}, IntervalType::GLOBAL);
     EXPECT_THAT(send_0, Eq(expected_send_0));
     EXPECT_THAT(receive_0, Eq(expected_receive_0));
 
@@ -39,7 +39,7 @@ TEST(GetSendAndReceiveBlocks, ReturnsMultidimensionalBlocksToSendAndReceive) {
     constexpr auto expected_receive_1 = std::vector<MultidimensionalBlock<1>>{};
 
     const auto [send_1, receive_1] =
-            get_send_and_receive_blocks_dev(overlay, {1}, {INVALID_RANK_ID}, IntervalType::GLOBAL);
+            get_send_and_receive_blocks(overlay, {1}, {INVALID_RANK_ID}, IntervalType::GLOBAL);
     EXPECT_THAT(send_1, Eq(expected_send_1));
     EXPECT_THAT(receive_1, Eq(expected_receive_1));
 }
@@ -64,7 +64,7 @@ TEST(GetSendAndReceiveBlocks, CanReturnLocalIntervals) {
     constexpr auto expected_receive_1 = std::vector<MultidimensionalBlock<1>>{};
 
     const auto [send_1, receive_1] =
-            get_send_and_receive_blocks_dev(overlay, {1}, {INVALID_RANK_ID}, IntervalType::LOCAL);
+            get_send_and_receive_blocks(overlay, {1}, {INVALID_RANK_ID}, IntervalType::LOCAL);
     EXPECT_THAT(send_1, Eq(expected_send_1));
     EXPECT_THAT(receive_1, Eq(expected_receive_1));
 }
@@ -89,7 +89,7 @@ TEST(GetSendAndReceiveBlocks, WorksFromOneToMany) {
     const auto expected_receive_0 = std::vector{MultidimensionalBlock{Block{{0, 2}, 1}}};
 
     const auto [send_0, receive_0] =
-            get_send_and_receive_blocks_dev(overlay, {INVALID_RANK_ID}, {0}, IntervalType::GLOBAL);
+            get_send_and_receive_blocks(overlay, {INVALID_RANK_ID}, {0}, IntervalType::GLOBAL);
     EXPECT_THAT(send_0, Eq(expected_send_0));
     EXPECT_THAT(receive_0, Eq(expected_receive_0));
 
@@ -99,7 +99,7 @@ TEST(GetSendAndReceiveBlocks, WorksFromOneToMany) {
     const auto expected_receive_1 = std::vector{MultidimensionalBlock{Block{{2, 4}, 1}}};
 
     const auto [send_1, receive_1] =
-            get_send_and_receive_blocks_dev(overlay, {1}, {1}, IntervalType::GLOBAL);
+            get_send_and_receive_blocks(overlay, {1}, {1}, IntervalType::GLOBAL);
     EXPECT_THAT(send_1, Eq(expected_send_1));
     EXPECT_THAT(receive_1, Eq(expected_receive_1));
 }
@@ -156,7 +156,7 @@ TEST(GetSendAndReceiveBlocks, WorksIn2D) {
             std::vector{MultidimensionalBlock{Block{{0, 3}, 0}, Block{{0, 2}, 0}}};
 
     const auto [send_0, receive_0] =
-            get_send_and_receive_blocks_dev(overlay, {0, 0}, {0, 0}, IntervalType::GLOBAL);
+            get_send_and_receive_blocks(overlay, {0, 0}, {0, 0}, IntervalType::GLOBAL);
     EXPECT_THAT(send_0, UnorderedElementsAreArray(expected_send_0));
     EXPECT_THAT(receive_0, UnorderedElementsAreArray(expected_receive_0));
 
@@ -169,7 +169,7 @@ TEST(GetSendAndReceiveBlocks, WorksIn2D) {
                         MultidimensionalBlock{Block{{0, 3}, 0}, Block{{4, 6}, 1}}};
 
     const auto [send_1, receive_1] =
-            get_send_and_receive_blocks_dev(overlay, {0, 1}, {0, 1}, IntervalType::GLOBAL);
+            get_send_and_receive_blocks(overlay, {0, 1}, {0, 1}, IntervalType::GLOBAL);
     EXPECT_THAT(send_1, UnorderedElementsAreArray(expected_send_1));
     EXPECT_THAT(receive_1, UnorderedElementsAreArray(expected_receive_1));
 
@@ -182,7 +182,7 @@ TEST(GetSendAndReceiveBlocks, WorksIn2D) {
                         MultidimensionalBlock{Block{{5, 6}, 1}, Block{{0, 2}, 0}}};
 
     const auto [send_2, receive_2] =
-            get_send_and_receive_blocks_dev(overlay, {1, 0}, {1, 0}, IntervalType::GLOBAL);
+            get_send_and_receive_blocks(overlay, {1, 0}, {1, 0}, IntervalType::GLOBAL);
     EXPECT_THAT(send_2, UnorderedElementsAreArray(expected_send_2));
     EXPECT_THAT(receive_2, UnorderedElementsAreArray(expected_receive_2));
 
@@ -196,7 +196,7 @@ TEST(GetSendAndReceiveBlocks, WorksIn2D) {
                         MultidimensionalBlock{Block{{5, 6}, 1}, Block{{4, 6}, 1}}};
 
     const auto [send_3, receive_3] =
-            get_send_and_receive_blocks_dev(overlay, {1, 1}, {1, 1}, IntervalType::GLOBAL);
+            get_send_and_receive_blocks(overlay, {1, 1}, {1, 1}, IntervalType::GLOBAL);
     EXPECT_THAT(send_3, UnorderedElementsAreArray(expected_send_3));
     EXPECT_THAT(receive_3, UnorderedElementsAreArray(expected_receive_3));
 }
@@ -220,12 +220,12 @@ TEST(GetSendAndReceiveBlocks, WorkWith2DVerticalSplit) {
             std::vector{MultidimensionalBlock{Block{{0, 2}, 0}, Block{{0, 2}, 0}}};
 
     const auto [send_0, receive_0] =
-            get_send_and_receive_blocks_dev(overlay, {0, 0}, {0, 0}, IntervalType::LOCAL);
+            get_send_and_receive_blocks(overlay, {0, 0}, {0, 0}, IntervalType::LOCAL);
     EXPECT_THAT(send_0, UnorderedElementsAreArray(expected_send_0));
     EXPECT_THAT(receive_0, UnorderedElementsAreArray(expected_receive_0));
 
     // Rank 1 -> (0, 1)
-    const auto [send_1, receive_1] = get_send_and_receive_blocks_dev(
+    const auto [send_1, receive_1] = get_send_and_receive_blocks(
             overlay, {INVALID_RANK_ID, INVALID_RANK_ID}, {0, 1}, IntervalType::LOCAL);
     const auto expected_receive_1 =
             std::vector{MultidimensionalBlock{Block{{0, 2}, 0}, Block{{0, 1}, 0}}};

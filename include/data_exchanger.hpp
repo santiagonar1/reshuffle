@@ -27,23 +27,23 @@ namespace reshuffle::internal {
     enum class IntervalType { LOCAL, GLOBAL };
 
     template<std::size_t N>
-    [[nodiscard]] auto get_send_and_receive_blocks_dev(const GridOverlay<N> &grid_overlay,
-                                                       const Coordinates<N> &rank_initial_grid,
-                                                       const Coordinates<N> &rank_final_grid,
-                                                       IntervalType interval_type)
+    [[nodiscard]] auto get_send_and_receive_blocks(const GridOverlay<N> &grid_overlay,
+                                                   const Coordinates<N> &rank_initial_grid,
+                                                   const Coordinates<N> &rank_final_grid,
+                                                   IntervalType interval_type)
             -> SendReceiveBlocks<N>;
 
     template<std::size_t N>
-    [[nodiscard]] auto get_send_and_receive_blocks_dev(const GridOverlay<N> &grid_overlay,
-                                                       const RankInformation<N> &rank_information,
-                                                       IntervalType interval_type)
+    [[nodiscard]] auto get_send_and_receive_blocks(const GridOverlay<N> &grid_overlay,
+                                                   const RankInformation<N> &rank_information,
+                                                   IntervalType interval_type)
             -> SendReceiveBlocks<N>;
 
     template<std::size_t N>
-    auto get_send_and_receive_blocks_dev(const GridOverlay<N> &grid_overlay,
-                                         const Coordinates<N> &rank_initial_grid,
-                                         const Coordinates<N> &rank_final_grid,
-                                         const IntervalType interval_type) -> SendReceiveBlocks<N> {
+    auto get_send_and_receive_blocks(const GridOverlay<N> &grid_overlay,
+                                     const Coordinates<N> &rank_initial_grid,
+                                     const Coordinates<N> &rank_final_grid,
+                                     const IntervalType interval_type) -> SendReceiveBlocks<N> {
         PROFILE_SCOPE_NAMED("get_send_and_receive_blocks");
 
         auto send_blocks = std::vector<MultidimensionalBlock<N>>{};
@@ -74,11 +74,11 @@ namespace reshuffle::internal {
     }
 
     template<std::size_t N>
-    [[nodiscard]] auto get_send_and_receive_blocks_dev(const GridOverlay<N> &grid_overlay,
-                                                       const RankInformation<N> &rank_information,
-                                                       IntervalType interval_type)
+    [[nodiscard]] auto get_send_and_receive_blocks(const GridOverlay<N> &grid_overlay,
+                                                   const RankInformation<N> &rank_information,
+                                                   IntervalType interval_type)
             -> SendReceiveBlocks<N> {
-        return get_send_and_receive_blocks_dev(
+        return get_send_and_receive_blocks(
                 grid_overlay, rank_information.get_initial_rank_coordinates(),
                 rank_information.get_final_rank_coordinates(), interval_type);
     }

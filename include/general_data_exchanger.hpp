@@ -57,7 +57,7 @@ namespace reshuffle::internal {
                                                _final_context.distribution.get_processor_grid()};
 
         const auto [blocks_to_send, blocks_to_receive] =
-                get_send_and_receive_blocks_dev(grid_overlay, this_rank, IntervalType::LOCAL);
+                get_send_and_receive_blocks(grid_overlay, this_rank, IntervalType::LOCAL);
 
         return exchange_impl(blocks_to_send, blocks_to_receive, inter_communicator);
     }
