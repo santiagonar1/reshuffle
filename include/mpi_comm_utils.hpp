@@ -5,13 +5,11 @@
 #include <ranges>
 #include <set>
 
-#include "cartesian_product.hpp"
 #include "communication_package.hpp"
 #include "concepts.hpp"
 #include "inter_communicator.hpp"
 #include "mpi_utils.hpp"
 #include "profiler.hpp"
-#include "serialize.hpp"
 
 namespace reshuffle::internal {
 
@@ -46,19 +44,6 @@ namespace reshuffle::internal {
         return send_requests;
     }
 
-    template<std::size_t N>
-    auto get_dimensions(const std::array<std::vector<Block>, N> &blocks_to_receive)
-            -> Dimensions<N> {
-
-        if (blocks_to_receive[0].empty()) { return std::array<int, N>{}; }
-
-        std::array<int, N> dimensions{};
-        for (int i = 0; i < N; i++) {
-            dimensions[i] = blocks_to_receive[i].back().get_interval().get_right_bound();
-        }
-        return dimensions;
-    }
-
     template<typename T, typename Extents>
     auto process_received_blocks(std::span<const T> received_values,
                                  std::mdspan<T, Extents> destination, auto &blocks_from_source)
@@ -74,19 +59,18 @@ namespace reshuffle::internal {
         }
     }
 
-    template<typename T, typename Extents>
-        requires concepts::FundamentalType<T> or concepts::Serializable<T>
-    auto scatter_values(std::mdspan<const T, Extents> local_values,
-                        const std::array<std::vector<Block>, Extents::rank()> &blocks_to_send,
-                        const std::array<std::vector<Block>, Extents::rank()> &blocks_to_receive,
-                        const ProcessorGrid<Extents::rank()> &final_processor_grid,
-                        const RankId root, const InterCommunicator &inter_communicator)
+    template<concepts::Exchangeable T, typename Extents>
+    [[nodiscard]] auto
+    scatter_values(std::mdspan<const T, Extents> local_values,
+                   const std::vector<MultidimensionalBlock<Extents::rank()>> &blocks_to_send,
+                   const std::vector<MultidimensionalBlock<Extents::rank()>> &blocks_to_receive,
+                   const ProcessorGrid<Extents::rank()> &final_processor_grid, const RankId root,
+                   const InterCommunicator &inter_communicator)
             -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> {
         PROFILE_SCOPE_NAMED("scatter_values");
 
-        const auto multidimensional_blocks_to_send = get_cartesian_product(blocks_to_send);
-        auto [send_buffer, intervals_to_send_per_rank] = get_send_package(
-                local_values, multidimensional_blocks_to_send, final_processor_grid);
+        auto [send_buffer, intervals_to_send_per_rank] =
+                get_send_package(local_values, blocks_to_send, final_processor_grid);
 
         auto values_per_rank = std::map<RankId, int>{};
         for (const auto &[rank, interval]: intervals_to_send_per_rank) {

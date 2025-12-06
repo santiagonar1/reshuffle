@@ -42,7 +42,7 @@ namespace reshuffle::internal {
                                                _final_context.distribution.get_processor_grid()};
 
         const auto [blocks_to_send, blocks_to_receive] =
-                get_send_and_receive_blocks(grid_overlay, this_rank);
+                get_send_and_receive_blocks_dev(grid_overlay, this_rank, IntervalType::LOCAL);
 
         const auto multidimensional_blocks = grid_overlay.get_multidimensional_blocks_origin();
 
@@ -53,9 +53,12 @@ namespace reshuffle::internal {
                         root_coordinates);
         const auto root_inter_comm = inter_communicator.get_inter_comm_rank(
                 root_rank_initial_comm, InterCommunicator::SelectCommunicator::INITIAL_COMM);
-        return internal::scatter_values(_local_values, blocks_to_send, blocks_to_receive,
-                                        _final_context.distribution.get_processor_grid(),
-                                        root_inter_comm, inter_communicator);
+
+        const auto values =
+                internal::scatter_values(_local_values, blocks_to_send, blocks_to_receive,
+                                         _final_context.distribution.get_processor_grid(),
+                                         root_inter_comm, inter_communicator);
+        return values;
     }
 
 

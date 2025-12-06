@@ -105,7 +105,6 @@ TEST(GetSendAndReceiveBlocks, WorksFromOneToMany) {
 }
 
 TEST(GetSendAndReceiveBlocks, WorksIn2D) {
-
     //                 4        6
     //   +-------------+---------+
     //   |             |         |
@@ -200,4 +199,36 @@ TEST(GetSendAndReceiveBlocks, WorksIn2D) {
             get_send_and_receive_blocks_dev(overlay, {1, 1}, {1, 1}, IntervalType::GLOBAL);
     EXPECT_THAT(send_3, UnorderedElementsAreArray(expected_send_3));
     EXPECT_THAT(receive_3, UnorderedElementsAreArray(expected_receive_3));
+}
+
+TEST(GetSendAndReceiveBlocks, WorkWith2DVerticalSplit) {
+    const auto origin_blocks_x = std::vector{Block{{0, 3}, 0}};
+    const auto origin_blocks_y = std::vector{Block{{0, 2}, 0}};
+    const auto origin_grid = GridLayout(std::array{origin_blocks_y, origin_blocks_x});
+
+    const auto target_blocks_x = std::vector{Block{{0, 2}, 0}, Block{{2, 3}, 1}};
+    const auto target_blocks_y = std::vector{Block{{0, 2}, 0}};
+    const auto target_grid = GridLayout(std::array{target_blocks_y, target_blocks_x});
+
+    const auto overlay = GridOverlay{origin_grid, target_grid};
+
+    // Rank 0 -> (0, 0)
+    const auto expected_send_0 =
+            std::vector{MultidimensionalBlock{Block{{0, 2}, 0}, Block{{0, 2}, 0}},
+                        MultidimensionalBlock{Block{{0, 2}, 0}, Block{{2, 3}, 1}}};
+    const auto expected_receive_0 =
+            std::vector{MultidimensionalBlock{Block{{0, 2}, 0}, Block{{0, 2}, 0}}};
+
+    const auto [send_0, receive_0] =
+            get_send_and_receive_blocks_dev(overlay, {0, 0}, {0, 0}, IntervalType::LOCAL);
+    EXPECT_THAT(send_0, UnorderedElementsAreArray(expected_send_0));
+    EXPECT_THAT(receive_0, UnorderedElementsAreArray(expected_receive_0));
+
+    // Rank 1 -> (0, 1)
+    const auto [send_1, receive_1] = get_send_and_receive_blocks_dev(
+            overlay, {INVALID_RANK_ID, INVALID_RANK_ID}, {0, 1}, IntervalType::LOCAL);
+    const auto expected_receive_1 =
+            std::vector{MultidimensionalBlock{Block{{0, 2}, 0}, Block{{0, 1}, 0}}};
+    EXPECT_THAT(receive_1, UnorderedElementsAreArray(expected_receive_1));
+    EXPECT_TRUE(send_1.empty());
 }
