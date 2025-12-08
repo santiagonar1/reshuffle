@@ -2,6 +2,7 @@
 #define RESHUFFLE_BLOCK_CYCLIC_HPP
 
 #include "block.hpp"
+#include "data_distribution.hpp"
 #include "grid_layout.hpp"
 #include "processor_grid.hpp"
 #include "profiler.hpp"
@@ -31,13 +32,13 @@ namespace reshuffle {
     }// namespace internal
 
     template<std::size_t N>
-    class BlockCyclic {
+    class BlockCyclic final : public DataDistribution<N> {
     public:
         BlockCyclic(const Dimensions<N> &num_global_values, const Dimensions<N> &block_sizes,
                     const ProcessorGrid<N> &processor_grid);
 
-        [[nodiscard]] auto get_grid_layout() const -> const internal::GridLayout<N> &;
-        [[nodiscard]] auto get_processor_grid() const -> const ProcessorGrid<N> &;
+        [[nodiscard]] auto get_grid_layout() const -> const internal::GridLayout<N> & override;
+        [[nodiscard]] auto get_processor_grid() const -> const ProcessorGrid<N> & override;
         [[nodiscard]] auto get_num_blocks_per_dimension() const -> Dimensions<N>;
 
         auto operator==(const BlockCyclic &other) const -> bool;
