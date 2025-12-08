@@ -2,6 +2,7 @@
 #define RESHUFFLE_BLOCK_CYCLIC_HPP
 
 #include "block.hpp"
+#include "data_distribution.hpp"
 #include "grid_layout.hpp"
 #include "processor_grid.hpp"
 #include "profiler.hpp"
@@ -31,17 +32,16 @@ namespace reshuffle {
     }// namespace internal
 
     template<std::size_t N>
-    class BlockCyclic {
+    class BlockCyclic final : public DataDistribution<N> {
     public:
         BlockCyclic(const Dimensions<N> &num_global_values, const Dimensions<N> &block_sizes,
                     const ProcessorGrid<N> &processor_grid);
 
-        [[nodiscard]] auto get_grid_layout() const -> const internal::GridLayout<N> &;
-        [[nodiscard]] auto get_num_global_values(int dimension) const -> int;
-        [[nodiscard]] auto get_processor_grid() const -> const ProcessorGrid<N> &;
+        [[nodiscard]] auto get_grid_layout() const -> const internal::GridLayout<N> & override;
+        [[nodiscard]] auto get_processor_grid() const -> const ProcessorGrid<N> & override;
         [[nodiscard]] auto get_num_blocks_per_dimension() const -> Dimensions<N>;
-
-        auto operator==(const BlockCyclic &other) const -> bool;
+        [[nodiscard]] auto is_block_wise() const -> bool override;
+        [[nodiscard]] auto clone() const -> std::unique_ptr<DataDistribution<N>> override;
 
     private:
         const Dimensions<N> _num_global_values;
@@ -64,19 +64,21 @@ namespace reshuffle {
     }
 
     template<std::size_t N>
-    auto BlockCyclic<N>::get_num_global_values(int dimension) const -> int {
-        return _num_global_values[dimension];
-    }
-
-    template<std::size_t N>
     auto BlockCyclic<N>::get_processor_grid() const -> const ProcessorGrid<N> & {
         return _processor_grid;
     }
 
     template<std::size_t N>
-    auto BlockCyclic<N>::operator==(const BlockCyclic &other) const -> bool {
-        return _num_global_values == other._num_global_values and
-               _block_sizes == other._block_sizes and _processor_grid == other._processor_grid;
+    auto BlockCyclic<N>::is_block_wise() const -> bool {
+        const auto num_processors_per_dimension = _processor_grid.get_dimensions();
+        const auto num_blocks_per_dimension = get_num_blocks_per_dimension();
+        for (int dim = 0; dim < N; ++dim) {
+            if (num_blocks_per_dimension[dim] != num_processors_per_dimension[dim] and
+                num_processors_per_dimension[dim] != 1) {
+                return false;
+            }
+        }
+        return true;
     }
 
     template<std::size_t N>
@@ -90,6 +92,11 @@ namespace reshuffle {
         return num_blocks_per_dimension;
     }
 
+    template<std::size_t N>
+    auto BlockCyclic<N>::clone() const -> std::unique_ptr<DataDistribution<N>> {
+        return std::make_unique<BlockCyclic>(*this);
+    }
+
 
     template<std::size_t N>
     [[nodiscard]] auto make_block_wise_distribution(const Dimensions<N> &num_global_values,
@@ -101,20 +108,6 @@ namespace reshuffle {
             block_sizes[i] = std::ceil(static_cast<double>(num_global_values[i]) / num_processors);
         }
         return BlockCyclic{num_global_values, block_sizes, processor_grid};
-    }
-
-    template<std::size_t N>
-    [[nodiscard]] auto is_block_wise_distribution(const BlockCyclic<N> &distribution) -> bool {
-        const auto num_processors_per_dimension =
-                distribution.get_processor_grid().get_dimensions();
-        const auto num_blocks_per_dimension = distribution.get_num_blocks_per_dimension();
-        for (int dim = 0; dim < N; ++dim) {
-            if (num_blocks_per_dimension[dim] != num_processors_per_dimension[dim] and
-                num_processors_per_dimension[dim] != 1) {
-                return false;
-            }
-        }
-        return true;
     }
 }// namespace reshuffle
 

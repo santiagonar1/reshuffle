@@ -140,6 +140,17 @@ TEST(GridLayout, CanReturnTheLocalGridOfAProcessorIn2D) {
                 Eq(expected_blocks_local_grid_3));
 }
 
+TEST(GridLayout, CanBeCompared) {
+    const auto blocks = std::vector{Block{{0, 1}, 0}, Block{{1, 4}, 1}, Block{{4, 6}, 0}};
+    const auto different_blocks = std::vector{Block{{0, 6}, 0}};
+    const auto grid_layout = GridLayout(std::array{blocks});
+    const auto same_grid_layout = GridLayout(std::array{blocks});
+    const auto different_grid_layout = GridLayout(std::array{different_blocks});
+
+    EXPECT_TRUE(grid_layout == same_grid_layout);
+    EXPECT_FALSE(grid_layout == different_grid_layout);
+}
+
 auto get_blocks(const int num_blocks) -> std::vector<Block> {
     std::vector<Block> blocks{};
     blocks.reserve(num_blocks);

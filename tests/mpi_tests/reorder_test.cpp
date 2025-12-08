@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <numeric>
 
+#include <block_wise.hpp>
 #include <shuffle.hpp>
 
 using namespace reshuffle;

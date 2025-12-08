@@ -2,6 +2,7 @@
 #include <chrono>
 #include <mpi.h>
 
+#include <block_wise.hpp>
 #include <rank_order.hpp>
 #include <reshuffle.hpp>
 

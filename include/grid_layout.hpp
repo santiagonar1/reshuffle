@@ -28,6 +28,8 @@ namespace reshuffle::internal {
         [[nodiscard]] auto get_multidimensional_blocks() const
                 -> const std::vector<MultidimensionalBlock<N>> &;
 
+        [[nodiscard]] auto operator==(const GridLayout &other) const -> bool;
+
     private:
         [[nodiscard]] auto get_processor_coordinates(const Coordinates<N> &block_coordinates) const
                 -> Coordinates<N>;
@@ -96,6 +98,12 @@ namespace reshuffle::internal {
         }
         return processor_coordinates;
     }
+
+    template<std::size_t N>
+    auto GridLayout<N>::operator==(const GridLayout &other) const -> bool {
+        return _multidimensional_blocks == other._multidimensional_blocks;
+    }
+
 }// namespace reshuffle::internal
 
 #endif//GRID_LAYOUT_HPP

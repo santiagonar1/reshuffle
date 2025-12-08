@@ -46,15 +46,15 @@ namespace reshuffle::internal {
     template<concepts::Exchangeable T, typename Extents>
     auto GeneralDataExchanger<T, Extents>::exchange() const
             -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> {
-        const auto grid_overlay = GridOverlay{_initial_context.distribution.get_grid_layout(),
-                                              _final_context.distribution.get_grid_layout()};
+        const auto grid_overlay = GridOverlay{_initial_context.get_distribution().get_grid_layout(),
+                                              _final_context.get_distribution().get_grid_layout()};
 
         const auto inter_communicator =
-                InterCommunicator(_initial_context.comm, _final_context.comm);
+                InterCommunicator(_initial_context.get_comm(), _final_context.get_comm());
 
-        const auto this_rank = RankInformation{inter_communicator,
-                                               _initial_context.distribution.get_processor_grid(),
-                                               _final_context.distribution.get_processor_grid()};
+        const auto this_rank = RankInformation{
+                inter_communicator, _initial_context.get_distribution().get_processor_grid(),
+                _final_context.get_distribution().get_processor_grid()};
 
         const auto [blocks_to_send, blocks_to_receive] =
                 get_send_and_receive_blocks(grid_overlay, this_rank, IntervalType::LOCAL);
@@ -71,8 +71,9 @@ namespace reshuffle::internal {
         PROFILE_SCOPE_NAMED("exchange_values");
 
         constexpr auto N = Extents::rank();
-        const auto initial_processor_grid = _initial_context.distribution.get_processor_grid();
-        const auto final_processor_grid = _final_context.distribution.get_processor_grid();
+        const auto initial_processor_grid =
+                _initial_context.get_distribution().get_processor_grid();
+        const auto final_processor_grid = _final_context.get_distribution().get_processor_grid();
 
         const auto dimensions = get_dimensions(blocks_to_receive);
 
