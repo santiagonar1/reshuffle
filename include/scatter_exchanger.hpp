@@ -31,15 +31,15 @@ namespace reshuffle::internal {
     template<concepts::Exchangeable T, typename Extents>
     auto ScatterExchanger<T, Extents>::exchange() const
             -> std::pair<std::vector<T>, Dimensions<Extents::rank()>> {
-        const auto grid_overlay = GridOverlay{_initial_context._distribution->get_grid_layout(),
-                                              _final_context._distribution->get_grid_layout()};
+        const auto grid_overlay = GridOverlay{_initial_context.get_distribution().get_grid_layout(),
+                                              _final_context.get_distribution().get_grid_layout()};
 
         const auto inter_communicator =
-                InterCommunicator(_initial_context._comm, _final_context._comm);
+                InterCommunicator(_initial_context.get_comm(), _final_context.get_comm());
 
-        const auto this_rank = RankInformation{inter_communicator,
-                                               _initial_context._distribution->get_processor_grid(),
-                                               _final_context._distribution->get_processor_grid()};
+        const auto this_rank = RankInformation{
+                inter_communicator, _initial_context.get_distribution().get_processor_grid(),
+                _final_context.get_distribution().get_processor_grid()};
 
         const auto [blocks_to_send, blocks_to_receive] =
                 get_send_and_receive_blocks(grid_overlay, this_rank, IntervalType::LOCAL);
@@ -49,14 +49,14 @@ namespace reshuffle::internal {
         const auto root_coordinates = get_owner_coordinates(multidimensional_blocks[0]);
 
         const auto root_rank_initial_comm =
-                _initial_context._distribution->get_processor_grid().get_processor_id(
+                _initial_context.get_distribution().get_processor_grid().get_processor_id(
                         root_coordinates);
         const auto root_inter_comm = inter_communicator.get_inter_comm_rank(
                 root_rank_initial_comm, InterCommunicator::SelectCommunicator::INITIAL_COMM);
 
         const auto values =
                 internal::scatter_values(_local_values, blocks_to_send, blocks_to_receive,
-                                         _final_context._distribution->get_processor_grid(),
+                                         _final_context.get_distribution().get_processor_grid(),
                                          root_inter_comm, inter_communicator);
         return values;
     }

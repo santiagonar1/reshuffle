@@ -19,8 +19,12 @@ namespace reshuffle {
         Context(const Context &other);
         Context &operator=(const Context &other);
 
+        [[nodiscard]] auto get_comm() const -> MPI_Comm;
+        [[nodiscard]] auto get_distribution() const -> const DataDistribution<N> &;
+
         auto operator==(const Context &other) const -> bool;
 
+    private:
         const std::unique_ptr<const DataDistribution<N>> _distribution;
         // For some reason, if I do this a reference this segfaults even when
         // called with MPI_COMM_WORLD
@@ -40,6 +44,16 @@ namespace reshuffle {
     Context<N>::Context(const Context &other)
         : _distribution(other._distribution ? other._distribution->clone() : nullptr),
           _comm(other._comm) {}
+
+    template<std::size_t N>
+    auto Context<N>::get_comm() const -> MPI_Comm {
+        return _comm;
+    }
+
+    template<std::size_t N>
+    auto Context<N>::get_distribution() const -> const DataDistribution<N> & {
+        return *_distribution;
+    }
 
     template<std::size_t N>
     Context<N> &Context<N>::operator=(const Context &other) {
