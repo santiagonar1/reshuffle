@@ -42,7 +42,7 @@ namespace reshuffle {
         [[nodiscard]] auto get_num_blocks_per_dimension() const -> Dimensions<N>;
         [[nodiscard]] auto is_block_wise() const -> bool override;
 
-        auto operator==(const BlockCyclic &other) const -> bool;
+        [[nodiscard]] auto operator==(const BlockCyclic &other) const -> bool;
 
     private:
         const Dimensions<N> _num_global_values;
@@ -84,8 +84,7 @@ namespace reshuffle {
 
     template<std::size_t N>
     auto BlockCyclic<N>::operator==(const BlockCyclic &other) const -> bool {
-        return _num_global_values == other._num_global_values and
-               _block_sizes == other._block_sizes and _processor_grid == other._processor_grid;
+        return _processor_grid == other._processor_grid and _grid_layout == other._grid_layout;
     }
 
     template<std::size_t N>
