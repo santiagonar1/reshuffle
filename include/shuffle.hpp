@@ -27,8 +27,8 @@ namespace reshuffle {
                               const Context<Extents::rank()> &initial_context,
                               const Context<Extents::rank()> &final_context)
                 -> std::unique_ptr<DataExchanger<T, Extents::rank()>> {
-            if (initial_context.distribution.get_processor_grid().get_num_processors() == 1 and
-                final_context.distribution.is_block_wise()) {
+            if (initial_context._distribution->get_processor_grid().get_num_processors() == 1 and
+                final_context._distribution->is_block_wise()) {
                 return std::make_unique<ScatterExchanger<T, Extents>>(local_values, initial_context,
                                                                       final_context);
             }
@@ -70,11 +70,11 @@ namespace reshuffle {
                                   const Context<N> &final_context)
             -> std::optional<std::pair<MPI_Comm, std::vector<RankId>>> {
         const auto commWeight =
-                internal::RankOrder<N>(initial_context.distribution, final_context.distribution,
+                internal::RankOrder<N>(*initial_context._distribution, *final_context._distribution,
                                        internal::HungarianRankOrderStrategy{});
         const auto reordering = commWeight.get_optimal_rank_order();
         return std::make_optional(std::make_pair(
-                internal::RankOrder<N>::get_reordered_comm(final_context.comm, reordering),
+                internal::RankOrder<N>::get_reordered_comm(final_context._comm, reordering),
                 reordering));
     }
 
@@ -83,11 +83,11 @@ namespace reshuffle {
                                          const Context<N> &final_context)
             -> std::optional<std::pair<MPI_Comm, std::vector<RankId>>> {
         const auto commWeight =
-                internal::RankOrder<N>(initial_context.distribution, final_context.distribution,
+                internal::RankOrder<N>(*initial_context._distribution, *final_context._distribution,
                                        internal::GreedyRankOrderStrategy{});
         const auto reordering = commWeight.get_optimal_rank_order();
         return std::make_optional(std::make_pair(
-                internal::RankOrder<N>::get_reordered_comm(final_context.comm, reordering),
+                internal::RankOrder<N>::get_reordered_comm(final_context._comm, reordering),
                 reordering));
     }
 }// namespace reshuffle

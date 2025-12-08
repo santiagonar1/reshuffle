@@ -1,6 +1,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <block_wise.hpp>
 #include <greedy_rank_order_strategy.hpp>
 #include <hungarian_rank_order_strategy.hpp>
 #include <rank_order.hpp>

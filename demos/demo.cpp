@@ -3,6 +3,7 @@
 #include <ranges>
 #include <vector>
 
+#include <block_wise.hpp>
 #include <reshuffle.hpp>
 
 

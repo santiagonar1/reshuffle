@@ -112,6 +112,17 @@ TEST(BlockCyclic, InMultipleDimensionsIsEquivalentToSeveralInOneDimension) {
     EXPECT_THAT(data_distribution.get_grid_layout().get_blocks()[2], Eq(z_blocks));
 }
 
+TEST(BlockCyclic, CanBeCloned) {
+    constexpr auto num_values = 100;
+    constexpr auto num_ranks = 10;
+    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    constexpr auto dimensions = Dimensions{num_values};
+    const auto distribution = BlockCyclic{dimensions, {10}, processor_grid};
+
+    const auto clone = distribution.clone();
+    EXPECT_THAT(*clone, Eq(distribution));
+}
+
 TEST(MakeBlockWise, CanBeUsedToGetABlockWiseFromBlockCyclic) {
     constexpr int num_values = 10;
     constexpr int num_ranks = 2;

@@ -4,6 +4,8 @@
 #include "grid_layout.hpp"
 #include "processor_grid.hpp"
 
+#include <memory>
+
 namespace reshuffle {
 
     template<std::size_t N>
@@ -14,6 +16,7 @@ namespace reshuffle {
         [[nodiscard]] virtual auto get_grid_layout() const -> const internal::GridLayout<N> & = 0;
         [[nodiscard]] virtual auto get_processor_grid() const -> const ProcessorGrid<N> & = 0;
         [[nodiscard]] virtual auto is_block_wise() const -> bool = 0;
+        [[nodiscard]] virtual auto clone() const -> std::unique_ptr<DataDistribution> = 0;
 
         [[nodiscard]] auto operator==(const DataDistribution &other) const -> bool;
     };

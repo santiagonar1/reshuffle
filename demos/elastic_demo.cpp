@@ -2,6 +2,7 @@
 #include <mpi.h>
 #include <vector>
 
+#include <block_wise.hpp>
 #include <reshuffle.hpp>
 
 

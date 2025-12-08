@@ -41,6 +41,7 @@ namespace reshuffle {
         [[nodiscard]] auto get_processor_grid() const -> const ProcessorGrid<N> & override;
         [[nodiscard]] auto get_num_blocks_per_dimension() const -> Dimensions<N>;
         [[nodiscard]] auto is_block_wise() const -> bool override;
+        [[nodiscard]] auto clone() const -> std::unique_ptr<DataDistribution<N>> override;
 
     private:
         const Dimensions<N> _num_global_values;
@@ -89,6 +90,11 @@ namespace reshuffle {
             num_blocks_per_dimension[i] = static_cast<int>(num_blocks);
         }
         return num_blocks_per_dimension;
+    }
+
+    template<std::size_t N>
+    auto BlockCyclic<N>::clone() const -> std::unique_ptr<DataDistribution<N>> {
+        return std::make_unique<BlockCyclic>(*this);
     }
 
 

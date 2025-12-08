@@ -1,6 +1,7 @@
 #ifndef CONTEXT_CREATION_HPP
 #define CONTEXT_CREATION_HPP
 
+#include <block_wise.hpp>
 #include <shuffle.hpp>
 
 [[nodiscard]] auto generate_values(int from, int to) -> std::vector<int>;

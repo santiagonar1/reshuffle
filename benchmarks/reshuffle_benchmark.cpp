@@ -2,6 +2,7 @@
 #include <chrono>
 #include <mpi.h>
 
+#include <block_wise.hpp>
 #include <reshuffle.hpp>
 
 #include "autopas_particle.hpp"
