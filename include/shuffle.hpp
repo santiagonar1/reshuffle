@@ -28,7 +28,7 @@ namespace reshuffle {
                               const Context<Extents::rank()> &final_context)
                 -> std::unique_ptr<DataExchanger<T, Extents::rank()>> {
             if (initial_context.distribution.get_processor_grid().get_num_processors() == 1 and
-                is_block_wise_distribution(final_context.distribution)) {
+                final_context.distribution.is_block_wise()) {
                 return std::make_unique<ScatterExchanger<T, Extents>>(local_values, initial_context,
                                                                       final_context);
             }

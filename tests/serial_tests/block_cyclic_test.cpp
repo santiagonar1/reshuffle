@@ -153,9 +153,9 @@ TEST(IsBlockWise, ReturnsTrueIfDistributionIsBlockWise) {
     constexpr int num_values = 10;
     constexpr int num_ranks = 3;
     const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto block_wise_distribution = make_block_wise_distribution({num_values}, processor_grid);
+    const auto block_wise = make_block_wise_distribution({num_values}, processor_grid);
 
-    EXPECT_TRUE(is_block_wise_distribution(block_wise_distribution));
+    EXPECT_TRUE(block_wise.is_block_wise());
 }
 
 TEST(IsBlockWise, ReturnsFlaseIfDistributionIsNotBlockWise) {
@@ -164,9 +164,9 @@ TEST(IsBlockWise, ReturnsFlaseIfDistributionIsNotBlockWise) {
     constexpr int num_ranks = 2;
 
     const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto data_distribution = BlockCyclic({num_values}, {block_size}, processor_grid);
+    const auto non_block_wise = BlockCyclic({num_values}, {block_size}, processor_grid);
 
-    EXPECT_FALSE(is_block_wise_distribution(data_distribution));
+    EXPECT_FALSE(non_block_wise.is_block_wise());
 }
 
 TEST(IsBlockWise, ADistributionWithOnlyOneRankOnEachDimensionIsBlockWise) {
@@ -175,7 +175,7 @@ TEST(IsBlockWise, ADistributionWithOnlyOneRankOnEachDimensionIsBlockWise) {
     constexpr int num_ranks = 1;
 
     const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto data_distribution = BlockCyclic({num_values}, {block_size}, processor_grid);
+    const auto one_rank_distribution = BlockCyclic({num_values}, {block_size}, processor_grid);
 
-    EXPECT_TRUE(is_block_wise_distribution(data_distribution));
+    EXPECT_TRUE(one_rank_distribution.is_block_wise());
 }
