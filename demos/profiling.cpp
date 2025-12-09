@@ -23,7 +23,7 @@ int main() {
 
     const auto initial_processor_grid = reshuffle::ProcessorGrid<1>{{1}};
     const auto initial_distribution =
-            reshuffle::make_block_wise_distribution({num_global_values}, initial_processor_grid);
+            reshuffle::BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = reshuffle::Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_processor_grid = reshuffle::ProcessorGrid<1>{{num_ranks}};

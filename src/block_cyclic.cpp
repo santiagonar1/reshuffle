@@ -10,14 +10,12 @@ namespace reshuffle::internal {
             const auto starting_index = i;
             const auto last_index = starting_index + block_size;
             const auto owner = static_cast<RankId>(blocks.size()) % num_processors;
-            blocks.emplace_back(reshuffle::internal::LeftClosedRange{starting_index, last_index},
-                                owner);
+            blocks.emplace_back(LeftClosedRange{starting_index, last_index}, owner);
         }
 
         if (not blocks.empty()) {
             const Block last_block{
-                    reshuffle::internal::LeftClosedRange{
-                            blocks.back().get_interval().get_left_bound(), num_values},
+                    LeftClosedRange{blocks.back().get_interval().get_left_bound(), num_values},
                     blocks.back().get_owner()};
             blocks.pop_back();
             blocks.push_back(last_block);

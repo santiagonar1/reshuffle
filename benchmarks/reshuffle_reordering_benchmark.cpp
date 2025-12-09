@@ -2,6 +2,7 @@
 #include <chrono>
 #include <mpi.h>
 
+#include <block_cyclic.hpp>
 #include <block_wise.hpp>
 #include <rank_order.hpp>
 #include <reshuffle.hpp>
@@ -49,8 +50,7 @@ void shuffle_from_N_to_N_clustered_communication(benchmark::State &state) {
     const auto original_values = std::vector<SendType>(values_per_rank);
 
     const auto initial_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto initial_distribution =
-            make_block_wise_distribution({num_global_values}, initial_processor_grid);
+    const auto initial_distribution = BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
 
@@ -79,8 +79,7 @@ void shuffle_from_N_to_N_clustered_communication_with_relabel(benchmark::State &
     const auto original_values = std::vector<SendType>(values_per_rank);
 
     const auto initial_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto initial_distribution =
-            make_block_wise_distribution({num_global_values}, initial_processor_grid);
+    const auto initial_distribution = BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_processor_grid = ProcessorGrid<1>{{num_ranks}};
@@ -113,8 +112,7 @@ void shuffle_from_N_to_N_clustered_communication_with_relabel_greedy(benchmark::
     const auto original_values = std::vector<SendType>(values_per_rank);
 
     const auto initial_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto initial_distribution =
-            make_block_wise_distribution({num_global_values}, initial_processor_grid);
+    const auto initial_distribution = BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_processor_grid = ProcessorGrid<1>{{num_ranks}};
@@ -152,8 +150,7 @@ void shuffle_from_N_to_N_extreme_skew(benchmark::State &state) {
     const auto original_values = std::vector<SendType>(values_per_rank);
 
     const auto initial_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto initial_distribution =
-            make_block_wise_distribution({num_global_values}, initial_processor_grid);
+    const auto initial_distribution = BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_processor_grid = ProcessorGrid<1>{{num_ranks}};
@@ -181,8 +178,7 @@ void shuffle_from_N_to_N_extreme_skew_with_relabel(benchmark::State &state) {
     const auto original_values = std::vector<SendType>(values_per_rank);
 
     const auto initial_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto initial_distribution =
-            make_block_wise_distribution({num_global_values}, initial_processor_grid);
+    const auto initial_distribution = BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_processor_grid = ProcessorGrid<1>{{num_ranks}};
@@ -214,8 +210,7 @@ void shuffle_from_N_to_N_extreme_skew_with_relabel_greedy(benchmark::State &stat
     const auto original_values = std::vector<SendType>(values_per_rank);
 
     const auto initial_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto initial_distribution =
-            make_block_wise_distribution({num_global_values}, initial_processor_grid);
+    const auto initial_distribution = BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_processor_grid = ProcessorGrid<1>{{num_ranks}};

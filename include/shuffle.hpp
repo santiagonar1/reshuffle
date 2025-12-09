@@ -2,7 +2,6 @@
 #define RESHUFFLE_SHUFFLE_HPP
 
 #include <mpi.h>
-#include <ranges>
 #include <vector>
 
 #include "communication_package.hpp"

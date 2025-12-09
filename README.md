@@ -141,8 +141,7 @@ For example, the following context defines a 2D Block Wise distribution. The `Pr
 you want to have 4 columns of processors and 1 row (i.e., vertical split).
 
 ```c++
-reshuffle::Context{reshuffle::make_block_wise_distribution(
-                                       reshuffle::Dimensions<2>{num_rows, num_columns},
+reshuffle::Context{reshuffle::BlockWise(reshuffle::Dimensions<2>{num_rows, num_columns},
                                        reshuffle::ProcessorGrid<2>{{1, 4}}),
                                MPI_COMM_WORLD};
 ```
