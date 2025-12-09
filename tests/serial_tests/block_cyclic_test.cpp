@@ -9,6 +9,10 @@ using namespace reshuffle::internal;
 using testing::Eq;
 using testing::Lt;
 
+template<std::size_t N>
+auto make_block_wise_distribution(const Dimensions<N> &num_global_values,
+                                  const ProcessorGrid<N> &processor_grid) -> BlockCyclic<N>;
+
 TEST(BlockCyclic, CreatesGridWithBlocksOfGivenSize) {
     constexpr int block_size = 2;
     constexpr int num_values = 6;
@@ -123,18 +127,6 @@ TEST(BlockCyclic, CanBeCloned) {
     EXPECT_THAT(*clone, Eq(distribution));
 }
 
-TEST(MakeBlockWise, CanBeUsedToGetABlockWiseFromBlockCyclic) {
-    constexpr int num_values = 10;
-    constexpr int num_ranks = 2;
-    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto data_distribution = make_block_wise_distribution({num_values}, processor_grid);
-
-    const auto blocks = data_distribution.get_grid_layout().get_blocks().at(0);
-    const auto expected = std::vector{Block{{0, 5}, 0}, Block{{5, 10}, 1}};
-
-    EXPECT_THAT(blocks, Eq(expected));
-}
-
 TEST(IsBlockWise, ReturnsTrueIfDistributionIsBlockWise) {
     constexpr int num_values = 10;
     constexpr int num_ranks = 3;
@@ -200,4 +192,15 @@ TEST(CreateBlocks, CanBeUsedInMultipleDimensions) {
 
     EXPECT_THAT(create_blocks(num_values, block_size, processor_grid),
                 Eq(std::array{expected_y, expected_x}));
+}
+
+template<std::size_t N>
+auto make_block_wise_distribution(const Dimensions<N> &num_global_values,
+                                  const ProcessorGrid<N> &processor_grid) -> BlockCyclic<N> {
+    auto block_sizes = Dimensions<N>{};
+    for (int i = 0; i < N; ++i) {
+        const auto num_processors = processor_grid.get_dimensions()[i];
+        block_sizes[i] = std::ceil(static_cast<double>(num_global_values[i]) / num_processors);
+    }
+    return BlockCyclic{num_global_values, block_sizes, processor_grid};
 }

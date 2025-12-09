@@ -1,6 +1,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <block_cyclic.hpp>
+#include <block_wise.hpp>
 #include <shuffle.hpp>
 
 #include "aggregate_data.hpp"
@@ -116,14 +118,10 @@ TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplit) {
 
 
     const auto comm = create_communicator(CommSelector::ALL_RANKS);
-    const auto initial_context =
-            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
-                                                 ProcessorGrid<2>{{1, 1}}),
-                    comm};
-    const auto final_context =
-            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
-                                                 ProcessorGrid<2>{{1, 2}}),
-                    comm};
+    const auto initial_context = Context{
+            BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid<2>{{1, 1}}}, comm};
+    const auto final_context = Context{
+            BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid<2>{{1, 2}}}, comm};
 
     const auto [new_values, local_dimensions] = shuffle(
             std::mdspan{values.data(), num_rows, num_columns}, initial_context, final_context);
@@ -146,14 +144,10 @@ TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplitVectorOfVectors) {
 
 
     const auto comm = create_communicator(CommSelector::ALL_RANKS);
-    const auto initial_context =
-            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
-                                                 ProcessorGrid<2>{{1, 1}}),
-                    comm};
-    const auto final_context =
-            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
-                                                 ProcessorGrid<2>{{1, 2}}),
-                    comm};
+    const auto initial_context = Context{
+            BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid<2>{{1, 1}}}, comm};
+    const auto final_context = Context{
+            BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid<2>{{1, 2}}}, comm};
 
     const auto [new_values, local_dimensions] = shuffle(values, initial_context, final_context);
 
@@ -176,14 +170,10 @@ TEST(Shuffle, CanShuffleFromOneToManyIn2DHorizontalSplit) {
 
 
     const auto comm = create_communicator(CommSelector::ALL_RANKS);
-    const auto initial_context =
-            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
-                                                 ProcessorGrid<2>{{1, 1}}),
-                    comm};
-    const auto final_context =
-            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
-                                                 ProcessorGrid<2>{{2, 1}}),
-                    comm};
+    const auto initial_context = Context{
+            BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid<2>{{1, 1}}}, comm};
+    const auto final_context = Context{
+            BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid<2>{{2, 1}}}, comm};
 
     const auto [new_values, local_dimensions] = shuffle(
             std::mdspan{values.data(), num_rows, num_columns}, initial_context, final_context);
@@ -231,14 +221,10 @@ TEST(Shuffle, CanShuffleFromManyToOneIn2DVerticalSplit) {
     const auto num_columns = is_root(MPI_COMM_WORLD) ? 2 : 1;
 
     const auto comm = create_communicator(CommSelector::ALL_RANKS);
-    const auto initial_context =
-            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
-                                                 ProcessorGrid<2>{{1, 2}}),
-                    comm};
-    const auto final_context =
-            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
-                                                 ProcessorGrid<2>{{1, 1}}),
-                    comm};
+    const auto initial_context = Context{
+            BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid<2>{{1, 2}}}, comm};
+    const auto final_context = Context{
+            BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid<2>{{1, 1}}}, comm};
 
     const auto [new_values, local_dimensions] = shuffle(
             std::mdspan{values.data(), num_rows, num_columns}, initial_context, final_context);
@@ -261,14 +247,10 @@ TEST(Shuffle, CanShuffleFromManyToOneIn2DHorizontalSplit) {
     constexpr auto num_columns = 3;
 
     const auto comm = create_communicator(CommSelector::ALL_RANKS);
-    const auto initial_context =
-            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
-                                                 ProcessorGrid<2>{{2, 1}}),
-                    comm};
-    const auto final_context =
-            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
-                                                 ProcessorGrid<2>{{1, 1}}),
-                    comm};
+    const auto initial_context = Context{
+            BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid<2>{{2, 1}}}, comm};
+    const auto final_context = Context{
+            BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid<2>{{1, 1}}}, comm};
 
     const auto [new_values, local_dimensions] = shuffle(
             std::mdspan{values.data(), num_rows, num_columns}, initial_context, final_context);
@@ -326,10 +308,8 @@ TEST(Shuffle, CanShuffleFromBlockWiseToBlockCyclicIn2D) {
     constexpr auto num_columns = 3;
 
     const auto comm = create_communicator(CommSelector::ALL_RANKS);
-    const auto initial_context =
-            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
-                                                 ProcessorGrid<2>{{2, 1}}),
-                    comm};
+    const auto initial_context = Context{
+            BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid<2>{{2, 1}}}, comm};
     const auto final_distribution =
             BlockCyclic{{num_global_rows, num_global_columns}, {2, 1}, ProcessorGrid<2>{{1, 2}}};
     const auto final_context = Context{final_distribution, comm};
@@ -385,10 +365,8 @@ TEST(Shuffle, CanShuffleFromBlockCyclicToBlockWiseIn2D) {
             BlockCyclic{{num_global_rows, num_global_columns}, {2, 1}, ProcessorGrid<2>{{1, 2}}};
     const auto initial_context = Context{initial_distribution, comm};
 
-    const auto final_context =
-            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
-                                                 ProcessorGrid<2>{{2, 1}}),
-                    comm};
+    const auto final_context = Context{
+            BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid<2>{{2, 1}}}, comm};
 
 
     const auto [new_values, local_dimensions] = shuffle(
@@ -435,12 +413,10 @@ TEST(Shuffle, CanShuffleFromDifferentCommunicatorsIn2D) {
 
 
     const auto initial_context =
-            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
-                                                 ProcessorGrid<2>{{1, 1}}),
+            Context{BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid<2>{{1, 1}}},
                     create_communicator(CommSelector::ONLY_RANK_0)};
     const auto final_context =
-            Context{make_block_wise_distribution({num_global_rows, num_global_columns},
-                                                 ProcessorGrid<2>{{1, 2}}),
+            Context{BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid<2>{{1, 2}}},
                     create_communicator(CommSelector::ALL_RANKS)};
 
     const auto [new_values, local_dimensions] = shuffle(

@@ -2,6 +2,7 @@
 #include <chrono>
 #include <mpi.h>
 
+#include <block_cyclic.hpp>
 #include <block_wise.hpp>
 #include <reshuffle.hpp>
 
@@ -66,13 +67,11 @@ void shuffle_from_N_to_one(benchmark::State &state) {
     const auto original_values = std::vector<SendType>(values_per_rank);
 
     const auto initial_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto initial_distribution =
-            make_block_wise_distribution({num_global_values}, initial_processor_grid);
+    const auto initial_distribution = BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_processor_grid = ProcessorGrid<1>{{1}};
-    const auto final_distribution =
-            make_block_wise_distribution({num_global_values}, final_processor_grid);
+    const auto final_distribution = BlockWise{{num_global_values}, final_processor_grid};
     const auto final_context = Context{final_distribution, MPI_COMM_WORLD};
 
     while (state.KeepRunning()) {
@@ -93,13 +92,11 @@ void shuffle_serialization_from_N_to_one(benchmark::State &state) {
     const auto original_values = std::vector<SerializationType>(values_per_rank);
 
     const auto initial_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto initial_distribution =
-            make_block_wise_distribution({num_global_values}, initial_processor_grid);
+    const auto initial_distribution = BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_processor_grid = ProcessorGrid<1>{{1}};
-    const auto final_distribution =
-            make_block_wise_distribution({num_global_values}, final_processor_grid);
+    const auto final_distribution = BlockWise{{num_global_values}, final_processor_grid};
     const auto final_context = Context{final_distribution, MPI_COMM_WORLD};
 
     while (state.KeepRunning()) {
@@ -121,13 +118,11 @@ void shuffle_from_one_to_N(benchmark::State &state) {
                                          : std::vector<SendType>{};
 
     const auto initial_processor_grid = ProcessorGrid<1>{{1}};
-    const auto initial_distribution =
-            make_block_wise_distribution({num_global_values}, initial_processor_grid);
+    const auto initial_distribution = BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto final_distribution =
-            make_block_wise_distribution({num_global_values}, final_processor_grid);
+    const auto final_distribution = BlockWise{{num_global_values}, final_processor_grid};
     const auto final_context = Context{final_distribution, MPI_COMM_WORLD};
 
     while (state.KeepRunning()) {
@@ -149,13 +144,11 @@ void shuffle_serialization_from_one_to_N(benchmark::State &state) {
                                          : std::vector<SerializationType>{};
 
     const auto initial_processor_grid = ProcessorGrid<1>{{1}};
-    const auto initial_distribution =
-            make_block_wise_distribution({num_global_values}, initial_processor_grid);
+    const auto initial_distribution = BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto final_distribution =
-            make_block_wise_distribution({num_global_values}, final_processor_grid);
+    const auto final_distribution = BlockWise{{num_global_values}, final_processor_grid};
     const auto final_context = Context{final_distribution, MPI_COMM_WORLD};
 
     while (state.KeepRunning()) {
@@ -198,8 +191,7 @@ void shuffle_from_N_to_N_same_distribution(benchmark::State &state) {
     const auto original_values = std::vector<SendType>(values_per_rank);
 
     const auto initial_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto initial_distribution =
-            make_block_wise_distribution({num_global_values}, initial_processor_grid);
+    const auto initial_distribution = BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
     while (state.KeepRunning()) {
@@ -220,8 +212,7 @@ void shuffle_from_N_to_N(benchmark::State &state) {
     const auto original_values = std::vector<SendType>(values_per_rank);
 
     const auto initial_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto initial_distribution =
-            make_block_wise_distribution({num_global_values}, initial_processor_grid);
+    const auto initial_distribution = BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_processor_grid = ProcessorGrid<1>{{num_ranks}};
@@ -246,8 +237,7 @@ void shuffle_serialization_from_N_to_N(benchmark::State &state) {
     const auto original_values = std::vector<SerializationType>(values_per_rank);
 
     const auto initial_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto initial_distribution =
-            make_block_wise_distribution({num_global_values}, initial_processor_grid);
+    const auto initial_distribution = BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_processor_grid = ProcessorGrid<1>{{num_ranks}};
@@ -276,13 +266,11 @@ void shuffle_reduction(benchmark::State &state) {
     const auto original_values = std::vector<SendType>(values_per_rank);
 
     const auto initial_processor_grid = ProcessorGrid<1>{{num_ranks}};
-    const auto initial_distribution =
-            make_block_wise_distribution({num_global_values}, initial_processor_grid);
+    const auto initial_distribution = BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_processor_grid = ProcessorGrid<1>{{num_ranks / 2}};
-    const auto final_distribution =
-            make_block_wise_distribution({num_global_values}, final_processor_grid);
+    const auto final_distribution = BlockWise{{num_global_values}, final_processor_grid};
     const auto final_context = Context{final_distribution, MPI_COMM_WORLD};
 
     while (state.KeepRunning()) {

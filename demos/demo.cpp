@@ -39,21 +39,17 @@ int main() {
     auto dimensions = reshuffle::Dimensions<2>{num_rows, num_columns};
 
     const std::vector contexts = {
-            reshuffle::Context{reshuffle::make_block_wise_distribution(
-                                       reshuffle::Dimensions<2>{num_rows, num_columns},
-                                       reshuffle::ProcessorGrid<2>{{1, 1}}),
+            reshuffle::Context{reshuffle::BlockWise{reshuffle::Dimensions<2>{num_rows, num_columns},
+                                                    reshuffle::ProcessorGrid<2>{{1, 1}}},
                                MPI_COMM_WORLD},
-            reshuffle::Context{reshuffle::make_block_wise_distribution(
-                                       reshuffle::Dimensions<2>{num_rows, num_columns},
-                                       reshuffle::ProcessorGrid<2>{{4, 1}}),
+            reshuffle::Context{reshuffle::BlockWise{reshuffle::Dimensions<2>{num_rows, num_columns},
+                                                    reshuffle::ProcessorGrid<2>{{4, 1}}},
                                MPI_COMM_WORLD},
-            reshuffle::Context{reshuffle::make_block_wise_distribution(
-                                       reshuffle::Dimensions<2>{num_rows, num_columns},
-                                       reshuffle::ProcessorGrid<2>{{1, 4}}),
+            reshuffle::Context{reshuffle::BlockWise{reshuffle::Dimensions<2>{num_rows, num_columns},
+                                                    reshuffle::ProcessorGrid<2>{{1, 4}}},
                                MPI_COMM_WORLD},
-            reshuffle::Context{reshuffle::make_block_wise_distribution(
-                                       reshuffle::Dimensions<2>{num_rows, num_columns},
-                                       reshuffle::ProcessorGrid<2>{{2, 2}}),
+            reshuffle::Context{reshuffle::BlockWise{reshuffle::Dimensions<2>{num_rows, num_columns},
+                                                    reshuffle::ProcessorGrid<2>{{2, 2}}},
                                MPI_COMM_WORLD},
     };
 
