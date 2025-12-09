@@ -22,7 +22,7 @@ namespace reshuffle {
                            const ProcessorGrid<N> &processor_grid)
                 -> std::array<std::vector<Block>, N> {
             PROFILE_SCOPE_NAMED("create_blocks_nd");
-            std::array<std::vector<Block>, N> blocks{};
+            auto blocks = std::array<std::vector<Block>, N>{};
             const auto processor_dimensions = processor_grid.get_dimensions();
             for (int i = 0; i < N; ++i) {
                 blocks[i] = create_blocks(num_values[i], block_size[i], processor_dimensions[i]);
