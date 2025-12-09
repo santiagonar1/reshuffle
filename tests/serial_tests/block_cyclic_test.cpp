@@ -190,3 +190,39 @@ TEST(IsBlockWise, ADistributionWithOnlyOneRankOnEachDimensionIsBlockWise) {
 
     EXPECT_TRUE(one_rank_distribution.is_block_wise());
 }
+
+TEST(CreateBlocks, CreatesBlocksOfGivenSizeAndAssignsThemRoundRobinToProcessors) {
+    constexpr auto num_values = 9;
+    constexpr auto block_size = 3;
+    constexpr auto num_processors = 2;
+
+    const auto expected = std::vector{Block{{0, 3}, 0}, Block{{3, 6}, 1}, Block{{6, 9}, 0}};
+    EXPECT_THAT(create_blocks(num_values, block_size, num_processors), Eq(expected));
+}
+
+TEST(CreateBlocks, MakesLastBlockSmallerIfNoDivisible) {
+    constexpr auto num_values = 8;
+    constexpr auto block_size = 3;
+    constexpr auto num_processors = 2;
+
+    const auto expected = std::vector{Block{{0, 3}, 0}, Block{{3, 6}, 1}, Block{{6, 8}, 0}};
+    EXPECT_THAT(create_blocks(num_values, block_size, num_processors), Eq(expected));
+}
+
+TEST(CreateBlocks, CanBeUsedInMultipleDimensions) {
+    constexpr auto num_values_x = 9;
+    constexpr auto num_values_y = 8;
+    constexpr auto block_size_x = 3;
+    constexpr auto block_size_y = 3;
+    constexpr auto num_processors = 2;
+
+    const auto num_values = Dimensions{num_values_y, num_values_x};
+    const auto block_size = Dimensions{block_size_y, block_size_x};
+    const auto processor_grid = ProcessorGrid<2>{{num_processors, num_processors}};
+
+    const auto expected_x = std::vector{Block{{0, 3}, 0}, Block{{3, 6}, 1}, Block{{6, 9}, 0}};
+    const auto expected_y = std::vector{Block{{0, 3}, 0}, Block{{3, 6}, 1}, Block{{6, 8}, 0}};
+
+    EXPECT_THAT(create_blocks(num_values, block_size, processor_grid),
+                Eq(std::array{expected_y, expected_x}));
+}
