@@ -14,12 +14,13 @@
 namespace reshuffle {
 
     namespace internal {
-        auto create_blocks(int num_values, int block_size, int num_processors)
+        [[nodiscard]] auto create_blocks(int num_values, int block_size, int num_processors)
                 -> std::vector<Block>;
 
         template<std::size_t N>
-        auto create_blocks(const Dimensions<N> &num_values, const Dimensions<N> &block_size,
-                           const ProcessorGrid<N> &processor_grid)
+        [[nodiscard]] auto create_blocks(const Dimensions<N> &num_values,
+                                         const Dimensions<N> &block_size,
+                                         const ProcessorGrid<N> &processor_grid)
                 -> std::array<std::vector<Block>, N>;
     }// namespace internal
 
