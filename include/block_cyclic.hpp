@@ -20,15 +20,7 @@ namespace reshuffle {
         template<std::size_t N>
         auto create_blocks(const Dimensions<N> &num_values, const Dimensions<N> &block_size,
                            const ProcessorGrid<N> &processor_grid)
-                -> std::array<std::vector<Block>, N> {
-            PROFILE_SCOPE_NAMED("create_blocks_nd");
-            auto blocks = std::array<std::vector<Block>, N>{};
-            const auto processor_dimensions = processor_grid.get_dimensions();
-            for (int i = 0; i < N; ++i) {
-                blocks[i] = create_blocks(num_values[i], block_size[i], processor_dimensions[i]);
-            }
-            return blocks;
-        }
+                -> std::array<std::vector<Block>, N>;
     }// namespace internal
 
     template<std::size_t N>
@@ -109,6 +101,21 @@ namespace reshuffle {
         }
         return BlockCyclic{num_global_values, block_sizes, processor_grid};
     }
+
+    namespace internal {
+        template<std::size_t N>
+        auto create_blocks(const Dimensions<N> &num_values, const Dimensions<N> &block_size,
+                           const ProcessorGrid<N> &processor_grid)
+                -> std::array<std::vector<Block>, N> {
+            PROFILE_SCOPE_NAMED("create_blocks_nd");
+            auto blocks = std::array<std::vector<Block>, N>{};
+            const auto processor_dimensions = processor_grid.get_dimensions();
+            for (int i = 0; i < N; ++i) {
+                blocks[i] = create_blocks(num_values[i], block_size[i], processor_dimensions[i]);
+            }
+            return blocks;
+        }
+    }// namespace internal
 }// namespace reshuffle
 
 
