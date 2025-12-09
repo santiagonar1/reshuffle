@@ -28,7 +28,7 @@ namespace reshuffle {
 
     template<std::size_t N>
     ProcessorGrid<N>::ProcessorGrid(const Dimensions<N> &dimensions)
-        : _dimensions(dimensions), _num_processors(internal::calc_total_num_values(dimensions)) {}
+        : _num_processors(internal::calc_total_num_values(dimensions)), _dimensions(dimensions) {}
 
     template<std::size_t N>
     auto ProcessorGrid<N>::get_num_processors() const -> int {
