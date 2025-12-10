@@ -28,6 +28,9 @@ namespace reshuffle::concepts {
 
     template<typename T>
     concept Exchangeable = concepts::FundamentalType<T> or concepts::Serializable<T>;
+
+    template<typename T>
+    concept Int = std::same_as<std::remove_cvref_t<T>, int>;
 }// namespace reshuffle::concepts
 
 #endif//CONCEPTS_HPP
