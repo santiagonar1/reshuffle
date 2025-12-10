@@ -30,7 +30,7 @@ TEST(GridLayout, WorksIn2D) {
 TEST(GridLayout, CanReturnTheOwnerOfABlock) {
     constexpr auto num_processors = 2;
 
-    const auto processor_grid = ProcessorGrid<1>{{num_processors}};
+    const auto processor_grid = ProcessorGrid{num_processors};
     const auto blocks = get_blocks(num_processors);
     const auto grid_layout = GridLayout(std::array{blocks});
 
@@ -42,7 +42,7 @@ TEST(GridLayout, CanReturnTheOwnerOfABlockIn2DHorizontalPartition) {
     constexpr auto num_processors_x = 2;
     constexpr auto num_processors_y = 1;
 
-    const auto processor_grid = ProcessorGrid<2>{{num_processors_y, num_processors_x}};
+    const auto processor_grid = ProcessorGrid{num_processors_y, num_processors_x};
     const auto x_blocks = get_blocks(num_processors_x);
     const auto y_blocks = get_blocks(num_processors_y);
 
@@ -56,7 +56,7 @@ TEST(GridLayout, CanReturnTheOwnerOfABlockIn2DVerticalPartition) {
     constexpr auto num_processors_x = 1;
     constexpr auto num_processors_y = 2;
 
-    const auto processor_grid = ProcessorGrid<2>{{num_processors_y, num_processors_x}};
+    const auto processor_grid = ProcessorGrid{num_processors_y, num_processors_x};
     const auto x_blocks = get_blocks(num_processors_x);
     const auto y_blocks = get_blocks(num_processors_y);
 
@@ -70,7 +70,7 @@ TEST(GridLayout, CanReturnTheOwnerOfABlockIn2DCrossPartition) {
     constexpr auto num_processors_x = 2;
     constexpr auto num_processors_y = 2;
 
-    const auto processor_grid = ProcessorGrid<2>{{num_processors_y, num_processors_x}};
+    const auto processor_grid = ProcessorGrid{num_processors_y, num_processors_x};
     const auto x_blocks = get_blocks(num_processors_x);
     const auto y_blocks = get_blocks(num_processors_y);
 
@@ -85,7 +85,7 @@ TEST(GridLayout, CanReturnTheOwnerOfABlockIn2DCrossPartition) {
 TEST(GridLayout, ThrowsWhenAskedForABlockIdOutOfRange) {
     constexpr auto num_processors = 2;
 
-    const auto processor_grid = ProcessorGrid<1>{{num_processors}};
+    const auto processor_grid = ProcessorGrid{num_processors};
     const auto blocks = get_blocks(num_processors);
     const auto grid_layout = GridLayout(std::array{blocks});
 
@@ -97,7 +97,7 @@ TEST(GridLayout, ThrowsWhenAskedForABlockIdOutOfRange) {
 }
 
 TEST(GridLayout, CanReturnTheLocalGridOfAProcessor) {
-    const auto processor_grid = ProcessorGrid<1>{{2}};
+    const auto processor_grid = ProcessorGrid{2};
     const auto blocks = std::vector{Block{{0, 1}, 0}, Block{{1, 4}, 1}, Block{{4, 6}, 0}};
     const auto grid_layout = GridLayout(std::array{blocks});
 
@@ -114,7 +114,7 @@ TEST(GridLayout, CanReturnTheLocalGridOfAProcessorIn2D) {
     constexpr auto num_processors_x = 2;
     constexpr auto num_processors_y = 2;
 
-    const auto processor_grid = ProcessorGrid<2>{{num_processors_y, num_processors_x}};
+    const auto processor_grid = ProcessorGrid{num_processors_y, num_processors_x};
     const auto x_blocks = get_blocks(num_processors_x);
     const auto y_blocks = get_blocks(num_processors_y);
 

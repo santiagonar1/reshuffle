@@ -12,7 +12,7 @@ using testing::Lt;
 TEST(BlockWise, AssignsOneBlockPerProcessor) {
     constexpr int num_values = 9;
     constexpr int num_processors = 3;
-    const auto processor_grid = ProcessorGrid<1>{{num_processors}};
+    const auto processor_grid = ProcessorGrid{num_processors};
     const auto data_distribution = BlockWise{{num_values}, processor_grid};
 
     const auto blocks = data_distribution.get_grid_layout().get_blocks().at(0);
@@ -24,7 +24,7 @@ TEST(BlockWise, AssignsOneBlockPerProcessor) {
 TEST(BlockWise, MakesLastBlockSmallerIfNotDivisible) {
     constexpr int num_values = 10;
     constexpr int num_ranks = 3;
-    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    const auto processor_grid = ProcessorGrid{num_ranks};
     const auto data_distribution = BlockWise{{num_values}, processor_grid};
 
     const auto blocks = data_distribution.get_grid_layout().get_blocks().at(0);
@@ -36,7 +36,7 @@ TEST(BlockWise, MakesLastBlockSmallerIfNotDivisible) {
 TEST(BlockWise, BlocksPerDimensionIsEqualToNumProcessorsPerDimension) {
     constexpr int num_values = 9;
     constexpr int num_processors = 3;
-    const auto processor_grid = ProcessorGrid<1>{{num_processors}};
+    const auto processor_grid = ProcessorGrid{num_processors};
     const auto data_distribution = BlockWise{{num_values}, processor_grid};
 
     EXPECT_THAT(data_distribution.get_num_blocks_per_dimension(),
@@ -46,7 +46,7 @@ TEST(BlockWise, BlocksPerDimensionIsEqualToNumProcessorsPerDimension) {
 TEST(BlockWise, CanBeCloned) {
     constexpr auto num_values = 100;
     constexpr auto num_ranks = 10;
-    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    const auto processor_grid = ProcessorGrid{num_ranks};
     constexpr auto dimensions = Dimensions{num_values};
     const auto distribution = BlockWise{dimensions, processor_grid};
 
@@ -77,7 +77,7 @@ TEST(CreateEvenlyBlocks, CanBeUsedInMultipleDimensions) {
     constexpr auto num_processors_y = 2;
 
     const auto num_values = Dimensions{num_values_y, num_values_x};
-    const auto processor_grid = ProcessorGrid<2>{{num_processors_y, num_processors_x}};
+    const auto processor_grid = ProcessorGrid{num_processors_y, num_processors_x};
 
     const auto expected_x = std::vector{Block{{0, 5}, 0}, Block{{5, 10}, 1}};
     const auto expected_y = std::vector{Block{{0, 6}, 0}, Block{{6, 11}, 1}};

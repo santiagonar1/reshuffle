@@ -14,7 +14,7 @@ TEST(GetSendPackage, ConstructsACommunicationPackageBasedOnSendBlocksWithMultidi
     const auto send_blocks = std::vector{MultidimensionalBlock<1>{Block{{0, 2}, 1}},
                                          MultidimensionalBlock<1>{Block{{2, 4}, 0}},
                                          MultidimensionalBlock<1>{Block{{4, 6}, 1}}};
-    const auto processor_grid = ProcessorGrid<1>{{2}};
+    const auto processor_grid = ProcessorGrid{2};
 
     const auto expected_data_send_to_0 = std::vector{2, 3};
     const auto expected_data_send_to_1 = std::vector{0, 1, 4, 5};
@@ -42,7 +42,7 @@ TEST(GetSendPackage, WorksIn2D) {
                         MultidimensionalBlock<2>{Block{{0, 2}, 0}, Block{{2, 3}, 1}},
                         MultidimensionalBlock<2>{Block{{2, 3}, 1}, Block{{0, 2}, 0}},
                         MultidimensionalBlock<2>{Block{{2, 3}, 1}, Block{{2, 3}, 1}}};
-    const auto processor_grid = ProcessorGrid<2>{{2, 2}};
+    const auto processor_grid = ProcessorGrid{2, 2};
 
     const auto expected_destinies =
             std::map<RankId, LeftClosedRange>{{0, {0, 4}}, {1, {4, 6}}, {2, {6, 8}}, {3, {8, 9}}};

@@ -80,3 +80,11 @@ TEST(AClassNotMarkedAsFixedZise, IsNotFixedSized) {
     static_assert(!FixedSizeSerializable<AggregateData>,
                   "A class not marked as fixed size is not fixed size");
 }
+
+TEST(AnInt, IsAnInteger) { static_assert(Int<int>, "An int must be an integer"); }
+
+TEST(AnInt, AnIntReferenceIsAnInt) { static_assert(Int<int &>, "An int& must be an integer"); }
+
+TEST(AnInt, AConstReferenceToIntIsInt) {
+    static_assert(Int<const int &>, "A const int& must be an integer");
+}

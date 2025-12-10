@@ -14,8 +14,8 @@ using testing::Eq;
 TEST(RankInformation, StoresRankInformationForInitialAndFinalContext) {
     const auto sub_comm_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
     const auto inter_communicator = InterCommunicator(sub_comm_0, MPI_COMM_WORLD);
-    const auto initial_processor_grid = reshuffle::ProcessorGrid<1>{{1}};
-    const auto final_processor_grid = reshuffle::ProcessorGrid<1>{{2}};
+    const auto initial_processor_grid = reshuffle::ProcessorGrid{1};
+    const auto final_processor_grid = reshuffle::ProcessorGrid{2};
 
     const auto rank_information =
             RankInformation{inter_communicator, initial_processor_grid, final_processor_grid};

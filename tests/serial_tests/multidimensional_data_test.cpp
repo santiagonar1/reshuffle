@@ -116,7 +116,7 @@ TEST(CopyData, CopiesDataToMultidimensionalBlockRangeIn2D) {
 }
 
 TEST(GetNumElementsPerProcessor, ReturnsNumberOfElementsBasedOnMultidimensionalBlocks) {
-    const auto processor_grid = ProcessorGrid<2>{{1, 2}};
+    const auto processor_grid = ProcessorGrid{1, 2};
 
     const auto multiblock_0 = MultidimensionalBlock<2>{Block{{0, 2}, 0}, Block{{2, 4}, 0}};
     const auto multiblock_1 = MultidimensionalBlock<2>{Block{{4, 6}, 0}, Block{{6, 8}, 1}};
@@ -131,7 +131,7 @@ TEST(GetNumElementsPerProcessor, ReturnsNumberOfElementsBasedOnMultidimensionalB
 }
 
 TEST(GroupByProcessor, ReturnsA1DLayoutOfTheData) {
-    const auto processor_grid = ProcessorGrid<2>{{1, 2}};
+    const auto processor_grid = ProcessorGrid{1, 2};
 
     const auto multiblock_0 = MultidimensionalBlock<2>{Block{{0, 2}, 0}, Block{{2, 4}, 0}};
     const auto multiblock_1 = MultidimensionalBlock<2>{Block{{4, 6}, 0}, Block{{6, 8}, 1}};

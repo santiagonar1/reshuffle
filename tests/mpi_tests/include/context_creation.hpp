@@ -90,12 +90,10 @@ inline auto create_context(const DataLocationSelector &data_location, const MPI_
         case DataLocationSelector::ONLY_RANK_0:
         case DataLocationSelector::ONLY_RANK_1:
             return reshuffle::Context{
-                    reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid<1>{{1}}},
-                    comm};
+                    reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid{1}}, comm};
         case DataLocationSelector::ALL_RANKS:
             return reshuffle::Context{
-                    reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid<1>{{2}}},
-                    comm};
+                    reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid{2}}, comm};
         default:
             throw std::runtime_error("Invalid DataLocationSelector");
     }

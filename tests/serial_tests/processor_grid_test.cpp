@@ -9,13 +9,13 @@ using testing::Eq;
 
 TEST(ProcessorGrid, ReturnsNumberOfProcessorsInGrid) {
     constexpr auto num_processors = 4;
-    const auto processor_grid = ProcessorGrid<1>{{num_processors}};
+    const auto processor_grid = ProcessorGrid{num_processors};
 
     EXPECT_THAT(processor_grid.get_num_processors(), Eq(num_processors));
 }
 
 TEST(ProcessorGrid, EnumeratesProcessorsRowWise) {
-    const auto processor_grid = ProcessorGrid<2>{{2, 2}};
+    const auto processor_grid = ProcessorGrid{2, 2};
 
     EXPECT_THAT(processor_grid.get_processor_id({0, 0}), Eq(0));
     EXPECT_THAT(processor_grid.get_processor_id({0, 1}), Eq(1));
