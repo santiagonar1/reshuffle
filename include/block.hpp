@@ -9,7 +9,7 @@
 #include "profiler.hpp"
 #include "rank_id.hpp"
 
-namespace reshuffle::internal {
+namespace reshuffle {
     class Block {
     public:
         Block();
@@ -51,7 +51,7 @@ namespace reshuffle::internal {
 
         return {data.begin() + start, data.begin() + finish};
     }
-}// namespace reshuffle::internal
+}// namespace reshuffle
 
 
 #endif//RESHUFFLE_BLOCK_HPP

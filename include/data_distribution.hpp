@@ -13,7 +13,7 @@ namespace reshuffle {
     public:
         virtual ~DataDistribution() = default;
 
-        [[nodiscard]] virtual auto get_grid_layout() const -> const internal::GridLayout<N> & = 0;
+        [[nodiscard]] virtual auto get_grid_layout() const -> const GridLayout<N> & = 0;
         [[nodiscard]] virtual auto get_processor_grid() const -> const ProcessorGrid<N> & = 0;
         [[nodiscard]] virtual auto is_block_wise() const -> bool = 0;
         [[nodiscard]] virtual auto clone() const -> std::unique_ptr<DataDistribution> = 0;

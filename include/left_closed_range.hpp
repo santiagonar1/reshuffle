@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-namespace reshuffle::internal {
+namespace reshuffle {
     class LeftClosedRange {
     public:
         class iterator {

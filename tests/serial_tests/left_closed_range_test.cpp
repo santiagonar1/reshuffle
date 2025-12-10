@@ -3,7 +3,7 @@
 
 #include <left_closed_range.hpp>
 
-using namespace reshuffle::internal;
+using namespace reshuffle;
 
 using testing::Eq;
 using testing::Ne;

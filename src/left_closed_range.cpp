@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <utility>
 
-namespace reshuffle::internal {
+namespace reshuffle {
     LeftClosedRange::LeftClosedRange(int left_bound, int right_bound)
         : _interval{left_bound, right_bound} {
         if (left_bound > right_bound) {
@@ -68,4 +68,4 @@ namespace reshuffle::internal {
         return os << "[" << range.get_left_bound() << ", " << range.get_right_bound() << ")";
     }
 
-}// namespace reshuffle::internal
+}// namespace reshuffle

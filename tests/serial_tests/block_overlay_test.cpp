@@ -3,6 +3,7 @@
 
 #include <block_overlay.hpp>
 
+using namespace reshuffle;
 using namespace reshuffle::internal;
 
 using testing::Eq;

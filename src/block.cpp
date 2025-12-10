@@ -5,7 +5,7 @@
 #include <ostream>
 #include <ranges>
 
-namespace reshuffle::internal {
+namespace reshuffle {
 
     Block::Block() : _interval{0, 0}, _owner{-1} {};
 
@@ -84,4 +84,4 @@ namespace reshuffle::internal {
 
         return blocks_grouped_by_owner;
     }
-}// namespace reshuffle::internal
+}// namespace reshuffle

@@ -14,7 +14,7 @@
 #include <vector>
 
 
-namespace reshuffle::internal {
+namespace reshuffle {
     template<std::size_t N>
     class GridLayout {
     public:
@@ -42,7 +42,8 @@ namespace reshuffle::internal {
 
     template<std::size_t N>
     GridLayout<N>::GridLayout(std::array<std::vector<Block>, N> blocks)
-        : _multidimensional_blocks(get_cartesian_product(blocks)), _blocks(std::move(blocks)) {}
+        : _multidimensional_blocks(internal::get_cartesian_product(blocks)),
+          _blocks(std::move(blocks)) {}
 
     template<std::size_t N>
     auto GridLayout<N>::get_blocks() const -> const std::array<std::vector<Block>, N> & {
@@ -53,7 +54,8 @@ namespace reshuffle::internal {
     auto GridLayout<N>::get_block_owner(const Coordinates<N> &block_coordinates,
                                         const ProcessorGrid<N> &processor_grid) const -> RankId {
         const auto processor_coordinates = get_processor_coordinates(block_coordinates);
-        return map_indices(processor_coordinates, processor_grid.get_dimensions()).value();
+        return internal::map_indices(processor_coordinates, processor_grid.get_dimensions())
+                .value();
     }
 
     template<std::size_t N>
@@ -61,7 +63,7 @@ namespace reshuffle::internal {
                                        const ProcessorGrid<N> &processor_grid) const -> GridLayout {
 
         const auto filter_fn = [rank, &processor_grid](const auto &block_tuple) {
-            const auto owner_coordinates = get_owner_coordinates(block_tuple);
+            const auto owner_coordinates = internal::get_owner_coordinates(block_tuple);
             return processor_grid.get_processor_id(owner_coordinates) == rank;
         };
 
@@ -74,7 +76,7 @@ namespace reshuffle::internal {
         auto local_blocks = internal::unzip(local_multidimensional_blocks);
 
         std::ranges::transform(local_blocks, local_blocks.begin(), [](const auto &block_vector) {
-            return make_contiguous(remove_duplicates(block_vector));
+            return make_contiguous(internal::remove_duplicates(block_vector));
         });
 
         return GridLayout{std::move(local_blocks)};
@@ -104,6 +106,6 @@ namespace reshuffle::internal {
         return _multidimensional_blocks == other._multidimensional_blocks;
     }
 
-}// namespace reshuffle::internal
+}// namespace reshuffle
 
 #endif//GRID_LAYOUT_HPP

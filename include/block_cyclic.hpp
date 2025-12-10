@@ -30,7 +30,7 @@ namespace reshuffle {
         BlockCyclic(const Dimensions<N> &num_global_values, const Dimensions<N> &block_sizes,
                     const ProcessorGrid<N> &processor_grid);
 
-        [[nodiscard]] auto get_grid_layout() const -> const internal::GridLayout<N> & override;
+        [[nodiscard]] auto get_grid_layout() const -> const GridLayout<N> & override;
         [[nodiscard]] auto get_processor_grid() const -> const ProcessorGrid<N> & override;
         [[nodiscard]] auto get_num_blocks_per_dimension() const -> Dimensions<N>;
         [[nodiscard]] auto is_block_wise() const -> bool override;
@@ -40,7 +40,7 @@ namespace reshuffle {
         const Dimensions<N> _num_global_values;
         const Dimensions<N> _block_sizes;
         const ProcessorGrid<N> _processor_grid;
-        const internal::GridLayout<N> _grid_layout;
+        const GridLayout<N> _grid_layout;
     };
 
     template<std::size_t N>
@@ -52,7 +52,7 @@ namespace reshuffle {
           _grid_layout({internal::create_blocks(num_global_values, block_sizes, processor_grid)}) {}
 
     template<std::size_t N>
-    auto BlockCyclic<N>::get_grid_layout() const -> const internal::GridLayout<N> & {
+    auto BlockCyclic<N>::get_grid_layout() const -> const GridLayout<N> & {
         return _grid_layout;
     }
 
