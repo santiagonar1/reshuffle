@@ -28,11 +28,9 @@ TEST(get_optimal_communicator, CanRelabelFromLessToMoreProcessors) {
     const auto rank = get_rank_id(MPI_COMM_WORLD).value();
     constexpr auto num_global_values = 18;
 
-    const auto initial_distribution =
-            BlockWise{{num_global_values}, reshuffle::ProcessorGrid<1>{{4}}};
+    const auto initial_distribution = BlockWise{{num_global_values}, ProcessorGrid{4}};
 
-    const auto final_distribution =
-            BlockWise{{num_global_values}, reshuffle::ProcessorGrid<1>{{6}}};
+    const auto final_distribution = BlockWise{{num_global_values}, ProcessorGrid{6}};
 
     const auto values = calcValues(rank, num_global_values,
                                    initial_distribution.get_processor_grid().get_num_processors());
@@ -83,11 +81,9 @@ TEST(get_optimal_communicator, CanRelabelFromMoreToLessProcessors) {
     const auto rank = get_rank_id(MPI_COMM_WORLD).value();
     constexpr auto num_global_values = 18;
 
-    const auto initial_distribution =
-            BlockWise{{num_global_values}, reshuffle::ProcessorGrid<1>{{6}}};
+    const auto initial_distribution = BlockWise{{num_global_values}, ProcessorGrid{6}};
 
-    const auto final_distribution =
-            BlockWise{{num_global_values}, reshuffle::ProcessorGrid<1>{{4}}};
+    const auto final_distribution = BlockWise{{num_global_values}, ProcessorGrid{4}};
 
     const auto values = calcValues(rank, num_global_values,
                                    initial_distribution.get_processor_grid().get_num_processors());

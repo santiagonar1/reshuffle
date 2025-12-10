@@ -16,7 +16,7 @@ auto make_block_wise_distribution(const Dimensions<N> &num_global_values,
 TEST(BlockCyclic, CreatesGridWithBlocksOfGivenSize) {
     constexpr int block_size = 2;
     constexpr int num_values = 6;
-    const auto processor_grid = ProcessorGrid<1>{{1}};
+    const auto processor_grid = ProcessorGrid{1};
     const auto data_distribution = BlockCyclic({num_values}, {block_size}, processor_grid);
 
     const auto blocks = data_distribution.get_grid_layout().get_blocks().at(0);
@@ -29,7 +29,7 @@ TEST(BlockCyclic, MakesLastBlockSmallerIfNumValuesNoDivisible) {
     constexpr int block_size = 2;
     constexpr int num_values = 5;
     constexpr int num_ranks = 1;
-    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    const auto processor_grid = ProcessorGrid{num_ranks};
     const auto data_distribution = BlockCyclic({num_values}, {block_size}, processor_grid);
 
     const auto blocks = data_distribution.get_grid_layout().get_blocks().at(0);
@@ -43,7 +43,7 @@ TEST(BlockCyclic, CalculatesTheNumberOfBlocksPerDimension) {
     constexpr int num_values = 5;
     constexpr int num_ranks = 1;
 
-    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    const auto processor_grid = ProcessorGrid{num_ranks};
     const auto data_distribution = BlockCyclic({num_values}, {block_size}, processor_grid);
 
     EXPECT_THAT(data_distribution.get_num_blocks_per_dimension(), Eq(Dimensions{3}));
@@ -53,7 +53,7 @@ TEST(BlockCyclic, AssignsBlocksInRoundRobbinFashion) {
     constexpr int block_size = 2;
     constexpr int num_values = 6;
     constexpr int num_ranks = 2;
-    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    const auto processor_grid = ProcessorGrid{num_ranks};
     const auto data_distribution = BlockCyclic({num_values}, {block_size}, processor_grid);
 
     auto result = std::vector<reshuffle::RankId>{};
@@ -72,7 +72,7 @@ TEST(BlockCyclic, AssignsBlocksInRoundRobbinFashion) {
 TEST(BlockCylic, CanBeCompared) {
     constexpr auto num_values = 1000;
     constexpr auto num_ranks = 10;
-    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    const auto processor_grid = ProcessorGrid{num_ranks};
     const auto distribution = make_block_wise_distribution({num_values}, processor_grid);
     const auto different_distribution = BlockCyclic{{num_values}, {10}, processor_grid};
     const auto same_distribution = make_block_wise_distribution({num_values}, processor_grid);
@@ -94,9 +94,9 @@ TEST(BlockCyclic, InMultipleDimensionsIsEquivalentToSeveralInOneDimension) {
     constexpr auto y_num_ranks = 3;
     constexpr auto z_num_ranks = 4;
 
-    const auto x_processor_grid = ProcessorGrid<1>{{x_num_ranks}};
-    const auto y_processor_grid = ProcessorGrid<1>{{y_num_ranks}};
-    const auto z_processor_grid = ProcessorGrid<1>{{z_num_ranks}};
+    const auto x_processor_grid = ProcessorGrid{x_num_ranks};
+    const auto y_processor_grid = ProcessorGrid{y_num_ranks};
+    const auto z_processor_grid = ProcessorGrid{z_num_ranks};
 
     const auto x_data_distribution = BlockCyclic({x_num_values}, {x_block_size}, x_processor_grid);
     const auto y_data_distribution = BlockCyclic({y_num_values}, {y_block_size}, y_processor_grid);
@@ -106,7 +106,7 @@ TEST(BlockCyclic, InMultipleDimensionsIsEquivalentToSeveralInOneDimension) {
     const auto y_blocks = y_data_distribution.get_grid_layout().get_blocks().at(0);
     const auto z_blocks = z_data_distribution.get_grid_layout().get_blocks().at(0);
 
-    const auto processor_grid = ProcessorGrid<3>{{x_num_ranks, y_num_ranks, z_num_ranks}};
+    const auto processor_grid = ProcessorGrid{x_num_ranks, y_num_ranks, z_num_ranks};
     const auto data_distribution =
             BlockCyclic({x_num_values, y_num_values, z_num_values},
                         {x_block_size, y_block_size, z_block_size}, processor_grid);
@@ -119,7 +119,7 @@ TEST(BlockCyclic, InMultipleDimensionsIsEquivalentToSeveralInOneDimension) {
 TEST(BlockCyclic, CanBeCloned) {
     constexpr auto num_values = 100;
     constexpr auto num_ranks = 10;
-    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    const auto processor_grid = ProcessorGrid{num_ranks};
     constexpr auto dimensions = Dimensions{num_values};
     const auto distribution = BlockCyclic{dimensions, {10}, processor_grid};
 
@@ -130,7 +130,7 @@ TEST(BlockCyclic, CanBeCloned) {
 TEST(IsBlockWise, ReturnsTrueIfDistributionIsBlockWise) {
     constexpr int num_values = 10;
     constexpr int num_ranks = 3;
-    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    const auto processor_grid = ProcessorGrid{num_ranks};
     const auto block_wise = make_block_wise_distribution({num_values}, processor_grid);
 
     EXPECT_TRUE(block_wise.is_block_wise());
@@ -141,7 +141,7 @@ TEST(IsBlockWise, ReturnsFlaseIfDistributionIsNotBlockWise) {
     constexpr int num_values = 9;
     constexpr int num_ranks = 2;
 
-    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    const auto processor_grid = ProcessorGrid{num_ranks};
     const auto non_block_wise = BlockCyclic({num_values}, {block_size}, processor_grid);
 
     EXPECT_FALSE(non_block_wise.is_block_wise());
@@ -152,7 +152,7 @@ TEST(IsBlockWise, ADistributionWithOnlyOneRankOnEachDimensionIsBlockWise) {
     constexpr int num_values = 5;
     constexpr int num_ranks = 1;
 
-    const auto processor_grid = ProcessorGrid<1>{{num_ranks}};
+    const auto processor_grid = ProcessorGrid{num_ranks};
     const auto one_rank_distribution = BlockCyclic({num_values}, {block_size}, processor_grid);
 
     EXPECT_TRUE(one_rank_distribution.is_block_wise());
@@ -185,7 +185,7 @@ TEST(CreateBlocks, CanBeUsedInMultipleDimensions) {
 
     const auto num_values = Dimensions{num_values_y, num_values_x};
     const auto block_size = Dimensions{block_size_y, block_size_x};
-    const auto processor_grid = ProcessorGrid<2>{{num_processors, num_processors}};
+    const auto processor_grid = ProcessorGrid{num_processors, num_processors};
 
     const auto expected_x = std::vector{Block{{0, 3}, 0}, Block{{3, 6}, 1}, Block{{6, 9}, 0}};
     const auto expected_y = std::vector{Block{{0, 3}, 0}, Block{{3, 6}, 1}, Block{{6, 8}, 0}};
