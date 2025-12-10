@@ -90,17 +90,3 @@ TEST(LeftClosedRange, IsIterable) {
 
     EXPECT_THAT(values, Eq(expected));
 }
-
-TEST(Chain, ChainsIntervals) {
-    const auto intervals = std::vector{LeftClosedRange(0, 2), LeftClosedRange(4, 8)};
-    const auto chained_intervals = chain(intervals);
-
-    const auto expected = std::vector{LeftClosedRange(0, 2), LeftClosedRange(2, 6)};
-    EXPECT_THAT(chained_intervals, Eq(expected));
-}
-
-TEST(Chain, StartsAlwaysAt0) {
-    const auto intervals = std::vector{LeftClosedRange(2, 6)};
-    const auto chained_intervals = chain(intervals);
-    EXPECT_THAT(chained_intervals[0].get_left_bound(), Eq(0));
-}

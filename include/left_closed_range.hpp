@@ -63,8 +63,6 @@ namespace reshuffle {
         std::pair<int, int> _interval;
     };
 
-    auto chain(const std::vector<LeftClosedRange> &intervals) -> std::vector<LeftClosedRange>;
-
     auto operator<<(std::ostream &os, const LeftClosedRange &range) -> std::ostream &;
 }// namespace reshuffle::internal
 
