@@ -64,6 +64,6 @@ namespace reshuffle {
     };
 
     auto operator<<(std::ostream &os, const LeftClosedRange &range) -> std::ostream &;
-}// namespace reshuffle::internal
+}// namespace reshuffle
 
 #endif// RESHUFFLE_LEFT_CLOSED_RANGE_HPP
