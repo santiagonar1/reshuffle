@@ -49,8 +49,7 @@ namespace reshuffle::internal {
     template<typename T>
     auto remove_duplicates(const std::vector<T> &values) -> std::vector<T> {
         PROFILE_SCOPE_NAMED("remove_duplicates");
-        auto unique_values = values;
-        std::ranges::sort(unique_values);
+        auto unique_values = sort(values);
         auto [new_end, _] = std::ranges::unique(unique_values);
         unique_values.erase(new_end, unique_values.end());
         return unique_values;
