@@ -3,8 +3,8 @@ project(reshuffle VERSION 0.0.1)
 
 # Check for minimum GCC version
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12)
-        message(FATAL_ERROR "GCC version must be at least 12. Detected version is ${CMAKE_CXX_COMPILER_VERSION}")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
+        message(FATAL_ERROR "GCC version must be at least 14. Detected version is ${CMAKE_CXX_COMPILER_VERSION}")
     endif ()
 endif ()
 
