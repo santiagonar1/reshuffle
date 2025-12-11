@@ -3,6 +3,7 @@
 
 #include <block_cyclic.hpp>
 #include <block_wise.hpp>
+#include <general_data_distribution.hpp>
 #include <shuffle.hpp>
 
 #include "aggregate_data.hpp"
@@ -105,6 +106,41 @@ TEST(Shuffle, CanShuffleAutoPasParticles) {
         EXPECT_THAT(new_values, Eq(std::vector{particle_to_rank_0}));
     } else {
         EXPECT_THAT(new_values, Eq(std::vector{particle_to_rank_1}));
+    }
+}
+
+TEST(Shuffle, CanShuffleUsingGeneralDataDistribution) {
+    constexpr auto num_global_values = 4;
+    const auto values = is_root(MPI_COMM_WORLD) ? std::vector{2, 3} : std::vector{0, 1};
+    const auto intervals_1 = std::vector{MultidimensionalInterval{Interval{0, 2}}};
+    const auto intervals_0 = std::vector{MultidimensionalInterval{Interval{2, 4}}};
+
+    const auto global_mapping = GlobalMapping<1>{{0, intervals_0}, {1, intervals_1}};
+
+    const auto mapping_0 = std::map<IntervalId, Coordinates<1>>{{0, {0}}};
+    const auto mapping_1 = std::map<IntervalId, Coordinates<1>>{{0, {0}}};
+
+    const auto final_context = create_context(DataLocationSelector::ALL_RANKS,
+                                              CommSelector::ALL_RANKS, num_global_values);
+
+    if (is_root(MPI_COMM_WORLD)) {
+        const auto initial_distribution =
+                GeneralDataDistribution<1>::make(global_mapping, mapping_0, 0).value();
+        const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
+        const auto new_values =
+                shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context)
+                        .first;
+
+        EXPECT_THAT(new_values, Eq(std::vector{0, 1}));
+
+    } else {
+        const auto initial_distribution =
+                GeneralDataDistribution<1>::make(global_mapping, mapping_1, 1).value();
+        const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
+        const auto new_values =
+                shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context)
+                        .first;
+        EXPECT_THAT(new_values, Eq(std::vector{2, 3}));
     }
 }
 
