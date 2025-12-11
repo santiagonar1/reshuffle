@@ -11,14 +11,14 @@
 
 namespace reshuffle::internal {
     template<typename Tuple>
-    auto unzip(const std::vector<Tuple> &tuples)
+    [[nodiscard]] auto unzip(const std::vector<Tuple> &tuples)
             -> std::array<std::vector<std::tuple_element_t<0, Tuple>>, std::tuple_size_v<Tuple>>;
 
     template<typename T>
-    auto remove_duplicates(const std::vector<T> &values) -> std::vector<T>;
+    [[nodiscard]] auto remove_duplicates(const std::vector<T> &values) -> std::vector<T>;
 
     template<typename T>
-    auto sort(const std::vector<T> &values) -> std::vector<T>;
+    [[nodiscard]] auto sort(const std::vector<T> &values) -> std::vector<T>;
 
     template<typename T>
     [[nodiscard]] auto to_vector(const std::vector<std::vector<T>> &values) -> std::vector<T>;
