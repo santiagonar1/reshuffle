@@ -61,6 +61,11 @@ namespace reshuffle {
                other.get_right_bound() <= get_left_bound();
     }
 
+    auto LeftClosedRange::to_string() const -> std::string {
+        return "[" + std::to_string(get_left_bound()) + ", " + std::to_string(get_right_bound()) +
+               ")";
+    }
+
     auto operator<<(std::ostream &os, const LeftClosedRange &range) -> std::ostream & {
         return os << "[" << range.get_left_bound() << ", " << range.get_right_bound() << ")";
     }

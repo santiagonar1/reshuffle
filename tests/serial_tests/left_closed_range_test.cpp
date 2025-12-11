@@ -162,3 +162,8 @@ TEST(IsDisjoint, OrderDoesNotMatter) {
     EXPECT_TRUE(first.is_disjoint(disjoint));
     EXPECT_TRUE(disjoint.is_disjoint(first));
 }
+
+TEST(ToString, ConvertsALeftClosedRangeToString) {
+    const auto interval = LeftClosedRange{4, 7};
+    EXPECT_THAT(interval.to_string(), Eq("[4, 7)"));
+}

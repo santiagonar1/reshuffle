@@ -56,6 +56,7 @@ namespace reshuffle {
                 -> std::optional<LeftClosedRange>;
         [[nodiscard]] auto is_contiguous(const LeftClosedRange &other) const -> bool;
         [[nodiscard]] auto is_disjoint(const LeftClosedRange &other) const -> bool;
+        [[nodiscard]] auto to_string() const -> std::string;
 
         auto operator==(const LeftClosedRange &other) const -> bool;
         auto operator=(const LeftClosedRange &other) -> LeftClosedRange &;
