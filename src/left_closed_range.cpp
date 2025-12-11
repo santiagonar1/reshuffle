@@ -32,10 +32,7 @@ namespace reshuffle {
 
     auto LeftClosedRange::get_overlay(const LeftClosedRange &other) const
             -> std::optional<LeftClosedRange> {
-        if (other.get_left_bound() >= get_right_bound() or
-            other.get_right_bound() <= get_left_bound()) {
-            return std::nullopt;
-        }
+        if (is_disjoint(other)) { return std::nullopt; }
 
         const auto left_bound = std::max(get_left_bound(), other.get_left_bound());
         const auto right_bound = std::min(get_right_bound(), other.get_right_bound());
@@ -57,6 +54,11 @@ namespace reshuffle {
         if (other.get_right_bound() == get_left_bound()) { return true; }
 
         return false;
+    }
+
+    auto LeftClosedRange::is_disjoint(const LeftClosedRange &other) const -> bool {
+        return other.get_left_bound() >= get_right_bound() or
+               other.get_right_bound() <= get_left_bound();
     }
 
     auto operator<<(std::ostream &os, const LeftClosedRange &range) -> std::ostream & {

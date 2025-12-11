@@ -55,6 +55,7 @@ namespace reshuffle {
         [[nodiscard]] auto get_overlay(const LeftClosedRange &other) const
                 -> std::optional<LeftClosedRange>;
         [[nodiscard]] auto is_contiguous(const LeftClosedRange &other) const -> bool;
+        [[nodiscard]] auto is_disjoint(const LeftClosedRange &other) const -> bool;
 
         auto operator==(const LeftClosedRange &other) const -> bool;
         auto operator=(const LeftClosedRange &other) -> LeftClosedRange &;

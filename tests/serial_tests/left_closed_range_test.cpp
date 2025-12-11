@@ -145,3 +145,20 @@ TEST(AreContiguous, VectorWithOneElementIsContigous) {
     const auto one_element = std::vector{LeftClosedRange{4, 7}};
     EXPECT_TRUE(are_contiguous(one_element));
 }
+
+TEST(IsDisjoint, ReturnsTrueIfSecondIntervalIsDisjoint) {
+    const auto first = LeftClosedRange{4, 7};
+    const auto disjoint = LeftClosedRange{10, 12};
+    const auto overlapping = LeftClosedRange{6, 8};
+
+    EXPECT_TRUE(first.is_disjoint(disjoint));
+    EXPECT_FALSE(first.is_disjoint(overlapping));
+}
+
+TEST(IsDisjoint, OrderDoesNotMatter) {
+    const auto first = LeftClosedRange{4, 7};
+    const auto disjoint = LeftClosedRange{10, 12};
+
+    EXPECT_TRUE(first.is_disjoint(disjoint));
+    EXPECT_TRUE(disjoint.is_disjoint(first));
+}
