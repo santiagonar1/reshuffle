@@ -1,5 +1,7 @@
 #include "left_closed_range.hpp"
 
+#include "utils.hpp"
+
 #include <algorithm>
 #include <ostream>
 #include <ranges>
@@ -50,8 +52,32 @@ namespace reshuffle {
         return _interval.second <=> other._interval.second;
     }
 
+    auto LeftClosedRange::is_contiguous(const LeftClosedRange &other) const -> bool {
+        if (get_right_bound() == other.get_left_bound()) { return true; }
+        if (other.get_right_bound() == get_left_bound()) { return true; }
+
+        return false;
+    }
+
     auto operator<<(std::ostream &os, const LeftClosedRange &range) -> std::ostream & {
         return os << "[" << range.get_left_bound() << ", " << range.get_right_bound() << ")";
     }
+
+    namespace internal {
+        auto are_contiguous(const std::vector<LeftClosedRange> &intervals) -> bool {
+            if (intervals.empty() or intervals.size() == 1) { return true; }
+
+            const auto sorted_intervals = sort(intervals);
+            auto pairs = std::views::zip(
+                    std::views::drop(sorted_intervals, 1),
+                    std::views::take(sorted_intervals, sorted_intervals.size() - 1));
+
+            for (const auto &[one, other]: pairs) {
+                if (not one.is_contiguous(other)) { return false; }
+            }
+
+            return true;
+        }
+    }// namespace internal
 
 }// namespace reshuffle
