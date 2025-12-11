@@ -9,7 +9,6 @@
 #include "multidimensional_data.hpp"
 #include "processor_grid.hpp"
 #include "profiler.hpp"
-#include "serialize.hpp"
 
 namespace reshuffle::internal {
     template<typename T>
