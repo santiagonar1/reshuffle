@@ -34,7 +34,7 @@ namespace reshuffle::internal {
     auto remove_duplicates(const std::vector<T> &values) -> std::vector<T> {
         PROFILE_SCOPE_NAMED("remove_duplicates");
         auto unique_values = values;
-        std::sort(unique_values.begin(), unique_values.end());
+        std::ranges::sort(unique_values);
         auto [new_end, _] = std::ranges::unique(unique_values);
         unique_values.erase(new_end, unique_values.end());
         return unique_values;
@@ -44,7 +44,7 @@ namespace reshuffle::internal {
     auto sort(const std::vector<T> &values) -> std::vector<T> {
         PROFILE_SCOPE_NAMED("sort");
         auto sorted_values = values;
-        std::sort(sorted_values.begin(), sorted_values.end());
+        std::ranges::sort(sorted_values);
         return sorted_values;
     }
 
