@@ -9,10 +9,10 @@ namespace reshuffle {
 
     Block::Block() : _interval{0, 0}, _owner{-1} {};
 
-    Block::Block(const LeftClosedRange &interval, const RankId owner)
+    Block::Block(const Interval &interval, const RankId owner)
         : _interval{interval}, _owner{owner} {};
 
-    auto Block::get_interval() const -> const LeftClosedRange & { return _interval; }
+    auto Block::get_interval() const -> const Interval & { return _interval; }
 
     auto Block::get_owner() const -> RankId { return _owner; }
 

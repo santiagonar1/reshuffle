@@ -8,6 +8,7 @@
 #include "communication_package.hpp"
 #include "concepts.hpp"
 #include "inter_communicator.hpp"
+#include "interval.hpp"
 #include "mpi_utils.hpp"
 #include "profiler.hpp"
 
@@ -27,7 +28,7 @@ namespace reshuffle::internal {
 
     template<typename T>
         requires concepts::FundamentalType<T> || concepts::Serializable<T>
-    auto async_send(std::span<T> values, const std::map<RankId, LeftClosedRange> &data_mapping,
+    auto async_send(std::span<T> values, const std::map<RankId, Interval> &data_mapping,
                     const InterCommunicator &inter_communicator) -> std::vector<MPI_Request> {
         auto send_requests = std::vector<MPI_Request>{};
         const auto comm = inter_communicator.get_inter_communicator();

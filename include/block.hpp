@@ -5,7 +5,7 @@
 #include <span>
 #include <vector>
 
-#include "left_closed_range.hpp"
+#include "interval.hpp"
 #include "profiler.hpp"
 #include "rank_id.hpp"
 
@@ -13,9 +13,9 @@ namespace reshuffle {
     class Block {
     public:
         Block();
-        Block(const LeftClosedRange &interval, RankId owner);
+        Block(const Interval &interval, RankId owner);
 
-        [[nodiscard]] auto get_interval() const -> const LeftClosedRange &;
+        [[nodiscard]] auto get_interval() const -> const Interval &;
         [[nodiscard]] auto get_owner() const -> RankId;
         [[nodiscard]] auto get_num_elements() const -> int;
 
@@ -25,7 +25,7 @@ namespace reshuffle {
 
 
     private:
-        LeftClosedRange _interval;
+        Interval _interval;
         RankId _owner;
     };
 

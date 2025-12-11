@@ -2,14 +2,14 @@
 #define RESHUFFLE_BLOCK_OVERLAY_HPP
 
 #include "block.hpp"
-#include "left_closed_range.hpp"
+#include "interval.hpp"
 #include "rank_id.hpp"
 
 #include <ranges>
 
 namespace reshuffle::internal {
     struct BlockOverlay {
-        LeftClosedRange interval;
+        Interval interval;
         RankId id_origin;
         RankId id_target;
 
