@@ -12,6 +12,22 @@
 namespace reshuffle::internal {
     template<typename Tuple>
     auto unzip(const std::vector<Tuple> &tuples)
+            -> std::array<std::vector<std::tuple_element_t<0, Tuple>>, std::tuple_size_v<Tuple>>;
+
+    template<typename T>
+    auto remove_duplicates(const std::vector<T> &values) -> std::vector<T>;
+
+    template<typename T>
+    auto sort(const std::vector<T> &values) -> std::vector<T>;
+
+    template<typename T>
+    [[nodiscard]] auto to_vector(const std::vector<std::vector<T>> &values) -> std::vector<T>;
+
+    template<typename K, typename T>
+    [[nodiscard]] auto find(const std::map<K, T> &map, const K &key) -> std::optional<T>;
+
+    template<typename Tuple>
+    auto unzip(const std::vector<Tuple> &tuples)
             -> std::array<std::vector<std::tuple_element_t<0, Tuple>>, std::tuple_size_v<Tuple>> {
         PROFILE_SCOPE_NAMED("unzip");
         using FirstType = std::tuple_element_t<0, Tuple>;
@@ -49,7 +65,7 @@ namespace reshuffle::internal {
     }
 
     template<typename T>
-    [[nodiscard]] auto to_vector(const std::vector<std::vector<T>> &values) -> std::vector<T> {
+    auto to_vector(const std::vector<std::vector<T>> &values) -> std::vector<T> {
         PROFILE_SCOPE_NAMED("to_vector");
         auto flat_values = std::vector<T>{};
         for (const auto &v: values | std::views::join) { flat_values.emplace_back(v); }
@@ -58,7 +74,7 @@ namespace reshuffle::internal {
 
 
     template<typename K, typename T>
-    [[nodiscard]] auto find(const std::map<K, T> &map, const K &key) -> std::optional<T> {
+    auto find(const std::map<K, T> &map, const K &key) -> std::optional<T> {
         if (map.contains(key)) { return map.at(key); }
 
         return std::nullopt;
