@@ -66,9 +66,7 @@ namespace reshuffle::internal {
     template<typename T>
     auto to_vector(const std::vector<std::vector<T>> &values) -> std::vector<T> {
         PROFILE_SCOPE_NAMED("to_vector");
-        auto flat_values = std::vector<T>{};
-        for (const auto &v: values | std::views::join) { flat_values.emplace_back(v); }
-        return flat_values;
+        return values | std::views::join | std::ranges::to<std::vector>();
     }
 
 
