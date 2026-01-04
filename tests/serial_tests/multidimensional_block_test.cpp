@@ -62,8 +62,8 @@ TEST(MakeContiguous, MakesMultidimensionalBlocksContiguousInSpecifiedDimension) 
     const auto second_multiblock = MultidimensionalBlock{Block{{3, 5}, 1}};
     const auto multi_blocks = std::vector{first_multiblock, second_multiblock};
 
-    const auto expected = std::vector{MultidimensionalBlock{{Block{{0, 1}, 0}}},
-                                      MultidimensionalBlock{{Block{{1, 3}, 1}}}};
+    const auto expected = std::vector{MultidimensionalBlock<1>{{Block{{0, 1}, 0}}},
+                                      MultidimensionalBlock<1>{{Block{{1, 3}, 1}}}};
     EXPECT_THAT(make_contiguous(multi_blocks, dim), Eq(expected));
 }
 

@@ -54,26 +54,18 @@ TEST(get_optimal_communicator, CanRelabelFromLessToMoreProcessors) {
     const std::vector<int> expected_new_values_4 = {6, 7, 8};
     const std::vector<int> expected_new_values_5 = {9, 10, 11};
 
-    switch (rank) {
-        case 0:
-            EXPECT_EQ(new_values, expected_new_values_0);
-            break;
-        case 1:
-            EXPECT_EQ(new_values, expected_new_values_1);
-            break;
-        case 2:
-            EXPECT_EQ(new_values, expected_new_values_2);
-            break;
-        case 3:
-            EXPECT_EQ(new_values, expected_new_values_3);
-            break;
-        case 4:
-            EXPECT_EQ(new_values, expected_new_values_4);
-            break;
-        case 5:
-            EXPECT_EQ(new_values, expected_new_values_5);
-            break;
-        default:
+    if (rank == 0) {
+        EXPECT_EQ(new_values, expected_new_values_0);
+    } else if (rank == 1) {
+        EXPECT_EQ(new_values, expected_new_values_1);
+    } else if (rank == 2) {
+        EXPECT_EQ(new_values, expected_new_values_2);
+    } else if (rank == 3) {
+        EXPECT_EQ(new_values, expected_new_values_3);
+    } else if (rank == 4) {
+        EXPECT_EQ(new_values, expected_new_values_4);
+    } else if (rank == 5) {
+        EXPECT_EQ(new_values, expected_new_values_5);
     }
 }
 
@@ -107,25 +99,17 @@ TEST(get_optimal_communicator, CanRelabelFromMoreToLessProcessors) {
     constexpr std::vector<int> expected_new_values_4 = {};
     constexpr std::vector<int> expected_new_values_5 = {};
 
-    switch (rank) {
-        case 0:
-            EXPECT_EQ(new_values, expected_new_values_0);
-            break;
-        case 1:
-            EXPECT_EQ(new_values, expected_new_values_1);
-            break;
-        case 2:
-            EXPECT_EQ(new_values, expected_new_values_2);
-            break;
-        case 3:
-            EXPECT_EQ(new_values, expected_new_values_3);
-            break;
-        case 4:
-            EXPECT_EQ(new_values, expected_new_values_4);
-            break;
-        case 5:
-            EXPECT_EQ(new_values, expected_new_values_5);
-            break;
-        default:
+    if (rank == 0) {
+        EXPECT_EQ(new_values, expected_new_values_0);
+    } else if (rank == 1) {
+        EXPECT_EQ(new_values, expected_new_values_1);
+    } else if (rank == 2) {
+        EXPECT_EQ(new_values, expected_new_values_2);
+    } else if (rank == 3) {
+        EXPECT_EQ(new_values, expected_new_values_3);
+    } else if (rank == 4) {
+        EXPECT_EQ(new_values, expected_new_values_4);
+    } else if (rank == 5) {
+        EXPECT_EQ(new_values, expected_new_values_5);
     }
 }
