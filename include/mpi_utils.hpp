@@ -90,6 +90,13 @@ namespace reshuffle::mpi {
         auto serialized_values = reshuffle::internal::serialize(values);
         MPI_Isend(serialized_values.data(), serialized_values.size(), MPI_BYTE, destiny, 0, comm,
                   &request);
+        // TODO: Make this a true async operation
+        // This is a hot fix. The issue here is that the serialized_values vector is local to this
+        // function. This means that its value might be dropped before the MPI_Isend is executed.
+        // Adding the MPI_Wait here forces the execution of the MPI_Isend, but makes the function
+        // sync. A proper implementation should return a wrapper that owns both the serialized values
+        // and the request, so that we guarantee this is not dropped.
+        MPI_Wait(&request, MPI_STATUS_IGNORE);
         return request;
     }
 
@@ -147,8 +154,7 @@ namespace reshuffle::mpi {
 
     namespace internal {
         template<typename T>
-        [[nodiscard]] auto
-        get_send_buffer_and_mapping(std::span<T> values,
+        [[nodiscard]] auto get_send_buffer_and_mapping(std::span<T> values,
                                                        const std::map<RankId, int> &values_per_rank,
                                                        const int num_ranks, const RankId root)
                 -> std::tuple<std::vector<T>, std::vector<std::byte>, std::map<RankId, int>> {
@@ -195,8 +201,7 @@ namespace reshuffle::mpi {
         }
 
         template<concepts::FixedSizeSerializable T>
-        [[nodiscard]] auto
-        get_send_buffer_and_mapping(std::span<T> values,
+        [[nodiscard]] auto get_send_buffer_and_mapping(std::span<T> values,
                                                        const std::map<RankId, int> &values_per_rank,
                                                        const int num_ranks, const RankId root)
                 -> std::tuple<std::vector<T>, std::vector<std::byte>, std::map<RankId, int>> {
