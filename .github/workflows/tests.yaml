@@ -12,8 +12,12 @@ on:
 
 jobs:
   testing:
-    name: Clang 21 - OpenMPI
+    name: Clang 21 - ${{ matrix.mpi }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mpi: [ 'mpich', 'openmpi' ]
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -51,10 +55,13 @@ jobs:
       - name: Check Conan profile
         run: cat ~/.conan2/profiles/default
 
-      - name: Install MPI4
+      - name: Install ${{ matrix.mpi }}
         uses: mpi4py/setup-mpi@v1
         with:
-          mpi: openmpi
+          mpi: ${{ matrix.mpi }}
+
+      - name: ${{ matrix.mpi }} version
+        run: mpirun --version
 
       - name: Generate build directory
         run: mkdir -p build
