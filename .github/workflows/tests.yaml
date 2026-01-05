@@ -1,0 +1,69 @@
+name: Clang tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    branches:
+      - main
+
+jobs:
+  testing:
+    name: Clang 21 - OpenMPI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Clang
+        uses: egor-tensin/setup-clang@v2
+        with:
+          version: 21
+
+      - name: Install CMake
+        uses: ssrobins/install-cmake@v1
+        with:
+          version: 3.26.0
+
+      - name: Install Conan
+        uses: conan-io/setup-conan@v1
+        with:
+          profile_detect: 'false'
+
+      - name: Generate Conan profile
+        env:
+          CXX: clang++
+          CC: clang
+        run: |
+          conan profile detect --name=default
+
+      - name: Set cpp version Conan profile
+        run: |
+          sed -i.bak -E 's|^(compiler\.cppstd\s*=\s*).*$|\1gnu20|' ~/.conan2/profiles/default || echo -e "[settings]\ncompiler.cppstd=gnu20" >> ~/.conan2/profiles/default
+
+      - name: Install MPI4
+        uses: mpi4py/setup-mpi@v1
+        with:
+          mpi: openmpi
+
+      - name: Generate build directory
+        run: mkdir -p build
+
+      - name: Configure
+        working-directory: build
+        env:
+          CXX: clang++
+          CC: clang
+        run: |
+          cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake ..
+
+      - name: Compile
+        working-directory: build
+        run: cmake --build .
+
+      - name: Run tests
+        working-directory: build
+        run: ctest --output-on-failure
