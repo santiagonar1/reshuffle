@@ -12,7 +12,7 @@ on:
 
 jobs:
   formatting-check:
-    name: Formatting Check
+    name: Formatting Check - ${{ matrix.path }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
