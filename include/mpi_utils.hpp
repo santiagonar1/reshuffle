@@ -166,7 +166,7 @@ namespace reshuffle::mpi {
                 const auto bytes = reshuffle::internal::serialize(
                         values.subspan(num_values_serialized, num_values_per_rank[i]));
                 bytes_per_rank[i] = static_cast<int>(bytes.size());
-                bytes_to_send.append_range(bytes);
+                bytes_to_send.insert(bytes_to_send.end(), bytes.begin(), bytes.end());
                 num_values_serialized += num_values_per_rank[i];
             }
 
@@ -181,7 +181,7 @@ namespace reshuffle::mpi {
                 const auto bytes = reshuffle::internal::serialize(
                         values.subspan(num_values_serialized, num_values_per_rank[i]));
                 bytes_per_rank[i] = static_cast<int>(bytes.size());
-                bytes_to_send.append_range(bytes);
+                bytes_to_send.insert(bytes_to_send.end(), bytes.begin(), bytes.end());
                 num_values_serialized += num_values_per_rank[i];
             }
 
