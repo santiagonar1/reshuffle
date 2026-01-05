@@ -1,0 +1,34 @@
+name: Format
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    branches:
+      - main
+
+jobs:
+  formatting-check:
+    name: Formatting Check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        path:
+          - 'benchmarks'
+          - 'demos'
+          - 'include'
+          - 'src'
+          - 'tests'
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run clang-format
+        uses: jidicula/clang-format-action@v4.16.0
+        with:
+          clang-format-version: '21'
+          check-path: ${{ matrix.path }}
