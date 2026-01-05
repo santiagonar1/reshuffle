@@ -112,8 +112,7 @@ namespace reshuffle {
     }// namespace internal
 
     template<std::size_t N>
-    auto operator+(const Dimensions<N> &lhs, const Dimensions<N> &rhs)
-            -> Dimensions<N> {
+    auto operator+(const Dimensions<N> &lhs, const Dimensions<N> &rhs) -> Dimensions<N> {
         auto result = Dimensions<N>{};
         for (size_t i = 0; i < N; ++i) { result[i] = lhs[i] + rhs[i]; }
         return result;

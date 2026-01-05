@@ -2015,9 +2015,9 @@ namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
                         decltype(detail::impl_check_compatible_extents(
                                 // using: sizeof...(Extents) == sizeof...(OtherExtents) as the second argument fails with MSVC+NVCC with some obscure expansion error
                                 // MSVC: 19.38.33133 NVCC: 12.0
-                                std::integral_constant < bool,
-                                extents<int, Extents...>::rank() ==
-                                        extents<int, OtherExtents...>::rank() > {},
+                                std::integral_constant<
+                                        bool, extents<int, Extents...>::rank() ==
+                                                      extents<int, OtherExtents...>::rank()>{},
                                 std::integer_sequence<size_t, Extents...>{},
                                 std::integer_sequence<size_t, OtherExtents...>{}))::value))
         MDSPAN_INLINE_FUNCTION
@@ -2743,18 +2743,18 @@ namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
 
             MDSPAN_INLINE_FUNCTION constexpr mapping() noexcept
 #if defined(MDSPAN_IMPL_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
-      : m_members{
+                : m_members{
 #else
                 : base_t(base_t{member_pair_t(
 #endif
-          extents_type(),
-          strides_storage_t(strides_storage(detail::with_rank<extents_type::rank()>{}))
+                          extents_type(), strides_storage_t(strides_storage(
+                                                  detail::with_rank<extents_type::rank()>{}))
 #if defined(MDSPAN_IMPL_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
-        }
+                  }
 #else
                                   )})
 #endif
-    {
+            {
             }
 
             MDSPAN_INLINE_FUNCTION_DEFAULTED constexpr mapping(mapping const &) noexcept = default;
@@ -2770,23 +2770,20 @@ namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
                             MDSPAN_IMPL_TRAIT(std::is_nothrow_constructible,
                                               typename Extents::index_type,
                                               const std::remove_const_t<IntegralTypes> &)))
-            constexpr
-    mapping(
-      extents_type const& e,
-      std::array<IntegralTypes, extents_type::rank()> const& s
-    ) noexcept
+            constexpr mapping(extents_type const &e,
+                              std::array<IntegralTypes, extents_type::rank()> const &s) noexcept
 #if defined(MDSPAN_IMPL_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
-      : m_members{
+                : m_members{
 #else
                 : base_t(base_t{member_pair_t(
 #endif
-          e, strides_storage_t(deduction_workaround_impl::fill_strides(s))
+                          e, strides_storage_t(deduction_workaround_impl::fill_strides(s))
 #if defined(MDSPAN_IMPL_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
-        }
+                  }
 #else
                                   )})
 #endif
-    {
+            {
                 /*
        * TODO: check preconditions
        * - s[i] > 0 is true for all i in the range [0, rank_ ).
@@ -2809,25 +2806,24 @@ namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
                                               typename Extents::index_type,
                                               const std::remove_const_t<IntegralTypes> &)))
             MDSPAN_INLINE_FUNCTION
-            constexpr
-    mapping(
-      mdspan_non_standard_tag,
-      extents_type const& e,
-      // Need to avoid zero-length c-array
-      const IntegralTypes (&s)[extents_type::rank()>0?extents_type::rank():1]
-    ) noexcept
+            constexpr mapping(
+                    mdspan_non_standard_tag, extents_type const &e,
+                    // Need to avoid zero-length c-array
+                    const IntegralTypes (
+                            &s)[extents_type::rank() > 0 ? extents_type::rank() : 1]) noexcept
 #if defined(MDSPAN_IMPL_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
-      : m_members{
+                : m_members{
 #else
                 : base_t(base_t{member_pair_t(
 #endif
-          e, strides_storage_t(deduction_workaround_impl::fill_strides(mdspan_non_standard, s))
+                          e, strides_storage_t(deduction_workaround_impl::fill_strides(
+                                     mdspan_non_standard, s))
 #if defined(MDSPAN_IMPL_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
-        }
+                  }
 #else
                                   )})
 #endif
-    {
+            {
                 /*
        * TODO: check preconditions
        * - s[i] > 0 is true for all i in the range [0, rank_ ).
@@ -2850,23 +2846,20 @@ namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
                             MDSPAN_IMPL_TRAIT(std::is_nothrow_constructible,
                                               typename Extents::index_type,
                                               const std::remove_const_t<IntegralTypes> &)))
-            constexpr
-    mapping(
-      extents_type const& e,
-      std::span<IntegralTypes, extents_type::rank()> const& s
-    ) noexcept
+            constexpr mapping(extents_type const &e,
+                              std::span<IntegralTypes, extents_type::rank()> const &s) noexcept
 #if defined(MDSPAN_IMPL_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
-      : m_members{
+                : m_members{
 #else
                 : base_t(base_t{member_pair_t(
 #endif
-          e, strides_storage_t(deduction_workaround_impl::fill_strides(s))
+                          e, strides_storage_t(deduction_workaround_impl::fill_strides(s))
 #if defined(MDSPAN_IMPL_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
-        }
+                  }
 #else
                                   )})
 #endif
-    {
+            {
                 /*
        * TODO: check preconditions
        * - s[i] > 0 is true for all i in the range [0, rank_ ).
@@ -2904,19 +2897,21 @@ namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
                        detail::is_mapping_of<layout_stride,
                                              StridedLayoutMapping>) ))// needs two () due to comma
             MDSPAN_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14
-    mapping(StridedLayoutMapping const& other) noexcept // NOLINT(google-explicit-constructor)
+            mapping(StridedLayoutMapping const
+                            &other) noexcept// NOLINT(google-explicit-constructor)
 #if defined(MDSPAN_IMPL_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
-      : m_members{
+                : m_members{
 #else
                 : base_t(base_t{member_pair_t(
 #endif
-          other.extents(), strides_storage_t(deduction_workaround_impl::fill_strides(other))
+                          other.extents(),
+                          strides_storage_t(deduction_workaround_impl::fill_strides(other))
 #if defined(MDSPAN_IMPL_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
-        }
+                  }
 #else
                                   )})
 #endif
-    {
+            {
                 /*
        * TODO: check preconditions
        * - other.stride(i) > 0 is true for all i in the range [0, rank_ ).
@@ -5408,7 +5403,7 @@ namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
                                                      const std::integral_constant<T1, v1> &) {
             // cutting short division by zero
             // this is used for strided_slice with zero extent/stride
-            return integral_constant < IndexT, v0 == 0 ? 0 : v0 / v1 > ();
+            return integral_constant<IndexT, v0 == 0 ? 0 : v0 / v1>();
         }
 
         // multiply which can deal with integral constant preservation
