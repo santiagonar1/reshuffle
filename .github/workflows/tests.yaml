@@ -23,6 +23,9 @@ jobs:
         with:
           version: 21
 
+      - name: Install libc++
+        run: sudo apt-get install libc++-21-dev libc++abi-21-dev
+
       - name: Install CMake
         uses: ssrobins/install-cmake@v1
         with:
@@ -43,6 +46,10 @@ jobs:
       - name: Set cpp version Conan profile
         run: |
           sed -i.bak -E 's|^(compiler\.cppstd\s*=\s*).*$|\1gnu20|' ~/.conan2/profiles/default || echo -e "[settings]\ncompiler.cppstd=gnu20" >> ~/.conan2/profiles/default
+          sed -i.bak -E 's/^(compiler\.libcxx\s*=\s*)libstdc\+\+11/\1libc++/' ~/.conan2/profiles/default
+
+      - name: Check Conan profile
+        run: cat ~/.conan2/profiles/default
 
       - name: Install MPI4
         uses: mpi4py/setup-mpi@v1
@@ -57,6 +64,8 @@ jobs:
         env:
           CXX: clang++
           CC: clang
+          CXXFLAGS: "-stdlib=libc++"
+          LDFLAGS: "-stdlib=libc++"
         run: |
           cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake ..
 
