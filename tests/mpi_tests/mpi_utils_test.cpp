@@ -2,7 +2,6 @@
 #include <gtest/gtest.h>
 
 #include <mpi.h>
-#include <mpi_comm_utils.hpp>
 #include <mpi_utils.hpp>
 
 #include "aggregate_data.hpp"
