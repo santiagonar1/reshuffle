@@ -17,7 +17,7 @@ namespace reshuffle {
             using pointer = const int *;
             using reference = const int &;
 
-            explicit iterator(int value) : current(value) {}
+            explicit iterator(const int value) : current(value) {}
 
             auto operator*() const -> reference { return current; }
             auto operator->() const -> pointer { return &current; }
@@ -28,7 +28,7 @@ namespace reshuffle {
             }
 
             auto operator++(int) -> iterator {
-                iterator tmp = *this;
+                const iterator tmp = *this;
                 ++current;
                 return tmp;
             }
