@@ -92,6 +92,31 @@ TEST(GeneralDataDistribution, OverlappingIntervalsAreCaught) {
     EXPECT_FALSE(distribution.has_value());
 }
 
+TEST(GeneralDataDistribution, HolesIn2DAreCaught) {
+    const auto intervals_1 = std::vector{MultidimensionalInterval{Interval{0, 2}, Interval{0, 2}},
+                                         MultidimensionalInterval{Interval{0, 2}, Interval{4, 6}}};
+    const auto intervals_0 = std::vector{MultidimensionalInterval{Interval{2, 4}, Interval{2, 4}}};
+
+    const auto global_mapping = GlobalMapping<2>{{0, intervals_0}, {1, intervals_1}};
+
+    const auto mapping_0 = std::map<IntervalId, Coordinates<2>>{{0, {0, 0}}};
+
+    const auto distribution = GeneralDataDistribution<2>::make(global_mapping, mapping_0, 0);
+    EXPECT_FALSE(distribution.has_value());
+}
+
+TEST(GeneralDataDistribution, DisjointIntervalsIn2DAreCaught) {
+    const auto intervals_1 = std::vector{MultidimensionalInterval{Interval{0, 2}, Interval{0, 2}}};
+    const auto intervals_0 = std::vector{MultidimensionalInterval{Interval{2, 4}, Interval{2, 4}}};
+
+    const auto global_mapping = GlobalMapping<2>{{0, intervals_0}, {1, intervals_1}};
+
+    const auto mapping_0 = std::map<IntervalId, Coordinates<2>>{{0, {0, 0}}};
+
+    const auto distribution = GeneralDataDistribution<2>::make(global_mapping, mapping_0, 0);
+    EXPECT_FALSE(distribution.has_value());
+}
+
 TEST(GeneralDataDistribution, AllLocalBlocksShouldBeMapped) {
     const auto intervals_1 = std::vector{MultidimensionalInterval{Interval{0, 2}}};
     const auto intervals_0 = std::vector{MultidimensionalInterval{Interval{2, 4}}};

@@ -21,6 +21,9 @@ namespace reshuffle {
     using GlobalMapping = std::map<RankId, std::vector<MultidimensionalInterval<N>>>;
 
     namespace internal {
+
+        struct Ok {};
+
         [[nodiscard]] auto find_problematic_intervals(const std::vector<Interval> &intervals)
                 -> std::optional<std::pair<Interval, Interval>>;
 
@@ -30,6 +33,16 @@ namespace reshuffle {
 
         template<std::size_t N>
         [[nodiscard]] auto get_max_rank(const GlobalMapping<N> &global_mapping) -> RankId;
+
+        template<std::size_t N>
+        [[nodiscard]] auto
+        check_for_holes(const std::vector<MultidimensionalInterval<N>> &intervals)
+                -> std::variant<Ok, ErrorMessage>;
+
+        template<>
+        [[nodiscard]] auto
+        check_for_holes(const std::vector<MultidimensionalInterval<1>> &intervals)
+                -> std::variant<Ok, ErrorMessage>;
     }// namespace internal
 
 
@@ -52,29 +65,23 @@ namespace reshuffle {
         const ProcessorGrid<N> _processor_grid;
         const GridLayout<N> _grid_layout;
 
-        //
-        struct Ok {};
-
         GeneralDataDistribution(const ProcessorGrid<N> &processor_grid,
                                 const GridLayout<N> &grid_layout)
             : _processor_grid(processor_grid), _grid_layout(grid_layout) {};
 
-        [[nodiscard]] static auto check_contiguity_intervals(const std::vector<Interval> &intervals)
-                -> std::variant<Ok, ErrorMessage>;
-
         [[nodiscard]] static auto
-        check_contiguity_intervals(const std::array<std::vector<Interval>, N> &intervals)
-                -> std::variant<Ok, ErrorMessage>;
+        check_contiguity_intervals(const std::vector<MultidimensionalInterval<N>> &intervals)
+                -> std::variant<internal::Ok, ErrorMessage>;
 
         [[nodiscard]] static auto check_consistency_local_and_global_mapping(
                 const GlobalMapping<N> &global_mapping,
                 const std::map<IntervalId, Coordinates<N>> &local_mapping, RankId rank)
-                -> std::variant<Ok, ErrorMessage>;
+                -> std::variant<internal::Ok, ErrorMessage>;
 
         [[nodiscard]] static auto
         run_checks(const GlobalMapping<N> &global_mapping,
                    const std::map<IntervalId, Coordinates<N>> &local_mapping, RankId rank)
-                -> std::variant<Ok, ErrorMessage>;
+                -> std::variant<internal::Ok, ErrorMessage>;
 
         [[nodiscard]] static auto create_processor_grid(RankId max_rank) -> ProcessorGrid<N>;
 
@@ -134,12 +141,12 @@ namespace reshuffle {
     auto GeneralDataDistribution<N>::run_checks(
             const GlobalMapping<N> &global_mapping,
             const std::map<IntervalId, Coordinates<N>> &local_mapping, const RankId rank)
-            -> std::variant<Ok, ErrorMessage> {
+            -> std::variant<internal::Ok, ErrorMessage> {
         const auto multidimensional_intervals = internal::get_intervals(global_mapping);
         const auto unidimensional_intervals =
                 internal::to_unidimensional_intervals(multidimensional_intervals);
 
-        if (const auto result = check_contiguity_intervals(unidimensional_intervals);
+        if (const auto result = check_contiguity_intervals(multidimensional_intervals);
             std::holds_alternative<ErrorMessage>(result)) {
             return ErrorMessage(std::get<ErrorMessage>(result));
         }
@@ -150,7 +157,7 @@ namespace reshuffle {
             return ErrorMessage(std::get<ErrorMessage>(result));
         }
 
-        return Ok{};
+        return internal::Ok{};
     }
 
     template<std::size_t N>
@@ -204,36 +211,18 @@ namespace reshuffle {
     }
 
     template<std::size_t N>
-    auto
-    GeneralDataDistribution<N>::check_contiguity_intervals(const std::vector<Interval> &intervals)
-            -> std::variant<Ok, ErrorMessage> {
-        const auto problematic_intervals_opt = internal::find_problematic_intervals(intervals);
-        if (not problematic_intervals_opt.has_value()) { return Ok{}; }
-
-        const auto [first, second] = problematic_intervals_opt.value();
-        return std::format("Intervals {} and {} are not contiguous ", first.to_string(),
-                           second.to_string());
-    }
-
-    template<std::size_t N>
     auto GeneralDataDistribution<N>::check_contiguity_intervals(
-            const std::array<std::vector<Interval>, N> &intervals)
-            -> std::variant<Ok, ErrorMessage> {
-        for (const auto &vector_intervals: intervals) {
-            if (const auto result = check_contiguity_intervals(vector_intervals);
-                std::holds_alternative<ErrorMessage>(result)) {
-                return result;
-            }
-        }
+            const std::vector<MultidimensionalInterval<N>> &intervals)
+            -> std::variant<internal::Ok, ErrorMessage> {
 
-        return Ok{};
+        return internal::check_for_holes(intervals);
     }
 
     template<std::size_t N>
     auto GeneralDataDistribution<N>::check_consistency_local_and_global_mapping(
             const GlobalMapping<N> &global_mapping,
             const std::map<IntervalId, Coordinates<N>> &local_mapping, RankId rank)
-            -> std::variant<Ok, ErrorMessage> {
+            -> std::variant<internal::Ok, ErrorMessage> {
         const auto global_assigned_intervals = global_mapping.contains(rank)
                                                        ? global_mapping.at(rank)
                                                        : std::vector<MultidimensionalInterval<N>>{};
@@ -245,7 +234,7 @@ namespace reshuffle {
             return ErrorMessage{error_msg};
         }
 
-        return Ok{};
+        return internal::Ok{};
     }
 
     namespace internal {
@@ -267,6 +256,65 @@ namespace reshuffle {
             auto keys = global_mapping | std::views::keys;
             const auto max_rank = std::ranges::max_element(keys.begin(), keys.end());
             return *max_rank;
+        }
+
+        template<std::size_t N>
+        auto check_for_holes(const std::vector<MultidimensionalInterval<N>> &intervals)
+                -> std::variant<Ok, ErrorMessage> {
+
+            if (intervals.empty()) { return Ok{}; }
+
+            auto group = std::map<Interval, std::vector<MultidimensionalInterval<N - 1>>>{};
+            for (const auto &interval: intervals) {
+                group[interval[0]].emplace_back(drop(interval, 0));
+            }
+
+            if constexpr (N == 2) {
+                auto starts = std::vector<int>{};
+                auto ends = std::vector<int>{};
+
+                // Group maps from Interval to MultidimensionalInterval<1>
+                for (const auto new_intervals: group | std::views::values) {
+                    const auto unidimensional_intervals =
+                            sort(to_unidimensional_intervals(new_intervals)[0]);
+                    starts.emplace_back(unidimensional_intervals[0].get_left_bound());
+                    ends.emplace_back(unidimensional_intervals.back().get_right_bound());
+                }
+
+                // All starts and ends have to be the same!
+                const auto all_starts_same = std::all_of(
+                        starts.begin(), starts.end(), [&starts](int x) { return x == starts[0]; });
+                const auto all_ends_same = std::all_of(ends.begin(), ends.end(),
+                                                       [&ends](int x) { return x == ends[0]; });
+
+                if (not all_starts_same or not all_ends_same) {
+                    return ErrorMessage{"Intervals are not contiguous"};
+                }
+            }
+
+            auto statuses = std::vector<std::variant<Ok, ErrorMessage>>{};
+            for (const auto &new_intervals: group | std::views::values) {
+                statuses.emplace_back(check_for_holes(new_intervals));
+            }
+
+            for (const auto &status: statuses) {
+                if (std::holds_alternative<ErrorMessage>(status)) { return status; }
+            }
+
+            return Ok{};
+        }
+
+        template<>
+        inline auto check_for_holes(const std::vector<MultidimensionalInterval<1>> &intervals)
+                -> std::variant<Ok, ErrorMessage> {
+            const auto unidimensional_intervals = to_unidimensional_intervals(intervals)[0];
+            const auto problematic_intervals_opt =
+                    find_problematic_intervals(unidimensional_intervals);
+            if (not problematic_intervals_opt.has_value()) { return Ok{}; }
+
+            const auto [first, second] = problematic_intervals_opt.value();
+            return std::format("Intervals {} and {} are not contiguous ", first.to_string(),
+                               second.to_string());
         }
     }// namespace internal
 
