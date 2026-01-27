@@ -200,6 +200,17 @@ TEST(GetMaxRank, ReturnsTheMaxRankIdUsedAsKeyInGlobalMapping) {
     EXPECT_THAT(get_max_rank(global_mapping), Eq(max_rank));
 }
 
+TEST(CreateProcessorGrid, UsesTheGlobalMappingToCreateAGrid) {
+    const auto intervals_0 = std::vector{MultidimensionalInterval{Interval{0, 2}, Interval{0, 2}},
+                                         MultidimensionalInterval{Interval{2, 4}, Interval{2, 4}}};
+    const auto intervals_1 = std::vector{MultidimensionalInterval{Interval{0, 2}, Interval{2, 4}},
+                                         MultidimensionalInterval{Interval{2, 4}, Interval{0, 2}}};
+    const auto global_mapping = GlobalMapping<2>{{0, intervals_0}, {1, intervals_1}};
+
+    const auto expected = ProcessorGrid{2, 1};
+    EXPECT_THAT(GeneralDataDistribution<2>::create_processor_grid(global_mapping), Eq(expected));
+}
+
 auto as_array(const std::pair<Interval, Interval> &pairs) -> std::array<Interval, 2> {
     return std::array{pairs.first, pairs.second};
 }

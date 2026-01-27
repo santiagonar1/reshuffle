@@ -59,6 +59,9 @@ namespace reshuffle {
         [[nodiscard]] auto is_block_wise() const -> bool override;
         [[nodiscard]] auto clone() const -> std::unique_ptr<DataDistribution<N>> override;
 
+        [[nodiscard]] static auto create_processor_grid(const GlobalMapping<N> &global_mapping)
+                -> ProcessorGrid<N>;
+
 
     private:
         //
@@ -84,9 +87,6 @@ namespace reshuffle {
                 -> std::variant<internal::Ok, ErrorMessage>;
 
         [[nodiscard]] static auto create_processor_grid(RankId max_rank) -> ProcessorGrid<N>;
-
-        [[nodiscard]] static auto create_processor_grid(const GlobalMapping<N> &global_mapping)
-                -> ProcessorGrid<N>;
 
         [[nodiscard]] static auto create_blocks(const GlobalMapping<N> &global_mapping,
                                                 const ProcessorGrid<N> &processor_grid)
