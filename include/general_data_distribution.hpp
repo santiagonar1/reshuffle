@@ -1,10 +1,10 @@
 #ifndef RESHUFFLE_GENERAL_DATA_DISTRIBUTION_HPP
 #define RESHUFFLE_GENERAL_DATA_DISTRIBUTION_HPP
 
-#include "block.hpp"
 #include "coordinates.hpp"
 #include "data_distribution.hpp"
 #include "grid_layout.hpp"
+#include "multidimensional_block.hpp"
 #include "multidimensional_interval.hpp"
 #include "processor_grid.hpp"
 #include "rank_id.hpp"
@@ -61,7 +61,10 @@ namespace reshuffle {
 
         [[nodiscard]] static auto create_processor_grid(const GlobalMapping<N> &global_mapping)
                 -> ProcessorGrid<N>;
-
+        [[nodiscard]] static auto
+        create_multidimensional_blocks(const GlobalMapping<N> &global_mapping,
+                                       const ProcessorGrid<N> &processor_grid)
+                -> std::vector<MultidimensionalBlock<N>>;
 
     private:
         //
@@ -87,10 +90,6 @@ namespace reshuffle {
                 -> std::variant<internal::Ok, ErrorMessage>;
 
         [[nodiscard]] static auto create_processor_grid(RankId max_rank) -> ProcessorGrid<N>;
-
-        [[nodiscard]] static auto create_blocks(const GlobalMapping<N> &global_mapping,
-                                                const ProcessorGrid<N> &processor_grid)
-                -> std::array<std::vector<Block>, N>;
 
         [[nodiscard]] static auto create_grid_layout(const GlobalMapping<N> &global_mapping,
                                                      const ProcessorGrid<N> &processor_grid)
@@ -180,24 +179,17 @@ namespace reshuffle {
     }
 
     template<std::size_t N>
-    auto GeneralDataDistribution<N>::create_blocks(const GlobalMapping<N> &global_mapping,
-                                                   const ProcessorGrid<N> &processor_grid)
-            -> std::array<std::vector<Block>, N> {
-        auto blocks = std::array<std::vector<Block>, N>{};
+    auto GeneralDataDistribution<N>::create_multidimensional_blocks(
+            const GlobalMapping<N> &global_mapping, const ProcessorGrid<N> &processor_grid)
+            -> std::vector<MultidimensionalBlock<N>> {
+        auto blocks = std::vector<MultidimensionalBlock<N>>{};
         for (const auto &[rank_id, intervals]: global_mapping) {
+            const auto rank_coordinates = processor_grid.get_processor_coordinates(rank_id);
             for (const auto &interval: intervals) {
-                const auto rank_coordinates = processor_grid.get_processor_coordinates(rank_id);
-                const auto decomposed_interval = internal::to_unidimensional_intervals(interval);
-                for (int dim = 0; dim < N; ++dim) {
-                    blocks[dim].emplace_back(
-                            Block{decomposed_interval[dim], rank_coordinates[dim]});
-                }
+                blocks.emplace_back(
+                        internal::build_multidimensional_block(interval, rank_coordinates));
             }
         }
-
-        // I am not sure if this is necessary, but I do it to keep consistency with the other
-        // distributions
-        for (auto &vector_blocks: blocks) { std::ranges::sort(vector_blocks); }
 
         return blocks;
     }
@@ -206,7 +198,7 @@ namespace reshuffle {
     auto GeneralDataDistribution<N>::create_grid_layout(const GlobalMapping<N> &global_mapping,
                                                         const ProcessorGrid<N> &processor_grid)
             -> GridLayout<N> {
-        const auto blocks = create_blocks(global_mapping, processor_grid);
+        const auto blocks = create_multidimensional_blocks(global_mapping, processor_grid);
         return GridLayout{blocks};
     }
 

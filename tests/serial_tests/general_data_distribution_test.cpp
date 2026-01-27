@@ -211,6 +211,27 @@ TEST(CreateProcessorGrid, UsesTheGlobalMappingToCreateAGrid) {
     EXPECT_THAT(GeneralDataDistribution<2>::create_processor_grid(global_mapping), Eq(expected));
 }
 
+TEST(CreateMultidimensionalBlocks, UsesTheGlobalMappingToCreateMultidimensionalBlocks) {
+    const auto intervals_0 = std::vector{MultidimensionalInterval{Interval{0, 2}, Interval{0, 2}},
+                                         MultidimensionalInterval{Interval{2, 4}, Interval{2, 4}}};
+    const auto intervals_1 = std::vector{MultidimensionalInterval{Interval{0, 2}, Interval{2, 4}},
+                                         MultidimensionalInterval{Interval{2, 4}, Interval{0, 2}}};
+
+    const auto global_mapping = GlobalMapping<2>{{0, intervals_0}, {1, intervals_1}};
+    const auto processor_grid = GeneralDataDistribution<2>::create_processor_grid(global_mapping);
+
+    const auto expected = std::vector{
+            MultidimensionalBlock{Block{{0, 2}, 0}, Block{{0, 2}, 0}},
+            MultidimensionalBlock{Block{{0, 2}, 0}, Block{{2, 4}, 1}},
+            MultidimensionalBlock{Block{{2, 4}, 0}, Block{{0, 2}, 1}},
+            MultidimensionalBlock{Block{{2, 4}, 0}, Block{{2, 4}, 0}},
+    };
+
+    EXPECT_THAT(GeneralDataDistribution<2>::create_multidimensional_blocks(global_mapping,
+                                                                           processor_grid),
+                UnorderedElementsAreArray(expected));
+}
+
 auto as_array(const std::pair<Interval, Interval> &pairs) -> std::array<Interval, 2> {
     return std::array{pairs.first, pairs.second};
 }

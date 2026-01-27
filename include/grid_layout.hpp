@@ -19,6 +19,7 @@ namespace reshuffle {
     class GridLayout {
     public:
         explicit GridLayout(std::array<std::vector<Block>, N> blocks);
+        explicit GridLayout(const std::vector<MultidimensionalBlock<N>> &multidimensional_blocks);
 
         [[nodiscard]] auto get_blocks() const -> const std::array<std::vector<Block>, N> &;
         [[nodiscard]] auto get_block_owner(const Coordinates<N> &block_coordinates,
@@ -44,6 +45,11 @@ namespace reshuffle {
     GridLayout<N>::GridLayout(std::array<std::vector<Block>, N> blocks)
         : _multidimensional_blocks(internal::get_cartesian_product(blocks)),
           _blocks(std::move(blocks)) {}
+
+    template<std::size_t N>
+    GridLayout<N>::GridLayout(const std::vector<MultidimensionalBlock<N>> &multidimensional_blocks)
+        : _multidimensional_blocks(multidimensional_blocks),
+          _blocks(internal::to_unidimensional_blocks(multidimensional_blocks)) {}
 
     template<std::size_t N>
     auto GridLayout<N>::get_blocks() const -> const std::array<std::vector<Block>, N> & {
