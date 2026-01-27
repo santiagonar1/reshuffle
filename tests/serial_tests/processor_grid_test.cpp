@@ -22,3 +22,12 @@ TEST(ProcessorGrid, EnumeratesProcessorsRowWise) {
     EXPECT_THAT(processor_grid.get_processor_id({1, 0}), Eq(2));
     EXPECT_THAT(processor_grid.get_processor_id({1, 1}), Eq(3));
 }
+
+TEST(ProcessorGrid, GetsProcessorCoordinates) {
+    const auto processor_grid = ProcessorGrid{2, 2};
+
+    EXPECT_THAT(processor_grid.get_processor_coordinates(0), Eq(Coordinates<2>{0, 0}));
+    EXPECT_THAT(processor_grid.get_processor_coordinates(1), Eq(Coordinates<2>{0, 1}));
+    EXPECT_THAT(processor_grid.get_processor_coordinates(2), Eq(Coordinates<2>{1, 0}));
+    EXPECT_THAT(processor_grid.get_processor_coordinates(3), Eq(Coordinates<2>{1, 1}));
+}
