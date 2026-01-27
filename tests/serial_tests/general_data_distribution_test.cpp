@@ -38,7 +38,7 @@ TEST(GeneralDataDistribution, CreatesAProcessorGrid) {
     const auto distribution =
             GeneralDataDistribution<2>::make(global_mapping, mapping_0, 0).value();
 
-    EXPECT_THAT(distribution.get_processor_grid(), Eq(ProcessorGrid{num_ranks, 1}));
+    EXPECT_THAT(distribution.get_processor_grid(), Eq(ProcessorGrid{1, num_ranks}));
 }
 
 TEST(GeneralDataDistribution, CreatesAGridLayout) {
@@ -207,7 +207,7 @@ TEST(CreateProcessorGrid, UsesTheGlobalMappingToCreateAGrid) {
                                          MultidimensionalInterval{Interval{2, 4}, Interval{0, 2}}};
     const auto global_mapping = GlobalMapping<2>{{0, intervals_0}, {1, intervals_1}};
 
-    const auto expected = ProcessorGrid{2, 1};
+    const auto expected = ProcessorGrid{1, 2};
     EXPECT_THAT(GeneralDataDistribution<2>::create_processor_grid(global_mapping), Eq(expected));
 }
 

@@ -165,7 +165,7 @@ namespace reshuffle {
             -> ProcessorGrid<N> {
         auto processor_grid_dimensions = Dimensions<N>{};
         processor_grid_dimensions.fill(1);
-        processor_grid_dimensions[0] = max_rank + 1;
+        processor_grid_dimensions.back() = max_rank + 1;
         const auto processor_grid = ProcessorGrid{processor_grid_dimensions};
 
         return processor_grid;
