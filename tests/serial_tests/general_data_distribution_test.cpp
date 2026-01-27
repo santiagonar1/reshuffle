@@ -50,7 +50,7 @@ TEST(GeneralDataDistribution, CreatesAGridLayout) {
 
     const auto distribution =
             GeneralDataDistribution<1>::make(global_mapping, mapping_0, 0).value();
-    const auto& grid_layout = distribution.get_grid_layout();
+    const auto &grid_layout = distribution.get_grid_layout();
 
     const auto expected_blocks = std::vector{Block{{0, 2}, 1}, Block{{2, 4}, 0}};
     EXPECT_THAT(grid_layout.get_blocks(), Eq(std::array{expected_blocks}));
