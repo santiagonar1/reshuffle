@@ -1,0 +1,63 @@
+name: GCC tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    branches:
+      - main
+
+jobs:
+  testing:
+    name: GCC 15 - openmpi
+    runs-on: ubuntu-latest
+    container: santiagonar1/reshuffle:latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: openmpi version
+        run: mpirun --version
+
+      - name: GCC version
+        run: gcc --version
+
+      - name: Generate Conan profile
+        env:
+          CXX: g++
+          CC: gcc
+        run: |
+          conan profile detect --name=default
+
+      - name: Set cpp version Conan profile
+        run: |
+          sed -i.bak -E 's|^(compiler\.cppstd\s*=\s*).*$|\1gnu20|' ~/.conan2/profiles/default || echo -e "[settings]\ncompiler.cppstd=gnu20" >> ~/.conan2/profiles/default
+
+      - name: Check Conan profile
+        run: cat ~/.conan2/profiles/default
+
+      - name: Generate build directory
+        run: mkdir -p build
+
+      - name: Configure
+        working-directory: build
+        env:
+          CXX: g++
+          CC: gcc
+        run: |
+          cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake ..
+
+      - name: Compile
+        working-directory: build
+        run: cmake --build .
+
+      - name: Run tests
+        working-directory: build
+        env:
+          OMPI_MCA_rmaps_base_oversubscribe: true # This works for OpenMPI <= 4
+          PRTE_MCA_rmaps_default_mapping_policy: :oversubscribe # This works from OpenMPI >= 5
+        run: PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe ctest --output-on-failure
