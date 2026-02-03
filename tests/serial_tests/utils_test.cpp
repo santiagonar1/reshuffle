@@ -38,3 +38,10 @@ TEST(Sort, SortsAVector) {
     const auto values = std::vector{3, 1, 2};
     EXPECT_THAT(sort(values), Eq(std::vector{1, 2, 3}));
 }
+
+TEST(Drop, DropsOneElementFromArray) {
+    constexpr auto values = std::array{0, 1, 2, 3};
+
+    EXPECT_THAT(drop(values, 0), Eq(std::array{1, 2, 3}));
+    EXPECT_THAT(drop(values, 1), Eq(std::array{0, 2, 3}));
+}

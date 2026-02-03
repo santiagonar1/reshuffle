@@ -70,6 +70,11 @@ namespace reshuffle {
     template<concepts::Int... Ts>
     ProcessorGrid(Ts &&...xs) -> ProcessorGrid<sizeof...(Ts)>;
 
+    template<std::size_t N>
+    auto operator<<(std::ostream &os, const ProcessorGrid<N> &processor_grid) -> std::ostream & {
+        return os << processor_grid.get_dimensions();
+    }
+
 }// namespace reshuffle
 
 #endif//PROCESSOR_GRID_HPP

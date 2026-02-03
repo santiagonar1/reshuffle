@@ -62,8 +62,8 @@ TEST(MakeContiguous, MakesMultidimensionalBlocksContiguousInSpecifiedDimension) 
     const auto second_multiblock = MultidimensionalBlock{Block{{3, 5}, 1}};
     const auto multi_blocks = std::vector{first_multiblock, second_multiblock};
 
-    const auto expected = std::vector{MultidimensionalBlock{{Block{{0, 1}, 0}}},
-                                      MultidimensionalBlock{{Block{{1, 3}, 1}}}};
+    const auto expected = std::vector{MultidimensionalBlock<1>{{Block{{0, 1}, 0}}},
+                                      MultidimensionalBlock<1>{{Block{{1, 3}, 1}}}};
     EXPECT_THAT(make_contiguous(multi_blocks, dim), Eq(expected));
 }
 
@@ -137,4 +137,13 @@ TEST(ToUnidimensionalBlocks, DecomposeVectorOfMultidimensionalBlocks) {
     const auto expected_x = std::vector{Block{{1, 3}, 1}, Block{{3, 5}, 1}};
 
     EXPECT_THAT(to_unidimensional_blocks(blocks), Eq(std::array{expected_y, expected_x}));
+}
+
+TEST(BuildMultidimensionalBlock, BuildsMultidimensionalBlockFromIntervalAndOwner) {
+    const auto interval = MultidimensionalInterval{Interval{0, 2}, Interval{2, 5}};
+    const auto owner = Coordinates{0, 1};
+
+    const auto expected = MultidimensionalBlock<2>{Block{{0, 2}, 0}, Block{{2, 5}, 1}};
+    const auto block = build_multidimensional_block(interval, owner);
+    EXPECT_THAT(block, Eq(expected));
 }

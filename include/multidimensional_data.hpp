@@ -23,7 +23,7 @@ namespace reshuffle::internal {
             const auto start = block[dim].get_interval().get_left_bound();
             const auto finish = start + block[dim].get_interval().get_length();
             if (start >= data.extent(dim) or finish > data.extent(dim)) {
-                throw std::out_of_range("Block is out of bounds");
+                throw std::out_of_range("[check_bounds] Block is out of bounds");
             }
         }
     }

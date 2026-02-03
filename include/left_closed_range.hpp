@@ -17,7 +17,7 @@ namespace reshuffle {
             using pointer = const int *;
             using reference = const int &;
 
-            explicit iterator(int value) : current(value) {}
+            explicit iterator(const int value) : current(value) {}
 
             auto operator*() const -> reference { return current; }
             auto operator->() const -> pointer { return &current; }
@@ -28,7 +28,7 @@ namespace reshuffle {
             }
 
             auto operator++(int) -> iterator {
-                iterator tmp = *this;
+                const iterator tmp = *this;
                 ++current;
                 return tmp;
             }
@@ -54,6 +54,9 @@ namespace reshuffle {
         [[nodiscard]] auto get_length() const -> int;
         [[nodiscard]] auto get_overlay(const LeftClosedRange &other) const
                 -> std::optional<LeftClosedRange>;
+        [[nodiscard]] auto is_contiguous(const LeftClosedRange &other) const -> bool;
+        [[nodiscard]] auto is_disjoint(const LeftClosedRange &other) const -> bool;
+        [[nodiscard]] auto to_string() const -> std::string;
 
         auto operator==(const LeftClosedRange &other) const -> bool;
         auto operator=(const LeftClosedRange &other) -> LeftClosedRange &;
@@ -64,6 +67,11 @@ namespace reshuffle {
     };
 
     auto operator<<(std::ostream &os, const LeftClosedRange &range) -> std::ostream &;
+
+    namespace internal {
+        // TODO: Maybe also implement are_overlapping
+        [[nodiscard]] auto are_contiguous(const std::vector<LeftClosedRange> &intervals) -> bool;
+    }// namespace internal
 }// namespace reshuffle
 
 #endif// RESHUFFLE_LEFT_CLOSED_RANGE_HPP

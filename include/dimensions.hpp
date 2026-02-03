@@ -117,6 +117,16 @@ namespace reshuffle {
         for (size_t i = 0; i < N; ++i) { result[i] = lhs[i] + rhs[i]; }
         return result;
     }
+
+    template<std::size_t N>
+    auto operator<<(std::ostream &os, const Dimensions<N> &dims) -> std::ostream & {
+        os << "(";
+        auto delimiter = std::string{};
+        for (size_t i = 0; i < N; ++i) { os << std::exchange(delimiter, ", ") << dims[i]; }
+        os << ")";
+        return os;
+    }
+
 }// namespace reshuffle
 
 #endif//RESHUFFLE_DIMENSIONS_HPP

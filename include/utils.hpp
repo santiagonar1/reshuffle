@@ -26,6 +26,10 @@ namespace reshuffle::internal {
     template<typename K, typename T>
     [[nodiscard]] auto find(const std::map<K, T> &map, const K &key) -> std::optional<T>;
 
+    template<typename T, std::size_t N>
+    [[nodiscard]] auto drop(const std::array<T, N> &values, std::size_t index)
+            -> std::array<T, N - 1>;
+
     template<typename Tuple>
     auto unzip(const std::vector<Tuple> &tuples)
             -> std::array<std::vector<std::tuple_element_t<0, Tuple>>, std::tuple_size_v<Tuple>> {
@@ -75,6 +79,15 @@ namespace reshuffle::internal {
         if (map.contains(key)) { return map.at(key); }
 
         return std::nullopt;
+    }
+
+    template<typename T, std::size_t N>
+    auto drop(const std::array<T, N> &values, const std::size_t index) -> std::array<T, N - 1> {
+        PROFILE_SCOPE_NAMED("drop");
+        std::array<T, N - 1> result{};
+        std::copy(values.begin(), values.begin() + index, result.begin());
+        std::copy(values.begin() + index + 1, values.end(), result.begin() + index);
+        return result;
     }
 }// namespace reshuffle::internal
 

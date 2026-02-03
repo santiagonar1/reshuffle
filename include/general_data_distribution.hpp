@@ -1,0 +1,315 @@
+#ifndef RESHUFFLE_GENERAL_DATA_DISTRIBUTION_HPP
+#define RESHUFFLE_GENERAL_DATA_DISTRIBUTION_HPP
+
+#include "coordinates.hpp"
+#include "data_distribution.hpp"
+#include "grid_layout.hpp"
+#include "multidimensional_block.hpp"
+#include "multidimensional_interval.hpp"
+#include "processor_grid.hpp"
+#include "rank_id.hpp"
+
+#include <expected>
+#include <format>
+#include <map>
+
+namespace reshuffle {
+    using IntervalId = std::size_t;
+    using ErrorMessage = std::string;
+
+    template<std::size_t N>
+    using GlobalMapping = std::map<RankId, std::vector<MultidimensionalInterval<N>>>;
+
+    namespace internal {
+
+        struct Ok {};
+
+        [[nodiscard]] auto find_problematic_intervals(const std::vector<Interval> &intervals)
+                -> std::optional<std::pair<Interval, Interval>>;
+
+        template<std::size_t N>
+        [[nodiscard]] auto get_intervals(const GlobalMapping<N> &global_mapping)
+                -> std::vector<MultidimensionalInterval<N>>;
+
+        template<std::size_t N>
+        [[nodiscard]] auto get_max_rank(const GlobalMapping<N> &global_mapping) -> RankId;
+
+        template<std::size_t N>
+        [[nodiscard]] auto
+        check_for_holes(const std::vector<MultidimensionalInterval<N>> &intervals)
+                -> std::variant<Ok, ErrorMessage>;
+
+        template<>
+        [[nodiscard]] auto
+        check_for_holes(const std::vector<MultidimensionalInterval<1>> &intervals)
+                -> std::variant<Ok, ErrorMessage>;
+    }// namespace internal
+
+
+    template<std::size_t N>
+    class GeneralDataDistribution final : public DataDistribution<N> {
+    public:
+        [[nodiscard]] static auto make(const GlobalMapping<N> &global_mapping,
+                                       const std::map<IntervalId, Coordinates<N>> &local_mapping,
+                                       RankId rank)
+                -> std::expected<GeneralDataDistribution, ErrorMessage>;
+
+        [[nodiscard]] auto get_grid_layout() const -> const GridLayout<N> & override;
+        [[nodiscard]] auto get_processor_grid() const -> const ProcessorGrid<N> & override;
+        [[nodiscard]] auto is_block_wise() const -> bool override;
+        [[nodiscard]] auto clone() const -> std::unique_ptr<DataDistribution<N>> override;
+
+        [[nodiscard]] static auto create_processor_grid(const GlobalMapping<N> &global_mapping)
+                -> ProcessorGrid<N>;
+        [[nodiscard]] static auto
+        create_multidimensional_blocks(const GlobalMapping<N> &global_mapping,
+                                       const ProcessorGrid<N> &processor_grid)
+                -> std::vector<MultidimensionalBlock<N>>;
+
+    private:
+        //
+        const ProcessorGrid<N> _processor_grid;
+        const GridLayout<N> _grid_layout;
+
+        GeneralDataDistribution(const ProcessorGrid<N> &processor_grid,
+                                const GridLayout<N> &grid_layout)
+            : _processor_grid(processor_grid), _grid_layout(grid_layout) {};
+
+        [[nodiscard]] static auto
+        check_contiguity_intervals(const std::vector<MultidimensionalInterval<N>> &intervals)
+                -> std::variant<internal::Ok, ErrorMessage>;
+
+        [[nodiscard]] static auto check_consistency_local_and_global_mapping(
+                const GlobalMapping<N> &global_mapping,
+                const std::map<IntervalId, Coordinates<N>> &local_mapping, RankId rank)
+                -> std::variant<internal::Ok, ErrorMessage>;
+
+        [[nodiscard]] static auto
+        run_checks(const GlobalMapping<N> &global_mapping,
+                   const std::map<IntervalId, Coordinates<N>> &local_mapping, RankId rank)
+                -> std::variant<internal::Ok, ErrorMessage>;
+
+        [[nodiscard]] static auto create_processor_grid(RankId max_rank) -> ProcessorGrid<N>;
+
+        [[nodiscard]] static auto create_grid_layout(const GlobalMapping<N> &global_mapping,
+                                                     const ProcessorGrid<N> &processor_grid)
+                -> GridLayout<N>;
+    };
+
+    template<std::size_t N>
+    auto GeneralDataDistribution<N>::make(const GlobalMapping<N> &global_mapping,
+                                          const std::map<IntervalId, Coordinates<N>> &local_mapping,
+                                          RankId rank)
+            -> std::expected<GeneralDataDistribution, ErrorMessage> {
+        if (const auto result = run_checks(global_mapping, local_mapping, rank);
+            std::holds_alternative<ErrorMessage>(result)) {
+            const auto error_msg =
+                    std::format("[RANK {}] {}", rank, std::get<ErrorMessage>(result));
+            return std::unexpected(error_msg);
+        }
+
+        const auto processor_grid = create_processor_grid(global_mapping);
+        const auto grid_layout = create_grid_layout(global_mapping, processor_grid);
+
+        return GeneralDataDistribution{processor_grid, grid_layout};
+    }
+
+    template<std::size_t N>
+    auto GeneralDataDistribution<N>::get_grid_layout() const -> const GridLayout<N> & {
+        return _grid_layout;
+    }
+
+    template<std::size_t N>
+    auto GeneralDataDistribution<N>::get_processor_grid() const -> const ProcessorGrid<N> & {
+        return _processor_grid;
+    }
+
+    template<std::size_t N>
+    auto GeneralDataDistribution<N>::is_block_wise() const -> bool {
+        //TODO: actually check if this is the case
+        return false;
+    }
+
+    template<std::size_t N>
+    auto GeneralDataDistribution<N>::clone() const -> std::unique_ptr<DataDistribution<N>> {
+        return std::make_unique<GeneralDataDistribution>(*this);
+    }
+
+    //TODO: Should I check also for repeated intervals?
+    template<std::size_t N>
+    auto GeneralDataDistribution<N>::run_checks(
+            const GlobalMapping<N> &global_mapping,
+            const std::map<IntervalId, Coordinates<N>> &local_mapping, const RankId rank)
+            -> std::variant<internal::Ok, ErrorMessage> {
+        const auto multidimensional_intervals = internal::get_intervals(global_mapping);
+        const auto unidimensional_intervals =
+                internal::to_unidimensional_intervals(multidimensional_intervals);
+
+        if (const auto result = check_contiguity_intervals(multidimensional_intervals);
+            std::holds_alternative<ErrorMessage>(result)) {
+            return ErrorMessage(std::get<ErrorMessage>(result));
+        }
+
+        if (const auto result =
+                    check_consistency_local_and_global_mapping(global_mapping, local_mapping, rank);
+            std::holds_alternative<ErrorMessage>(result)) {
+            return ErrorMessage(std::get<ErrorMessage>(result));
+        }
+
+        return internal::Ok{};
+    }
+
+    template<std::size_t N>
+    auto GeneralDataDistribution<N>::create_processor_grid(const RankId max_rank)
+            -> ProcessorGrid<N> {
+        auto processor_grid_dimensions = Dimensions<N>{};
+        processor_grid_dimensions.fill(1);
+        processor_grid_dimensions.back() = max_rank + 1;
+        const auto processor_grid = ProcessorGrid{processor_grid_dimensions};
+
+        return processor_grid;
+    }
+
+    template<std::size_t N>
+    auto GeneralDataDistribution<N>::create_processor_grid(const GlobalMapping<N> &global_mapping)
+            -> ProcessorGrid<N> {
+        const auto max_rank = internal::get_max_rank(global_mapping);
+
+        return create_processor_grid(max_rank);
+    }
+
+    template<std::size_t N>
+    auto GeneralDataDistribution<N>::create_multidimensional_blocks(
+            const GlobalMapping<N> &global_mapping, const ProcessorGrid<N> &processor_grid)
+            -> std::vector<MultidimensionalBlock<N>> {
+        auto blocks = std::vector<MultidimensionalBlock<N>>{};
+        for (const auto &[rank_id, intervals]: global_mapping) {
+            const auto rank_coordinates = processor_grid.get_processor_coordinates(rank_id);
+            for (const auto &interval: intervals) {
+                blocks.emplace_back(
+                        internal::build_multidimensional_block(interval, rank_coordinates));
+            }
+        }
+
+        return blocks;
+    }
+
+    template<std::size_t N>
+    auto GeneralDataDistribution<N>::create_grid_layout(const GlobalMapping<N> &global_mapping,
+                                                        const ProcessorGrid<N> &processor_grid)
+            -> GridLayout<N> {
+        const auto blocks = create_multidimensional_blocks(global_mapping, processor_grid);
+        return GridLayout{blocks};
+    }
+
+    template<std::size_t N>
+    auto GeneralDataDistribution<N>::check_contiguity_intervals(
+            const std::vector<MultidimensionalInterval<N>> &intervals)
+            -> std::variant<internal::Ok, ErrorMessage> {
+
+        return internal::check_for_holes(intervals);
+    }
+
+    template<std::size_t N>
+    auto GeneralDataDistribution<N>::check_consistency_local_and_global_mapping(
+            const GlobalMapping<N> &global_mapping,
+            const std::map<IntervalId, Coordinates<N>> &local_mapping, RankId rank)
+            -> std::variant<internal::Ok, ErrorMessage> {
+        const auto global_assigned_intervals = global_mapping.contains(rank)
+                                                       ? global_mapping.at(rank)
+                                                       : std::vector<MultidimensionalInterval<N>>{};
+        if (global_assigned_intervals.size() != local_mapping.size()) {
+            const auto error_msg =
+                    std::format("global_mapping assigned {} blocks to rank, but {} "
+                                "are listed in local_mapping",
+                                rank, global_assigned_intervals.size(), local_mapping.size());
+            return ErrorMessage{error_msg};
+        }
+
+        return internal::Ok{};
+    }
+
+    namespace internal {
+        template<std::size_t N>
+        auto get_intervals(const GlobalMapping<N> &global_mapping)
+                -> std::vector<MultidimensionalInterval<N>> {
+            auto intervals = std::vector<MultidimensionalInterval<N>>{};
+            for (const auto &[rank, multidimensional_intervals]: global_mapping) {
+                intervals.insert_range(intervals.end(), multidimensional_intervals);
+            }
+
+            return intervals;
+        }
+
+        template<std::size_t N>
+        auto get_max_rank(const GlobalMapping<N> &global_mapping) -> RankId {
+            if (global_mapping.empty()) { return INVALID_RANK_ID; }
+
+            auto keys = global_mapping | std::views::keys;
+            const auto max_rank = std::ranges::max_element(keys.begin(), keys.end());
+            return *max_rank;
+        }
+
+        template<std::size_t N>
+        auto check_for_holes(const std::vector<MultidimensionalInterval<N>> &intervals)
+                -> std::variant<Ok, ErrorMessage> {
+
+            if (intervals.empty()) { return Ok{}; }
+
+            auto group = std::map<Interval, std::vector<MultidimensionalInterval<N - 1>>>{};
+            for (const auto &interval: intervals) {
+                group[interval[0]].emplace_back(drop(interval, 0));
+            }
+
+            if constexpr (N == 2) {
+                auto starts = std::vector<int>{};
+                auto ends = std::vector<int>{};
+
+                // Group maps from Interval to MultidimensionalInterval<1>
+                for (const auto new_intervals: group | std::views::values) {
+                    const auto unidimensional_intervals =
+                            sort(to_unidimensional_intervals(new_intervals)[0]);
+                    starts.emplace_back(unidimensional_intervals[0].get_left_bound());
+                    ends.emplace_back(unidimensional_intervals.back().get_right_bound());
+                }
+
+                // All starts and ends have to be the same!
+                const auto all_starts_same = std::all_of(
+                        starts.begin(), starts.end(), [&starts](int x) { return x == starts[0]; });
+                const auto all_ends_same = std::all_of(ends.begin(), ends.end(),
+                                                       [&ends](int x) { return x == ends[0]; });
+
+                if (not all_starts_same or not all_ends_same) {
+                    return ErrorMessage{"Intervals are not contiguous"};
+                }
+            }
+
+            auto statuses = std::vector<std::variant<Ok, ErrorMessage>>{};
+            for (const auto &new_intervals: group | std::views::values) {
+                statuses.emplace_back(check_for_holes(new_intervals));
+            }
+
+            for (const auto &status: statuses) {
+                if (std::holds_alternative<ErrorMessage>(status)) { return status; }
+            }
+
+            return Ok{};
+        }
+
+        template<>
+        inline auto check_for_holes(const std::vector<MultidimensionalInterval<1>> &intervals)
+                -> std::variant<Ok, ErrorMessage> {
+            const auto unidimensional_intervals = to_unidimensional_intervals(intervals)[0];
+            const auto problematic_intervals_opt =
+                    find_problematic_intervals(unidimensional_intervals);
+            if (not problematic_intervals_opt.has_value()) { return Ok{}; }
+
+            const auto [first, second] = problematic_intervals_opt.value();
+            return std::format("Intervals {} and {} are not contiguous ", first.to_string(),
+                               second.to_string());
+        }
+    }// namespace internal
+
+}// namespace reshuffle
+
+#endif//RESHUFFLE_GENERAL_DATA_DISTRIBUTION_HPP

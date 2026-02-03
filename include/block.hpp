@@ -46,7 +46,7 @@ namespace reshuffle {
         const auto finish = start + block.get_interval().get_length();
 
         if (start >= data.size() or finish > data.size()) {
-            throw std::out_of_range("Block is out of bounds");
+            throw std::out_of_range("[extract_data] Block is out of bounds");
         }
 
         return {data.begin() + start, data.begin() + finish};

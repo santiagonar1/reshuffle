@@ -5,10 +5,10 @@
 #include "cartesian_product.hpp"
 #include "coordinates.hpp"
 #include "dimensions.hpp"
+#include "multidimensional_interval.hpp"
 #include "profiler.hpp"
 #include "utils.hpp"
 
-#include <algorithm>
 #include <format>
 
 namespace reshuffle {
@@ -50,6 +50,11 @@ namespace reshuffle {
                 -> Dimensions<N>;
 
         [[nodiscard]] auto get_dimensions(const std::vector<Block> &blocks) -> int;
+
+        template<std::size_t N>
+        [[nodiscard]] auto build_multidimensional_block(const MultidimensionalInterval<N> &interval,
+                                                        const Coordinates<N> &owner)
+                -> MultidimensionalBlock<N>;
 
         template<std::size_t N>
         [[nodiscard]] auto
@@ -173,6 +178,15 @@ namespace reshuffle {
             }
 
             return unidimensional_blocks;
+        }
+
+        template<std::size_t N>
+        auto build_multidimensional_block(const MultidimensionalInterval<N> &interval,
+                                          const Coordinates<N> &owner) -> MultidimensionalBlock<N> {
+            auto block = MultidimensionalBlock<N>{};
+            for (int dim = 0; dim < N; ++dim) { block[dim] = Block{interval[dim], owner[dim]}; }
+
+            return block;
         }
     }// namespace internal
 }// namespace reshuffle
