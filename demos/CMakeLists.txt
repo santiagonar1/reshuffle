@@ -29,3 +29,5 @@ if (TEST_SCALAPACK)
             PRIVATE ScalapackLibrary
     )
 endif ()
+
+add_subdirectory(heat_transfer)
