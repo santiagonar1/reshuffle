@@ -57,4 +57,7 @@ jobs:
 
       - name: Run tests
         working-directory: build
-        run: ctest --output-on-failure
+        env:
+          OMPI_MCA_rmaps_base_oversubscribe: true # This works for OpenMPI <= 4
+          PRTE_MCA_rmaps_default_mapping_policy: :oversubscribe # This works from OpenMPI >= 5
+        run: PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe ctest --output-on-failure
