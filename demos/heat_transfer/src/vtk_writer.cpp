@@ -46,4 +46,8 @@ namespace heat::vtk {
         write_file(vtk_file, grid);
     }
 
+    auto create_folder(const std::filesystem::path &path) -> void {
+        std::filesystem::create_directories(path);
+    }
+
 }// namespace heat::vtk
