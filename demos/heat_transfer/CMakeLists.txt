@@ -2,6 +2,7 @@ set(LIBRARY_NAME "heat_transfer")
 set(EXECUTABLE_NAME ${LIBRARY_NAME}.out)
 
 set(SOURCES
+        src/grid_operations.cpp
         src/matrix.cpp
         src/vtk_writer.cpp
 )
