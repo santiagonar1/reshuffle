@@ -28,4 +28,22 @@ namespace heat::vtk {
         }
     }
 
+    auto write_file(std::ostream &output, const Matrix2D &grid) -> void {
+        const auto nx = grid.size();
+        const auto ny = grid[0].size();
+
+        write_header(output, nx, ny);
+        write_data(output, grid);
+    }
+
+    auto write_file(const std::filesystem::path &path, const Matrix2D &grid) -> void {
+        auto vtk_file = std::ofstream{path};
+
+        if (not vtk_file.is_open()) {
+            throw std::runtime_error{"Failed to open file for writing: " + path.string()};
+        }
+
+        write_file(vtk_file, grid);
+    }
+
 }// namespace heat::vtk

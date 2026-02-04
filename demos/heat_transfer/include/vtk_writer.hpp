@@ -9,6 +9,8 @@ namespace heat::vtk {
 
     auto write_header(std::ostream &output, unsigned int nx, unsigned int ny) -> void;
     auto write_data(std::ostream &output, const Matrix2D &grid, int precision = 5) -> void;
+    auto write_file(std::ostream &output, const Matrix2D &grid) -> void;
+    auto write_file(const std::filesystem::path &path, const Matrix2D &grid) -> void;
 
 }// namespace heat::vtk
 
