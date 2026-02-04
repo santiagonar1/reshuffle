@@ -507,3 +507,33 @@ TEST(Shuffle, IfUsingTwoDifferentCommunicatorsTheyCanStartAtDifferentRanks) {
 
     EXPECT_THAT(new_values, Eq(generator.get_values_for_rank(rank)));
 }
+
+TEST(Shuffle, WorksWithCartesianCommunicator) {
+    const auto processor_grid = ProcessorGrid{2};
+    constexpr auto periods = std::array{0};
+    constexpr auto reorder = true;
+
+    MPI_Comm cartesian_comm;
+    MPI_Cart_create(MPI_COMM_WORLD, 1, processor_grid.get_dimensions().data(), periods.data(),
+                    reorder, &cartesian_comm);
+
+    constexpr auto num_values_per_rank = 6;
+    const auto num_ranks = get_num_ranks(cartesian_comm);
+    const auto rank = get_rank_id(cartesian_comm).value();
+
+    const auto generator = ValuesGenerator(num_values_per_rank, num_ranks);
+    const auto num_global_values = generator.get_total_num_values();
+
+    const auto values = is_root(MPI_COMM_WORLD) ? std::vector<int>() : generator.get_all_values();
+
+    const auto initial_context = create_context(DataLocationSelector::ONLY_RANK_1,
+                                                CommSelector::ONLY_RANK_1, num_global_values);
+    const auto final_context =
+            Context{BlockWise{{num_global_values}, ProcessorGrid{2}}, MPI_COMM_WORLD};
+
+    const auto new_values =
+            shuffle(std::mdspan{values.data(), values.size()}, initial_context, final_context)
+                    .first;
+
+    EXPECT_THAT(new_values, Eq(generator.get_values_for_rank(rank)));
+}
