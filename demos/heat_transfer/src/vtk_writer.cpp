@@ -17,4 +17,15 @@ namespace heat::vtk {
         output << "LOOKUP_TABLE default\n";
     }
 
+    auto write_data(std::ostream &output, const Matrix2D &grid, const int precision) -> void {
+        for (const auto &row: grid) {
+            auto delimiter = std::string{};
+            for (const auto &value: row) {
+                output << std::fixed << std::setprecision(precision)
+                       << std::exchange(delimiter, " ") << value;
+            }
+            output << std::endl;
+        }
+    }
+
 }// namespace heat::vtk
