@@ -4,7 +4,7 @@
 
 namespace heat::vtk {
 
-    auto write_header(std::ostream &output, const int nx, const int ny) -> void {
+    auto write_header(std::ostream &output, const unsigned int nx, const unsigned int ny) -> void {
         output << "# vtk DataFile Version 4.1\n";
         output << "vtk output\n";
         output << "ASCII\n";
