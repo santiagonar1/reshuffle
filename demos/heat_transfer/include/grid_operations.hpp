@@ -9,6 +9,7 @@ namespace heat {
         auto remove_top_row(const Matrix2D &grid) -> Matrix2D;
         auto remove_bottom_row(const Matrix2D &grid) -> Matrix2D;
         auto remove_left_column(const Matrix2D &grid) -> Matrix2D;
+        auto remove_right_column(const Matrix2D &grid) -> Matrix2D;
     }// namespace internal
 
     auto initialize_grid(unsigned int num_rows, unsigned int num_columns) -> Matrix2D;
