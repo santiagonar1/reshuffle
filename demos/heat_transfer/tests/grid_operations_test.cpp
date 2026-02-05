@@ -39,7 +39,7 @@ TEST(InitializeGrid, InitializesInnerCellsTo0) {
     }
 }
 
-TEST(SetBoundayTo, ReturnsNewGridWithNewBoundaryValues) {
+TEST(SetBoundaryTo, ReturnsNewGridWithNewBoundaryValues) {
     const auto values = Matrix2D{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
 
     const auto result = set_boundary_to(values, 0);
