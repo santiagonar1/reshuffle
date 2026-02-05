@@ -27,7 +27,7 @@ function(reshuffle_register_test TEST_NAME)
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     )
-    set_target_properties(${TEST_NAME} PROPERTIES FOLDER serial_tests)
+    set_target_properties(${TEST_NAME} PROPERTIES FOLDER tests)
 endfunction()
 
 file(GLOB SOURCES
