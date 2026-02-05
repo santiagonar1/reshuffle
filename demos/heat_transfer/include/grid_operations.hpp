@@ -3,8 +3,11 @@
 
 #include "matrix.hpp"
 
+#include <expected>
+
 namespace heat {
     enum class Location { LEFT, RIGHT, TOP, BOTTOM };
+    enum class SetBoundaryError { INVALID_NUM_VALUES, EMPTY_VECTOR, EMPTY_GRID };
 
     namespace internal {
         auto set_boundary_to(const Matrix2D &grid, double value) -> Matrix2D;
@@ -18,6 +21,9 @@ namespace heat {
         auto get_bottom_row(const Matrix2D &grid) -> std::vector<double>;
         auto get_left_column(const Matrix2D &grid) -> std::vector<double>;
         auto get_right_column(const Matrix2D &grid) -> std::vector<double>;
+
+        auto set_top_row(const Matrix2D &grid, const std::vector<double> &values)
+                -> std::expected<Matrix2D, SetBoundaryError>;
     }// namespace internal
 
     auto initialize_grid(unsigned int num_rows, unsigned int num_columns) -> Matrix2D;

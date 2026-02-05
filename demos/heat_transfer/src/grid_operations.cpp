@@ -101,6 +101,42 @@ namespace heat {
 
             return column;
         }
+
+        auto do_checks(const Matrix2D &grid, const std::vector<double> &values)
+                -> std::expected<void, SetBoundaryError> {
+            if (grid.empty() and not values.empty()) {
+                return std::unexpected(SetBoundaryError::EMPTY_GRID);
+            }
+
+            if (values.empty() and not grid.empty()) {
+                return std::unexpected(SetBoundaryError::EMPTY_VECTOR);
+            }
+
+            return {};
+        }
+
+        auto set_top_row(const Matrix2D &grid, const std::vector<double> &values)
+                -> std::expected<Matrix2D, SetBoundaryError> {
+            if (not do_checks(grid, values).has_value()) {
+                return std::unexpected(do_checks(grid, values).error());
+            }
+
+            if (grid.empty() and values.empty()) { return {}; }
+
+            if (const auto [num_rows, num_columns] = get_dimensions(grid);
+                num_columns != values.size()) {
+                return std::unexpected(SetBoundaryError::INVALID_NUM_VALUES);
+            }
+
+            auto new_grid = Matrix2D{};
+            new_grid.emplace_back(values);
+
+            for (const auto &row: grid | std::ranges::views::drop(1)) {
+                new_grid.emplace_back(row);
+            }
+
+            return new_grid;
+        }
     }// namespace internal
 
     auto initialize_grid(const unsigned int num_rows, const unsigned int num_columns) -> Matrix2D {

@@ -221,3 +221,39 @@ TEST(GetGhostLayer, IfTheGridIsEmtpyReturnsEmtpyVector) {
     EXPECT_TRUE(get_ghost_layer(grid, Location::LEFT).empty());
     EXPECT_TRUE(get_ghost_layer(grid, Location::RIGHT).empty());
 }
+
+TEST(SetTopRow, SetsValuesGridTopRow) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    const auto values = std::vector<double>{10, 11, 12};
+
+    const auto expected = Matrix2D{{10, 11, 12}, {4, 5, 6}, {7, 8, 9}};
+    EXPECT_THAT(set_top_row(grid, values).value(), Eq(expected));
+}
+
+TEST(SetTopRow, ReturnsErrorIfGridIsEmptyButValuesAreNot) {
+    constexpr auto grid = Matrix2D{};
+    const auto values = std::vector<double>{10, 11, 12};
+
+    EXPECT_FALSE(set_top_row(grid, values).has_value());
+}
+
+TEST(SetTopRow, ReturnsErrorIfValuesIsEmptyButGridIsNot) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    constexpr auto values = std::vector<double>{};
+
+    EXPECT_FALSE(set_top_row(grid, values).has_value());
+}
+
+TEST(SetTopRow, DoesNothingIfBothValuesAndGridAreEmtpy) {
+    constexpr auto grid = Matrix2D{};
+    constexpr auto values = std::vector<double>{};
+
+    EXPECT_TRUE(set_top_row(grid, values).value().empty());
+}
+
+TEST(SetTopRow, ReturnsErrorIfNumValuesIsNotSameAsNumOfColumns) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    const auto values = std::vector<double>{10, 11};
+
+    EXPECT_FALSE(set_top_row(grid, values).has_value());
+}
