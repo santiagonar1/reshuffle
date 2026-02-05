@@ -47,6 +47,11 @@ TEST(SetBoundayTo, ReturnsNewGridWithNewBoundaryValues) {
     EXPECT_THAT(result, Eq(expected));
 }
 
+TEST(SetBoundaryTo, DoesNothingIfGridIsEmtpy) {
+    constexpr auto grid = Matrix2D{};
+    EXPECT_TRUE(set_boundary_to(grid, 0).empty());
+}
+
 TEST(GetDimensions, ReturnsGridDimensions) {
     const auto grid = initialize_grid(2, 3);
     constexpr auto expected = std::pair{2, 3};
