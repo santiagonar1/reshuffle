@@ -1,5 +1,7 @@
 #include "grid_operations.hpp"
 
+#include <ranges>
+
 namespace heat {
     namespace internal {
         auto set_boundary_to(const Matrix2D &grid, const double value) -> Matrix2D {
@@ -20,6 +22,17 @@ namespace heat {
             }
 
             return result;
+        }
+
+        auto remove_top_row(const Matrix2D &grid) -> Matrix2D {
+            if (grid.empty()) { return {}; }
+
+            auto new_grid = Matrix2D{};
+            for (const auto &row: grid | std::ranges::views::drop(1)) {
+                new_grid.emplace_back(row);
+            }
+
+            return new_grid;
         }
     }// namespace internal
 

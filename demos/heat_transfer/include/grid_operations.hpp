@@ -6,6 +6,7 @@
 namespace heat {
     namespace internal {
         auto set_boundary_to(const Matrix2D &grid, double value) -> Matrix2D;
+        auto remove_top_row(const Matrix2D &grid) -> Matrix2D;
     }// namespace internal
 
     auto initialize_grid(unsigned int num_rows, unsigned int num_columns) -> Matrix2D;

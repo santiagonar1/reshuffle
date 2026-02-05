@@ -60,3 +60,10 @@ TEST(ApplyJacobi, AppliesJacobiMethodToGrid) {
     const auto new_grid = apply_jacobi(grid);
     EXPECT_THAT(new_grid, Eq(expected));
 }
+
+TEST(RemoveTopRow, RemovesTheTopRowOfAGrid) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+
+    const auto expected = Matrix2D{{4, 5, 6}, {7, 8, 9}};
+    EXPECT_THAT(remove_top_row(grid), Eq(expected));
+}
