@@ -71,6 +71,11 @@ TEST(ApplyJacobi, AppliesJacobiMethodToGrid) {
     EXPECT_THAT(new_grid, Eq(expected));
 }
 
+TEST(ApplyJacobi, DoesNothingIfGridIsEmtpy) {
+    constexpr auto grid = Matrix2D{};
+    EXPECT_TRUE(apply_jacobi(grid).empty());
+}
+
 TEST(RemoveTopRow, RemovesTheTopRowOfAGrid) {
     const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
 
