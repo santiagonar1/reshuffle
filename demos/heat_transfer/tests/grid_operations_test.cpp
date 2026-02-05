@@ -148,3 +148,10 @@ TEST(GetLeftColumn, ReturnsGridLeftColumn) {
     const auto expected = std::vector<double>{1, 4, 7};
     EXPECT_THAT(get_left_column(grid), Eq(expected));
 }
+
+TEST(GetRightColumn, ReturnsGridRightColumn) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+
+    const auto expected = std::vector<double>{3, 6, 9};
+    EXPECT_THAT(get_right_column(grid), Eq(expected));
+}
