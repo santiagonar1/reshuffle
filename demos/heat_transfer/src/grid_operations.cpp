@@ -159,8 +159,6 @@ namespace heat {
     }
 
     auto get_ghost_layer(const Matrix2D &grid, const Location &location) -> std::vector<double> {
-        if (grid.empty()) { return {}; }
-
         switch (location) {
             case Location::TOP:
                 return internal::get_top_row(grid);
