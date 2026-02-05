@@ -257,3 +257,75 @@ TEST(SetTopRow, ReturnsErrorIfNumValuesIsNotSameAsNumOfColumns) {
 
     EXPECT_FALSE(set_top_row(grid, values).has_value());
 }
+
+TEST(SetBottomRow, SetsValuesGridBottomRow) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    const auto values = std::vector<double>{10, 11, 12};
+
+    const auto expected = Matrix2D{{1, 2, 3}, {4, 5, 6}, {10, 11, 12}};
+    EXPECT_THAT(set_bottom_row(grid, values).value(), Eq(expected));
+}
+
+TEST(SetBottomRow, ReturnsErrorIfGridIsEmptyButValuesAreNot) {
+    constexpr auto grid = Matrix2D{};
+    const auto values = std::vector<double>{10, 11, 12};
+
+    EXPECT_FALSE(set_bottom_row(grid, values).has_value());
+}
+
+TEST(SetBottomRow, ReturnsErrorIfValuesIsEmptyButGridIsNot) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    constexpr auto values = std::vector<double>{};
+
+    EXPECT_FALSE(set_bottom_row(grid, values).has_value());
+}
+
+TEST(SetBottomRow, DoesNothingIfBothValuesAndGridAreEmtpy) {
+    constexpr auto grid = Matrix2D{};
+    constexpr auto values = std::vector<double>{};
+
+    EXPECT_TRUE(set_bottom_row(grid, values).value().empty());
+}
+
+TEST(SetBottomRow, ReturnsErrorIfNumValuesIsNotSameAsNumOfColumns) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    const auto values = std::vector<double>{10, 11};
+
+    EXPECT_FALSE(set_top_row(grid, values).has_value());
+}
+
+TEST(SetLeftColumn, SetsValuesGridLeftColumn) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    const auto values = std::vector<double>{10, 11, 12};
+
+    const auto expected = Matrix2D{{10, 2, 3}, {11, 5, 6}, {12, 8, 9}};
+    EXPECT_THAT(set_left_column(grid, values).value(), Eq(expected));
+}
+
+TEST(SetLeftColumn, ReturnsErrorIfGridIsEmptyButValuesAreNot) {
+    constexpr auto grid = Matrix2D{};
+    const auto values = std::vector<double>{10, 11, 12};
+
+    EXPECT_FALSE(set_left_column(grid, values).has_value());
+}
+
+TEST(SetLeftColumn, ReturnsErrorIfValuesIsEmptyButGridIsNot) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    constexpr auto values = std::vector<double>{};
+
+    EXPECT_FALSE(set_left_column(grid, values).has_value());
+}
+
+TEST(SetLeftColumn, DoesNothingIfBothValuesAndGridAreEmtpy) {
+    constexpr auto grid = Matrix2D{};
+    constexpr auto values = std::vector<double>{};
+
+    EXPECT_TRUE(set_left_column(grid, values).value().empty());
+}
+
+TEST(SetLeftColumn, ReturnsErrorIfNumValuesIsNotSameAsNumOfRows) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}};
+    const auto values = std::vector<double>{10, 11, 12};
+
+    EXPECT_FALSE(set_left_column(grid, values).has_value());
+}

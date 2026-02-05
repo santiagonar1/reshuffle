@@ -24,6 +24,10 @@ namespace heat {
 
         auto set_top_row(const Matrix2D &grid, const std::vector<double> &values)
                 -> std::expected<Matrix2D, SetBoundaryError>;
+        auto set_bottom_row(const Matrix2D &grid, const std::vector<double> &values)
+                -> std::expected<Matrix2D, SetBoundaryError>;
+        auto set_left_column(const Matrix2D &grid, const std::vector<double> &values)
+                -> std::expected<Matrix2D, SetBoundaryError>;
     }// namespace internal
 
     auto initialize_grid(unsigned int num_rows, unsigned int num_columns) -> Matrix2D;

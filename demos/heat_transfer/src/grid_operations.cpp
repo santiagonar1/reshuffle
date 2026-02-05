@@ -137,6 +137,54 @@ namespace heat {
 
             return new_grid;
         }
+
+        auto set_bottom_row(const Matrix2D &grid, const std::vector<double> &values)
+                -> std::expected<Matrix2D, SetBoundaryError> {
+            if (not do_checks(grid, values).has_value()) {
+                return std::unexpected(do_checks(grid, values).error());
+            }
+
+            if (grid.empty() and values.empty()) { return {}; }
+
+            if (const auto [num_rows, num_columns] = get_dimensions(grid);
+                num_columns != values.size()) {
+                return std::unexpected(SetBoundaryError::INVALID_NUM_VALUES);
+            }
+
+            auto new_grid = Matrix2D{};
+            for (const auto &row: grid | std::ranges::views::take(grid.size() - 1)) {
+                new_grid.emplace_back(row);
+            }
+
+            new_grid.emplace_back(values);
+
+            return new_grid;
+        }
+
+        auto set_left_column(const Matrix2D &grid, const std::vector<double> &values)
+                -> std::expected<Matrix2D, SetBoundaryError> {
+            if (not do_checks(grid, values).has_value()) {
+                return std::unexpected(do_checks(grid, values).error());
+            }
+
+            if (grid.empty() and values.empty()) { return {}; }
+
+            const auto [num_rows, num_columns] = get_dimensions(grid);
+            if (num_rows != values.size()) {
+                return std::unexpected(SetBoundaryError::INVALID_NUM_VALUES);
+            }
+
+            auto new_grid = Matrix2D{};
+            for (auto i = 0; i < num_rows; i++) {
+                auto new_row = std::vector<double>(num_columns);
+                new_row[0] = values[i];
+                auto row_without_left_column = grid[i] | std::ranges::views::drop(1);
+                std::ranges::copy(row_without_left_column, new_row.begin() + 1);
+                new_grid.emplace_back(new_row);
+            }
+
+            return new_grid;
+        }
     }// namespace internal
 
     auto initialize_grid(const unsigned int num_rows, const unsigned int num_columns) -> Matrix2D {
