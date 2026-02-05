@@ -252,7 +252,7 @@ TEST(SetTopRow, DoesNothingIfBothValuesAndGridAreEmtpy) {
 }
 
 TEST(SetTopRow, ReturnsErrorIfNumValuesIsNotSameAsNumOfColumns) {
-    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}};
     const auto values = std::vector<double>{10, 11};
 
     EXPECT_FALSE(set_top_row(grid, values).has_value());
@@ -288,7 +288,7 @@ TEST(SetBottomRow, DoesNothingIfBothValuesAndGridAreEmtpy) {
 }
 
 TEST(SetBottomRow, ReturnsErrorIfNumValuesIsNotSameAsNumOfColumns) {
-    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}};
     const auto values = std::vector<double>{10, 11};
 
     EXPECT_FALSE(set_top_row(grid, values).has_value());
