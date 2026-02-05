@@ -128,6 +128,15 @@ TEST(RemoveGhostLayer, CanRemoveRightGhostLayer) {
     EXPECT_THAT(remove_ghost_layer(grid, Location::RIGHT), Eq(expected));
 }
 
+TEST(RemoveGhostLayer, DoesNothingIfGridIsEmtpy) {
+    constexpr auto grid = Matrix2D{};
+
+    EXPECT_TRUE(remove_ghost_layer(grid, Location::TOP).empty());
+    EXPECT_TRUE(remove_ghost_layer(grid, Location::BOTTOM).empty());
+    EXPECT_TRUE(remove_ghost_layer(grid, Location::LEFT).empty());
+    EXPECT_TRUE(remove_ghost_layer(grid, Location::RIGHT).empty());
+}
+
 TEST(GetTopRow, ReturnsGridTopRow) {
     const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
 
