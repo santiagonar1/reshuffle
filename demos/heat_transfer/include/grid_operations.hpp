@@ -23,8 +23,10 @@ namespace heat {
     auto initialize_grid(unsigned int num_rows, unsigned int num_columns) -> Matrix2D;
     auto get_dimensions(const Matrix2D &grid) -> std::pair<unsigned int, unsigned int>;
     auto apply_jacobi(const Matrix2D &grid) -> Matrix2D;
+
     auto add_ghost_layers(const Matrix2D &grid) -> Matrix2D;
     auto remove_ghost_layer(const Matrix2D &grid, const Location &location) -> Matrix2D;
+    auto get_ghost_layer(const Matrix2D &grid, const Location &location) -> std::vector<double>;
 
 }// namespace heat
 

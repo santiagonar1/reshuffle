@@ -155,3 +155,31 @@ TEST(GetRightColumn, ReturnsGridRightColumn) {
     const auto expected = std::vector<double>{3, 6, 9};
     EXPECT_THAT(get_right_column(grid), Eq(expected));
 }
+
+TEST(GetGhostLayer, CanReturnTopGhostLayer) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+
+    const auto expected = std::vector<double>{1, 2, 3};
+    EXPECT_THAT(get_ghost_layer(grid, Location::TOP), Eq(expected));
+}
+
+TEST(GetGhostLayer, CanReturnBottomGhostLayer) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+
+    const auto expected = std::vector<double>{7, 8, 9};
+    EXPECT_THAT(get_ghost_layer(grid, Location::BOTTOM), Eq(expected));
+}
+
+TEST(GetGhostLayer, CanReturnLeftGhostLayer) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+
+    const auto expected = std::vector<double>{1, 4, 7};
+    EXPECT_THAT(get_ghost_layer(grid, Location::LEFT), Eq(expected));
+}
+
+TEST(GetGhostLayer, CanReturnRightGhostLayer) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+
+    const auto expected = std::vector<double>{3, 6, 9};
+    EXPECT_THAT(get_ghost_layer(grid, Location::RIGHT), Eq(expected));
+}

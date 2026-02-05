@@ -158,4 +158,21 @@ namespace heat {
         throw std::runtime_error("Invalid location");
     }
 
+    auto get_ghost_layer(const Matrix2D &grid, const Location &location) -> std::vector<double> {
+        if (grid.empty()) { return {}; }
+
+        switch (location) {
+            case Location::TOP:
+                return internal::get_top_row(grid);
+            case Location::BOTTOM:
+                return internal::get_bottom_row(grid);
+            case Location::LEFT:
+                return internal::get_left_column(grid);
+            case Location::RIGHT:
+                return internal::get_right_column(grid);
+        }
+
+        throw std::runtime_error("Invalid location");
+    }
+
 }// namespace heat
