@@ -99,4 +99,16 @@ namespace heat {
         return new_grid;
     }
 
+    auto add_ghost_layers(const Matrix2D &grid) -> Matrix2D {
+        if (grid.empty()) { return {}; }
+
+        const auto [num_rows, num_columns] = get_dimensions(grid);
+
+        auto new_grid = Matrix2D(num_rows + 2, std::vector<double>(num_columns + 2, 0));
+        for (int i = 1; i < num_rows + 1; i++) {
+            for (int j = 1; j < num_columns + 1; j++) { new_grid[i][j] = grid[i - 1][j - 1]; }
+        }
+        return new_grid;
+    }
+
 }// namespace heat
