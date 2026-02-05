@@ -71,6 +71,12 @@ namespace heat {
 
             return new_grid;
         }
+
+        auto get_top_row(const Matrix2D &grid) -> std::vector<double> {
+            if (grid.empty()) { return {}; }
+
+            return grid.front();
+        }
     }// namespace internal
 
     auto initialize_grid(const unsigned int num_rows, const unsigned int num_columns) -> Matrix2D {
