@@ -183,3 +183,12 @@ TEST(GetGhostLayer, CanReturnRightGhostLayer) {
     const auto expected = std::vector<double>{3, 6, 9};
     EXPECT_THAT(get_ghost_layer(grid, Location::RIGHT), Eq(expected));
 }
+
+TEST(GetGhostLayer, IfTheGridIsEmtpyReturnsEmtpyVector) {
+    const auto grid = Matrix2D{};
+
+    EXPECT_TRUE(get_ghost_layer(grid, Location::TOP).empty());
+    EXPECT_TRUE(get_ghost_layer(grid, Location::BOTTOM).empty());
+    EXPECT_TRUE(get_ghost_layer(grid, Location::LEFT).empty());
+    EXPECT_TRUE(get_ghost_layer(grid, Location::RIGHT).empty());
+}
