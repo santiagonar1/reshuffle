@@ -280,4 +280,20 @@ namespace heat {
         throw std::runtime_error("Invalid location");
     }
 
+    auto set_ghost_layer(const Matrix2D &grid, const std::vector<double> &values,
+                         const Location &location) -> std::expected<Matrix2D, SetBoundaryError> {
+        switch (location) {
+            case Location::TOP:
+                return internal::set_top_row(grid, values);
+            case Location::BOTTOM:
+                return internal::set_bottom_row(grid, values);
+            case Location::LEFT:
+                return internal::set_left_column(grid, values);
+            case Location::RIGHT:
+                return internal::set_right_column(grid, values);
+        }
+
+        throw std::runtime_error("Invalid location");
+    }
+
 }// namespace heat

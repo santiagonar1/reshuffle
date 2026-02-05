@@ -222,6 +222,38 @@ TEST(GetGhostLayer, IfTheGridIsEmtpyReturnsEmtpyVector) {
     EXPECT_TRUE(get_ghost_layer(grid, Location::RIGHT).empty());
 }
 
+TEST(SetGhostLayer, CanSetValuesTopGhostLayer) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    const auto values = std::vector<double>{10, 11, 12};
+
+    const auto expected = Matrix2D{{10, 11, 12}, {4, 5, 6}, {7, 8, 9}};
+    EXPECT_THAT(set_ghost_layer(grid, values, Location::TOP).value(), Eq(expected));
+}
+
+TEST(SetGhostLayer, CanSetValuesBottomGhostLayer) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    const auto values = std::vector<double>{10, 11, 12};
+
+    const auto expected = Matrix2D{{1, 2, 3}, {4, 5, 6}, {10, 11, 12}};
+    EXPECT_THAT(set_ghost_layer(grid, values, Location::BOTTOM).value(), Eq(expected));
+}
+
+TEST(SetGhostLayer, CanSetValuesLeftGhostLayer) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    const auto values = std::vector<double>{10, 11, 12};
+
+    const auto expected = Matrix2D{{10, 2, 3}, {11, 5, 6}, {12, 8, 9}};
+    EXPECT_THAT(set_ghost_layer(grid, values, Location::LEFT).value(), Eq(expected));
+}
+
+TEST(SetGhostLayer, CanSetValuesRightGhostLayer) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    const auto values = std::vector<double>{10, 11, 12};
+
+    const auto expected = Matrix2D{{1, 2, 10}, {4, 5, 11}, {7, 8, 12}};
+    EXPECT_THAT(set_ghost_layer(grid, values, Location::RIGHT).value(), Eq(expected));
+}
+
 TEST(SetTopRow, SetsValuesGridTopRow) {
     const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
     const auto values = std::vector<double>{10, 11, 12};
