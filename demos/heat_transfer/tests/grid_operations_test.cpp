@@ -58,6 +58,11 @@ TEST(GetDimensions, ReturnsGridDimensions) {
     EXPECT_THAT(get_dimensions(grid), Eq(expected));
 }
 
+TEST(GetDimensions, WorksWithEmptyGrids) {
+    constexpr auto grid = Matrix2D{};
+    EXPECT_THAT(get_dimensions(grid), Eq(std::pair{0, 0}));
+}
+
 TEST(ApplyJacobi, AppliesJacobiMethodToGrid) {
     const auto grid = Matrix2D{{1, 1, 1, 1}, {1, 0, 0, 1}, {1, 0, 0, 1}, {1, 1, 1, 1}};
 
