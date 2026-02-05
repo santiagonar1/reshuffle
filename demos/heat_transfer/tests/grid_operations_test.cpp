@@ -4,6 +4,7 @@
 #include <grid_operations.hpp>
 
 using namespace heat;
+using namespace heat::internal;
 
 using testing::Eq;
 

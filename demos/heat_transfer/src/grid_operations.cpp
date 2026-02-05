@@ -1,30 +1,31 @@
 #include "grid_operations.hpp"
 
 namespace heat {
+    namespace internal {
+        auto set_boundary_to(const Matrix2D &grid, const double value) -> Matrix2D {
+            if (grid.empty()) { return {}; }
+
+            auto result = grid;
+            const auto num_rows = grid.size();
+            const auto num_columns = grid[0].size();
+
+            for (auto i = 0; i < num_rows; i++) {
+                result[i][0] = value;
+                result[i][num_columns - 1] = value;
+            }
+
+            for (auto j = 0; j < num_columns; j++) {
+                result[0][j] = value;
+                result[num_rows - 1][j] = value;
+            }
+
+            return result;
+        }
+    }// namespace internal
 
     auto initialize_grid(const unsigned int num_rows, const unsigned int num_columns) -> Matrix2D {
         const auto grid = Matrix2D(num_rows, std::vector<double>(num_columns, 0));
-        return set_boundary_to(grid, 100);
-    }
-
-    auto set_boundary_to(const Matrix2D &grid, const double value) -> Matrix2D {
-        if (grid.empty()) { return {}; }
-
-        auto result = grid;
-        const auto num_rows = grid.size();
-        const auto num_columns = grid[0].size();
-
-        for (auto i = 0; i < num_rows; i++) {
-            result[i][0] = value;
-            result[i][num_columns - 1] = value;
-        }
-
-        for (auto j = 0; j < num_columns; j++) {
-            result[0][j] = value;
-            result[num_rows - 1][j] = value;
-        }
-
-        return result;
+        return internal::set_boundary_to(grid, 100);
     }
 
     auto get_dimensions(const Matrix2D &grid) -> std::pair<unsigned int, unsigned int> {
