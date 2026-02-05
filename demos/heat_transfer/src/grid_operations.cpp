@@ -111,4 +111,21 @@ namespace heat {
         return new_grid;
     }
 
+    auto remove_ghost_layer(const Matrix2D &grid, const Location &location) -> Matrix2D {
+        if (grid.empty()) { return {}; }
+
+        switch (location) {
+            case Location::TOP:
+                return internal::remove_top_row(grid);
+            case Location::BOTTOM:
+                return internal::remove_bottom_row(grid);
+            case Location::LEFT:
+                return internal::remove_left_column(grid);
+            case Location::RIGHT:
+                return internal::remove_right_column(grid);
+        }
+
+        throw std::runtime_error("Invalid location");
+    }
+
 }// namespace heat
