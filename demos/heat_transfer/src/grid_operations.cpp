@@ -45,6 +45,19 @@ namespace heat {
 
             return new_grid;
         }
+
+        auto remove_left_column(const Matrix2D &grid) -> Matrix2D {
+            if (grid.empty()) { return {}; }
+
+            auto new_grid = Matrix2D{};
+            for (const auto &row: grid) {
+                auto row_without_left_column = row | std::ranges::views::drop(1);
+                new_grid.emplace_back(row_without_left_column.begin(),
+                                      row_without_left_column.end());
+            }
+
+            return new_grid;
+        }
     }// namespace internal
 
     auto initialize_grid(const unsigned int num_rows, const unsigned int num_columns) -> Matrix2D {

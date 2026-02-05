@@ -74,3 +74,10 @@ TEST(RemoveBottomRow, RemovesTheBottomRowOfAGrid) {
     const auto expected = Matrix2D{{1, 2, 3}, {4, 5, 6}};
     EXPECT_THAT(remove_bottom_row(grid), Eq(expected));
 }
+
+TEST(RemoveLeftColumn, RemovesTheLeftColumnOfAGrid) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+
+    const auto expected = Matrix2D{{2, 3}, {5, 6}, {8, 9}};
+    EXPECT_THAT(remove_left_column(grid), Eq(expected));
+}
