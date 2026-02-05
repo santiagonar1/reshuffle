@@ -100,6 +100,11 @@ TEST(AddGhostLayers, AddGhostLayersToGrid) {
     EXPECT_THAT(add_ghost_layers(grid), Eq(expected));
 }
 
+TEST(AddGhostLayer, DoesNothingIfGridIsEmpty) {
+    constexpr auto grid = Matrix2D{};
+    EXPECT_TRUE(add_ghost_layers(grid).empty());
+}
+
 TEST(RemoveGhostLayer, CanRemoveTopGhostLayer) {
     const auto grid = Matrix2D{{0, 0, 0, 0}, {0, 1, 2, 0}, {0, 3, 4, 0}, {0, 0, 0, 0}};
 
