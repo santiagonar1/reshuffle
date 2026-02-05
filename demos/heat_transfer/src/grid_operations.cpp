@@ -185,6 +185,31 @@ namespace heat {
 
             return new_grid;
         }
+
+        auto set_right_column(const Matrix2D &grid, const std::vector<double> &values)
+                -> std::expected<Matrix2D, SetBoundaryError> {
+            if (not do_checks(grid, values).has_value()) {
+                return std::unexpected(do_checks(grid, values).error());
+            }
+
+            if (grid.empty() and values.empty()) { return {}; }
+
+            const auto [num_rows, num_columns] = get_dimensions(grid);
+            if (num_rows != values.size()) {
+                return std::unexpected(SetBoundaryError::INVALID_NUM_VALUES);
+            }
+
+            auto new_grid = Matrix2D{};
+            for (auto i = 0; i < num_rows; i++) {
+                auto row_without_right_column = grid[i] | std::ranges::views::take(num_columns - 1);
+                auto new_row = std::vector<double>{row_without_right_column.begin(),
+                                                   row_without_right_column.end()};
+                new_row.push_back(values[i]);
+                new_grid.emplace_back(new_row);
+            }
+
+            return new_grid;
+        }
     }// namespace internal
 
     auto initialize_grid(const unsigned int num_rows, const unsigned int num_columns) -> Matrix2D {
