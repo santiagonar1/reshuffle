@@ -194,7 +194,7 @@ TEST(GetGhostLayer, CanReturnRightGhostLayer) {
 }
 
 TEST(GetGhostLayer, IfTheGridIsEmtpyReturnsEmtpyVector) {
-    const auto grid = Matrix2D{};
+    constexpr auto grid = Matrix2D{};
 
     EXPECT_TRUE(get_ghost_layer(grid, Location::TOP).empty());
     EXPECT_TRUE(get_ghost_layer(grid, Location::BOTTOM).empty());
