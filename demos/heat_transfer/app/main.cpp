@@ -9,13 +9,13 @@ int main() {
     constexpr auto num_columns = num_rows;
 
     const auto output_folder = std::filesystem::current_path() / "output";
-    heat::vtk::create_folder(output_folder);
+    const auto files_prefix = "vtk_output_";
+
+    const auto writer = heat::vtk::VTKWriter{output_folder, files_prefix};
 
     auto grid = heat::initialize_grid(num_rows, num_columns);
     for (auto i = 0; i < num_iterations; i++) {
-        const auto filename = "heat_transfer_iteration_" + std::to_string(i) + ".vtk";
-        const auto output = output_folder / filename;
-        heat::vtk::write_file(output, grid);
+        writer.record_timestep(i, grid);
         grid = heat::apply_jacobi(grid);
     }
 
