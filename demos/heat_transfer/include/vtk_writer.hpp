@@ -13,6 +13,22 @@ namespace heat::vtk {
     auto write_file(const std::filesystem::path &path, const Matrix2D &grid) -> void;
     auto create_folder(const std::filesystem::path &path) -> void;
 
+    class VTKWriter {
+    public:
+        VTKWriter(const std::filesystem::path &output_folder, std::string files_prefix);
+
+        auto record_timestep(unsigned int current_iteration, const Matrix2D &grid) const -> void;
+
+        static auto write_file(std::ostream &output, const Matrix2D &grid) -> void;
+        static auto write_header(std::ostream &output, unsigned int nx, unsigned int ny) -> void;
+        static auto write_data(std::ostream &output, const Matrix2D &grid, int precision = 5)
+                -> void;
+
+    private:
+        const std::filesystem::path _output_folder;
+        const std::string _files_prefix;
+    };
+
 }// namespace heat::vtk
 
 #endif//RESHUFFLE_VTK_WRITER_HPP

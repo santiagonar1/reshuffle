@@ -10,10 +10,18 @@ using namespace heat;
 
 using testing::Eq;
 
+TEST(VTKWriter, CreatesAnOutputFolder) {
+    constexpr auto output_folder = "test_CreatesAnOutputFolder";
+    const auto _ = VTKWriter{output_folder, "dummy-prefix"};
+
+    EXPECT_TRUE(std::filesystem::exists(output_folder));
+    std::filesystem::remove_all(output_folder);
+}
+
 TEST(WriteHeader, WritesHeaderVTKFile) {
     auto ss = std::ostringstream{};
 
-    write_header(ss, 3, 4);
+    VTKWriter::write_header(ss, 3, 4);
     const auto expected = std::string{"# vtk DataFile Version 4.1\n"
                                       "vtk output\n"
                                       "ASCII\n"
@@ -32,7 +40,7 @@ TEST(WriteData, WritesDataToStream) {
 
     const auto data = Matrix2D{{1, 2}, {3, 4}};
     const auto expected = std::string{"1.00000 2.00000\n3.00000 4.00000\n"};
-    write_data(ss, data);
+    VTKWriter::write_data(ss, data);
     EXPECT_THAT(ss.str(), Eq(expected));
 }
 
@@ -55,17 +63,28 @@ TEST(WriteFile, WritesAVTKFile) {
 
     const auto expected = expected_header + expected_data;
 
-    write_file(ss, data);
+    VTKWriter::write_file(ss, data);
     EXPECT_THAT(ss.str(), Eq(expected));
 }
 
-TEST(WriteFile, CanWriteResultsIntoAFile) {
+TEST(RecordTimestep, CanWriteResultsIntoAFile) {
     const auto data = Matrix2D{{1, 2}, {3, 4}};
-    constexpr auto test_file = std::string{"test.vtk"};
 
-    write_file(test_file, data);
+    const auto output_folder = std::filesystem::path{"test_CanWriteResultsIntoAFile"};
+    const auto files_prefix = "vtk_output_";
+    constexpr auto current_iteration = 0;
 
-    auto input = std::ifstream{test_file, std::ios::in | std::ios::binary};
+    const auto writer = VTKWriter{output_folder, files_prefix};
+
+
+    writer.record_timestep(current_iteration, data);
+
+    const auto expected_path =
+            output_folder / (files_prefix + std::to_string(current_iteration) + ".vtk");
+    ASSERT_TRUE(std::filesystem::exists(expected_path));
+
+
+    auto input = std::ifstream{expected_path, std::ios::in | std::ios::binary};
     auto output = std::ostringstream{};
     output << input.rdbuf();
 
@@ -84,6 +103,5 @@ TEST(WriteFile, CanWriteResultsIntoAFile) {
     const auto expected = expected_header + expected_data;
 
     EXPECT_THAT(output.str(), Eq(expected));
-
-    std::remove(test_file.c_str());
+    std::filesystem::remove_all(output_folder);
 }
