@@ -83,6 +83,15 @@ namespace heat {
 
             return grid.back();
         }
+
+        auto get_left_column(const Matrix2D &grid) -> std::vector<double> {
+            if (grid.empty()) { return {}; }
+
+            auto column = std::vector<double>{};
+            for (const auto &row: grid) { column.emplace_back(row.front()); }
+
+            return column;
+        }
     }// namespace internal
 
     auto initialize_grid(const unsigned int num_rows, const unsigned int num_columns) -> Matrix2D {

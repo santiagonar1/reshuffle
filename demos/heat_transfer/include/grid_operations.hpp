@@ -16,6 +16,7 @@ namespace heat {
 
         auto get_top_row(const Matrix2D &grid) -> std::vector<double>;
         auto get_bottom_row(const Matrix2D &grid) -> std::vector<double>;
+        auto get_left_column(const Matrix2D &grid) -> std::vector<double>;
     }// namespace internal
 
     auto initialize_grid(unsigned int num_rows, unsigned int num_columns) -> Matrix2D;
