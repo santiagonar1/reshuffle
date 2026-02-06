@@ -37,6 +37,12 @@ namespace heat {
                 -> std::expected<Matrix2D, SetBoundaryError>;
 
         [[nodiscard]] auto add_ghost_layers(const Matrix2D &grid) -> Matrix2D;
+        [[nodiscard]] auto exchange_left_right_ghost_layers(const Matrix2D &grid,
+                                                            const ProcessorInfo &processor,
+                                                            MPI_Comm cartesian_comm) -> Matrix2D;
+        [[nodiscard]] auto exchange_bottom_up_ghost_layers(const Matrix2D &grid,
+                                                           const ProcessorInfo &processor,
+                                                           MPI_Comm cartesian_comm) -> Matrix2D;
     }// namespace internal
 
     [[nodiscard]] auto initialize_grid(unsigned int num_rows, unsigned int num_columns) -> Matrix2D;
@@ -54,6 +60,8 @@ namespace heat {
     [[nodiscard]] auto set_ghost_layer(const Matrix2D &grid, const std::vector<double> &values,
                                        const Location &location)
             -> std::expected<Matrix2D, SetBoundaryError>;
+    [[nodiscard]] auto exchange_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor,
+                                             MPI_Comm cartesian_comm) -> Matrix2D;
 
 }// namespace heat
 

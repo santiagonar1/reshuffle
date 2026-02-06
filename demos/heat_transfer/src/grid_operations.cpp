@@ -224,6 +224,95 @@ namespace heat {
             }
             return new_grid;
         }
+
+        auto exchange_left_right_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor,
+                                              MPI_Comm cartesian_comm) -> Matrix2D {
+            const auto [num_rows, _] = get_dimensions(grid);
+
+            auto new_left_layer = processor.has_left_neighbour() ? std::vector<double>(num_rows)
+                                                                 : std::vector<double>{};
+            auto new_right_layer = processor.has_right_neighbour() ? std::vector<double>(num_rows)
+                                                                   : std::vector<double>{};
+
+            auto requests = std::array<MPI_Request, 4>{};
+            auto n = 0;
+
+            const auto left_layer = processor.has_left_neighbour()
+                                            ? get_ghost_layer(grid, Location::LEFT)
+                                            : std::vector<double>{};
+            const auto right_layer = processor.has_right_neighbour()
+                                             ? get_ghost_layer(grid, Location::RIGHT)
+                                             : std::vector<double>{};
+
+            MPI_Irecv(new_left_layer.data(), new_left_layer.size(), MPI_DOUBLE,
+                      processor.get_left_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
+            MPI_Irecv(new_right_layer.data(), new_right_layer.size(), MPI_DOUBLE,
+                      processor.get_right_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
+            MPI_Isend(left_layer.data(), left_layer.size(), MPI_DOUBLE,
+                      processor.get_left_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
+            MPI_Isend(right_layer.data(), right_layer.size(), MPI_DOUBLE,
+                      processor.get_right_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
+
+            MPI_Waitall(n, requests.data(), MPI_STATUSES_IGNORE);
+
+            auto new_grid = grid;
+
+            if (processor.has_left_neighbour()) {
+                new_grid = set_ghost_layer(new_grid, new_left_layer, Location::LEFT).value();
+            }
+
+            if (processor.has_right_neighbour()) {
+                new_grid = set_ghost_layer(grid, new_right_layer, Location::RIGHT).value();
+            }
+
+            return new_grid;
+        }
+
+        auto exchange_bottom_up_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor,
+                                             MPI_Comm cartesian_comm) -> Matrix2D {
+
+            const auto [num_rows, num_columns] = get_dimensions(grid);
+
+            auto new_up_layer = processor.has_up_neighbour() ? std::vector<double>(num_columns)
+                                                             : std::vector<double>{};
+            auto new_down_layer = processor.has_down_neighbour() ? std::vector<double>(num_columns)
+                                                                 : std::vector<double>{};
+
+            auto requests = std::array<MPI_Request, 4>{};
+            auto n = 0;
+
+            const auto up_layer = processor.has_up_neighbour()
+                                          ? get_ghost_layer(grid, Location::TOP)
+                                          : std::vector<double>{};
+            const auto down_layer = processor.has_down_neighbour()
+                                            ? get_ghost_layer(grid, Location::BOTTOM)
+                                            : std::vector<double>{};
+
+            MPI_Irecv(new_up_layer.data(), new_up_layer.size(), MPI_DOUBLE,
+                      processor.get_up_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
+            MPI_Irecv(new_down_layer.data(), new_down_layer.size(), MPI_DOUBLE,
+                      processor.get_down_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
+
+
+            MPI_Isend(up_layer.data(), up_layer.size(), MPI_DOUBLE, processor.get_up_neighbour(), 0,
+                      MPI_COMM_WORLD, &requests[n++]);
+            MPI_Isend(down_layer.data(), down_layer.size(), MPI_DOUBLE,
+                      processor.get_down_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
+
+            MPI_Waitall(n, requests.data(), MPI_STATUSES_IGNORE);
+
+            auto new_grid = grid;
+
+            if (processor.has_up_neighbour()) {
+                new_grid = set_ghost_layer(new_grid, new_up_layer, Location::TOP).value();
+            }
+
+            if (processor.has_down_neighbour()) {
+                new_grid = set_ghost_layer(grid, new_down_layer, Location::BOTTOM).value();
+            }
+
+            return new_grid;
+        }
     }// namespace internal
 
     auto initialize_grid(const unsigned int num_rows, const unsigned int num_columns) -> Matrix2D {
@@ -318,6 +407,13 @@ namespace heat {
         }
 
         throw std::runtime_error("Invalid location");
+    }
+
+    auto exchange_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor,
+                               const MPI_Comm cartesian_comm) -> Matrix2D {
+        return internal::exchange_bottom_up_ghost_layers(
+                internal::exchange_left_right_ghost_layers(grid, processor, cartesian_comm),
+                processor, cartesian_comm);
     }
 
 }// namespace heat
