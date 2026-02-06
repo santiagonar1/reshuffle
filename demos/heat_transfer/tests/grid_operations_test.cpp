@@ -39,6 +39,22 @@ TEST(InitializeGrid, InitializesInnerCellsTo0) {
     }
 }
 
+TEST(ToGrid, ConvertsOneDimensionalRepresentationToGrid) {
+    const auto values = std::vector<double>{1, 2, 3, 4, 5, 6};
+    const auto dimensions = reshuffle::Dimensions{2, 3};
+
+    const auto expected = Matrix2D{{1, 2, 3}, {4, 5, 6}};
+    EXPECT_THAT(to_grid(OneDimensionRepresentation{values, dimensions}).value(), Eq(expected));
+}
+
+TEST(ToGrid, ReturnsErrorIfMismatchedBetweenDimensionsAndNumValues) {
+    const auto values = std::vector<double>{1, 2, 3};
+    const auto dimensions = reshuffle::Dimensions{2, 4};
+
+    EXPECT_THAT(to_grid(OneDimensionRepresentation{values, dimensions}).error(),
+                Eq(ToGridError::MISMATCH_DIMENSIONS_AND_NUM_VALUES));
+}
+
 TEST(SetBoundaryTo, ReturnsNewGridWithNewBoundaryValues) {
     const auto values = Matrix2D{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
 

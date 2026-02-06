@@ -2,6 +2,8 @@
 
 #include <ranges>
 
+#include <mdspan.hpp>
+
 namespace heat {
     namespace internal {
         auto set_boundary_to(const Matrix2D &grid, const double value) -> Matrix2D {
@@ -215,6 +217,23 @@ namespace heat {
     auto initialize_grid(const unsigned int num_rows, const unsigned int num_columns) -> Matrix2D {
         const auto grid = Matrix2D(num_rows, std::vector<double>(num_columns, 0));
         return internal::set_boundary_to(grid, 100);
+    }
+
+    auto to_grid(const OneDimensionRepresentation &input) -> std::expected<Matrix2D, ToGridError> {
+        const auto &[values, dimensions] = input;
+
+        if (reshuffle::internal::calc_total_num_values(dimensions) != values.size()) {
+            return std::unexpected(ToGridError::MISMATCH_DIMENSIONS_AND_NUM_VALUES);
+        }
+
+        const auto as_span = std::mdspan(values.data(), dimensions);
+
+        auto grid = Matrix2D(dimensions[0], std::vector<double>(dimensions[1], 0));
+        for (int i = 0; i < dimensions[0]; i++) {
+            for (int j = 0; j < dimensions[1]; j++) { grid[i][j] = as_span[i, j]; }
+        }
+
+        return grid;
     }
 
     auto get_dimensions(const Matrix2D &grid) -> std::pair<unsigned int, unsigned int> {
