@@ -4,6 +4,7 @@
 #include "block_cyclic.hpp"
 #include "block_wise.hpp"
 #include "general_data_distribution.hpp"
+#include "mpi_utils.hpp"
 #include "shuffle.hpp"
 
 #endif//RESHUFFLE_RESHUFFLE_HPP
