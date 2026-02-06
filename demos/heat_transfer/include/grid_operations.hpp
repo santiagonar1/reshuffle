@@ -2,6 +2,7 @@
 #define RESHUFFLE_GRID_OPERATIONS_HPP
 
 #include "matrix.hpp"
+#include "processor_info.hpp"
 #include "reshuffle.hpp"
 
 #include <expected>
@@ -34,6 +35,8 @@ namespace heat {
                 -> std::expected<Matrix2D, SetBoundaryError>;
         auto set_right_column(const Matrix2D &grid, const std::vector<double> &values)
                 -> std::expected<Matrix2D, SetBoundaryError>;
+
+        auto add_ghost_layers(const Matrix2D &grid) -> Matrix2D;
     }// namespace internal
 
     auto initialize_grid(unsigned int num_rows, unsigned int num_columns) -> Matrix2D;
@@ -42,8 +45,7 @@ namespace heat {
     auto get_dimensions(const Matrix2D &grid) -> std::pair<unsigned int, unsigned int>;
     auto apply_jacobi(const Matrix2D &grid) -> Matrix2D;
 
-    auto add_ghost_layers(const Matrix2D &grid) -> Matrix2D;
-    auto remove_ghost_layer(const Matrix2D &grid, const Location &location) -> Matrix2D;
+    auto add_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D;
     auto get_ghost_layer(const Matrix2D &grid, const Location &location) -> std::vector<double>;
     auto set_ghost_layer(const Matrix2D &grid, const std::vector<double> &values,
                          const Location &location) -> std::expected<Matrix2D, SetBoundaryError>;

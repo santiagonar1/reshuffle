@@ -212,6 +212,18 @@ namespace heat {
 
             return new_grid;
         }
+
+        auto add_ghost_layers(const Matrix2D &grid) -> Matrix2D {
+            if (grid.empty()) { return {}; }
+
+            const auto [num_rows, num_columns] = get_dimensions(grid);
+
+            auto new_grid = Matrix2D(num_rows + 2, std::vector<double>(num_columns + 2, 0));
+            for (int i = 1; i < num_rows + 1; i++) {
+                for (int j = 1; j < num_columns + 1; j++) { new_grid[i][j] = grid[i - 1][j - 1]; }
+            }
+            return new_grid;
+        }
     }// namespace internal
 
     auto initialize_grid(const unsigned int num_rows, const unsigned int num_columns) -> Matrix2D {
@@ -257,31 +269,24 @@ namespace heat {
         return new_grid;
     }
 
-    auto add_ghost_layers(const Matrix2D &grid) -> Matrix2D {
-        if (grid.empty()) { return {}; }
+    auto add_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
+        auto new_grid = internal::add_ghost_layers(grid);
 
-        const auto [num_rows, num_columns] = get_dimensions(grid);
+        if (not processor.has_up_neighbour()) { new_grid = internal::remove_top_row(new_grid); }
 
-        auto new_grid = Matrix2D(num_rows + 2, std::vector<double>(num_columns + 2, 0));
-        for (int i = 1; i < num_rows + 1; i++) {
-            for (int j = 1; j < num_columns + 1; j++) { new_grid[i][j] = grid[i - 1][j - 1]; }
+        if (not processor.has_down_neighbour()) {
+            new_grid = internal::remove_bottom_row(new_grid);
         }
+
+        if (not processor.has_left_neighbour()) {
+            new_grid = internal::remove_left_column(new_grid);
+        }
+
+        if (not processor.has_right_neighbour()) {
+            new_grid = internal::remove_right_column(new_grid);
+        }
+
         return new_grid;
-    }
-
-    auto remove_ghost_layer(const Matrix2D &grid, const Location &location) -> Matrix2D {
-        switch (location) {
-            case Location::TOP:
-                return internal::remove_top_row(grid);
-            case Location::BOTTOM:
-                return internal::remove_bottom_row(grid);
-            case Location::LEFT:
-                return internal::remove_left_column(grid);
-            case Location::RIGHT:
-                return internal::remove_right_column(grid);
-        }
-
-        throw std::runtime_error("Invalid location");
     }
 
     auto get_ghost_layer(const Matrix2D &grid, const Location &location) -> std::vector<double> {

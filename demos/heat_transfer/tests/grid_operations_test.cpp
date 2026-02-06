@@ -136,43 +136,6 @@ TEST(AddGhostLayer, DoesNothingIfGridIsEmpty) {
     EXPECT_TRUE(add_ghost_layers(grid).empty());
 }
 
-TEST(RemoveGhostLayer, CanRemoveTopGhostLayer) {
-    const auto grid = Matrix2D{{0, 0, 0, 0}, {0, 1, 2, 0}, {0, 3, 4, 0}, {0, 0, 0, 0}};
-
-    const auto expected = Matrix2D{{0, 1, 2, 0}, {0, 3, 4, 0}, {0, 0, 0, 0}};
-    EXPECT_THAT(remove_ghost_layer(grid, Location::TOP), Eq(expected));
-}
-
-TEST(RemoveGhostLayer, CanRemoveBottomGhostLayer) {
-    const auto grid = Matrix2D{{0, 0, 0, 0}, {0, 1, 2, 0}, {0, 3, 4, 0}, {0, 0, 0, 0}};
-
-    const auto expected = Matrix2D{{0, 0, 0, 0}, {0, 1, 2, 0}, {0, 3, 4, 0}};
-    EXPECT_THAT(remove_ghost_layer(grid, Location::BOTTOM), Eq(expected));
-}
-
-TEST(RemoveGhostLayer, CanRemoveLeftGhostLayer) {
-    const auto grid = Matrix2D{{0, 0, 0, 0}, {0, 1, 2, 0}, {0, 3, 4, 0}, {0, 0, 0, 0}};
-
-    const auto expected = Matrix2D{{0, 0, 0}, {1, 2, 0}, {3, 4, 0}, {0, 0, 0}};
-    EXPECT_THAT(remove_ghost_layer(grid, Location::LEFT), Eq(expected));
-}
-
-TEST(RemoveGhostLayer, CanRemoveRightGhostLayer) {
-    const auto grid = Matrix2D{{0, 0, 0, 0}, {0, 1, 2, 0}, {0, 3, 4, 0}, {0, 0, 0, 0}};
-
-    const auto expected = Matrix2D{{0, 0, 0}, {0, 1, 2}, {0, 3, 4}, {0, 0, 0}};
-    EXPECT_THAT(remove_ghost_layer(grid, Location::RIGHT), Eq(expected));
-}
-
-TEST(RemoveGhostLayer, DoesNothingIfGridIsEmtpy) {
-    constexpr auto grid = Matrix2D{};
-
-    EXPECT_TRUE(remove_ghost_layer(grid, Location::TOP).empty());
-    EXPECT_TRUE(remove_ghost_layer(grid, Location::BOTTOM).empty());
-    EXPECT_TRUE(remove_ghost_layer(grid, Location::LEFT).empty());
-    EXPECT_TRUE(remove_ghost_layer(grid, Location::RIGHT).empty());
-}
-
 TEST(GetTopRow, ReturnsGridTopRow) {
     const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
 
