@@ -109,7 +109,7 @@ namespace heat {
             }
 
             if (values.empty() and not grid.empty()) {
-                return std::unexpected(SetBoundaryError::EMPTY_VECTOR);
+                return std::unexpected(SetBoundaryError::EMPTY_VALUES);
             }
 
             return {};

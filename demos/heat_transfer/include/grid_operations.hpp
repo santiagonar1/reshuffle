@@ -7,7 +7,7 @@
 
 namespace heat {
     enum class Location { LEFT, RIGHT, TOP, BOTTOM };
-    enum class SetBoundaryError { INVALID_NUM_VALUES, EMPTY_VECTOR, EMPTY_GRID };
+    enum class SetBoundaryError { INVALID_NUM_VALUES, EMPTY_VALUES, EMPTY_GRID };
 
     namespace internal {
         auto set_boundary_to(const Matrix2D &grid, double value) -> Matrix2D;
