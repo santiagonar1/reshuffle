@@ -55,6 +55,8 @@ namespace heat {
 
     [[nodiscard]] auto add_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor)
             -> Matrix2D;
+    [[nodiscard]] auto remove_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor)
+            -> Matrix2D;
     [[nodiscard]] auto get_ghost_layer(const Matrix2D &grid, const Location &location)
             -> std::vector<double>;
     [[nodiscard]] auto set_ghost_layer(const Matrix2D &grid, const std::vector<double> &values,

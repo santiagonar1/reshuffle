@@ -378,6 +378,20 @@ namespace heat {
         return new_grid;
     }
 
+    auto remove_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
+        auto new_grid = grid;
+
+        if (processor.has_up_neighbour()) { new_grid = internal::remove_top_row(new_grid); }
+
+        if (processor.has_down_neighbour()) { new_grid = internal::remove_bottom_row(new_grid); }
+
+        if (processor.has_left_neighbour()) { new_grid = internal::remove_left_column(new_grid); }
+
+        if (processor.has_right_neighbour()) { new_grid = internal::remove_right_column(new_grid); }
+
+        return new_grid;
+    }
+
     auto get_ghost_layer(const Matrix2D &grid, const Location &location) -> std::vector<double> {
         switch (location) {
             case Location::TOP:
