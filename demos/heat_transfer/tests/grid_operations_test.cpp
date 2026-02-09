@@ -177,7 +177,7 @@ TEST(AddGhostLayers, AddGhostLayersToGrid) {
     EXPECT_THAT(add_ghost_layers(grid), Eq(expected));
 }
 
-TEST(AddGhostLayer, DoesNothingIfGridIsEmpty) {
+TEST(AddGhostLayers, DoesNothingIfGridIsEmpty) {
     constexpr auto grid = Matrix2D{};
     EXPECT_TRUE(add_ghost_layers(grid).empty());
 }
