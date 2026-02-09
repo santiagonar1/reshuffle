@@ -73,6 +73,12 @@ namespace heat {
             return new_grid;
         }
 
+        auto remove_left_column(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
+            if (processor.has_left_neighbour()) { return remove_left_column(grid); }
+
+            return grid;
+        }
+
         auto remove_right_column(const Matrix2D &grid) -> Matrix2D {
             if (grid.empty()) { return {}; }
 

@@ -135,6 +135,18 @@ TEST(RemoveLeftColumn, RemovesTheLeftColumnOfAGrid) {
     EXPECT_THAT(remove_left_column(grid), Eq(expected));
 }
 
+TEST(RemoveLeftColumn, RemovesLeftColumnONlyIfThereIsANeighbour) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}};
+
+    const auto processor_with_left_neighbour =
+            ProcessorInfo{0, MPI_PROC_NULL, MPI_PROC_NULL, 1, MPI_PROC_NULL};
+    const auto processor_without_left_neighbour = ProcessorInfo{0, 1, 2, MPI_PROC_NULL, 3};
+
+    EXPECT_THAT(remove_left_column(grid, processor_with_left_neighbour),
+                Eq(Matrix2D{{2, 3}, {5, 6}}));
+    EXPECT_THAT(remove_left_column(grid, processor_without_left_neighbour), Eq(grid));
+}
+
 TEST(RemoveRightColumn, RemovesTheRightColumnOfAGrid) {
     const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
 
