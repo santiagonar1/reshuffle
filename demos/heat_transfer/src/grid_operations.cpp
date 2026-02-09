@@ -37,7 +37,8 @@ namespace heat {
             return new_grid;
         }
 
-        auto remove_top_row(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
+        auto remove_top_row_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
+                -> Matrix2D {
             if (not processor.has_up_neighbour()) { return remove_top_row(grid); }
 
             return grid;
@@ -54,7 +55,8 @@ namespace heat {
             return new_grid;
         }
 
-        auto remove_bottom_row(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
+        auto remove_bottom_row_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
+                -> Matrix2D {
             if (not processor.has_down_neighbour()) { return remove_bottom_row(grid); }
 
             return grid;
@@ -73,7 +75,8 @@ namespace heat {
             return new_grid;
         }
 
-        auto remove_left_column(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
+        auto remove_left_column_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
+                -> Matrix2D {
             if (not processor.has_left_neighbour()) { return remove_left_column(grid); }
 
             return grid;
@@ -92,7 +95,8 @@ namespace heat {
             return new_grid;
         }
 
-        auto remove_right_column(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
+        auto remove_right_column_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
+                -> Matrix2D {
             if (not processor.has_right_neighbour()) { return remove_right_column(grid); }
 
             return grid;
@@ -385,10 +389,11 @@ namespace heat {
     auto add_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
         using namespace internal;
 
-        return remove_top_row(
-                remove_bottom_row(
-                        remove_left_column(remove_right_column(add_ghost_layers(grid), processor),
-                                           processor),
+        return remove_top_row_if_necessary(
+                remove_bottom_row_if_necessary(
+                        remove_left_column_if_necessary(
+                                remove_right_column_if_necessary(add_ghost_layers(grid), processor),
+                                processor),
                         processor),
                 processor);
     }
