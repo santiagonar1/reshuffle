@@ -37,7 +37,7 @@ namespace heat {
             return new_grid;
         }
 
-        auto remove_top_row_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
+        auto leave_top_row_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
                 -> Matrix2D {
             if (processor.has_up_neighbour()) { return grid; }
 
@@ -55,7 +55,7 @@ namespace heat {
             return new_grid;
         }
 
-        auto remove_bottom_row_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
+        auto leave_bottom_row_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
                 -> Matrix2D {
             if (processor.has_down_neighbour()) { return grid; }
 
@@ -75,7 +75,7 @@ namespace heat {
             return new_grid;
         }
 
-        auto remove_left_column_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
+        auto leave_left_column_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
                 -> Matrix2D {
             if (processor.has_left_neighbour()) { return grid; }
 
@@ -95,7 +95,7 @@ namespace heat {
             return new_grid;
         }
 
-        auto remove_right_column_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
+        auto leave_right_column_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
                 -> Matrix2D {
             if (processor.has_right_neighbour()) { return grid; }
 
@@ -389,10 +389,10 @@ namespace heat {
     auto add_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
         using namespace internal;
 
-        return remove_top_row_if_necessary(
-                remove_bottom_row_if_necessary(
-                        remove_left_column_if_necessary(
-                                remove_right_column_if_necessary(add_ghost_layers(grid), processor),
+        return leave_top_row_if_necessary(
+                leave_bottom_row_if_necessary(
+                        leave_left_column_if_necessary(
+                                leave_right_column_if_necessary(add_ghost_layers(grid), processor),
                                 processor),
                         processor),
                 processor);
