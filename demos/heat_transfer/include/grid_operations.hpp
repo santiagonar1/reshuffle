@@ -24,6 +24,9 @@ namespace heat {
 
         [[nodiscard]] auto remove_top_row_if_necessary(const Matrix2D &grid,
                                                        const ProcessorInfo &processor) -> Matrix2D;
+        [[nodiscard]] auto remove_bottom_row_if_necessary(const Matrix2D &grid,
+                                                          const ProcessorInfo &processor)
+                -> Matrix2D;
 
         [[nodiscard]] auto leave_top_row_if_necessary(const Matrix2D &grid,
                                                       const ProcessorInfo &processor) -> Matrix2D;

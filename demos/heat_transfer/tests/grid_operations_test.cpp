@@ -130,6 +130,18 @@ TEST(RemoveBottomRow, RemovesTheBottomRowOfAGrid) {
     EXPECT_THAT(remove_bottom_row(grid), Eq(expected));
 }
 
+TEST(RemoveBottomRowIfNecessary, RemovesBottomRowOnlyIfThereIsANeighbour) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}};
+
+    const auto processor_with_bottom_neighbour =
+            ProcessorInfo{0, MPI_PROC_NULL, 1, MPI_PROC_NULL, MPI_PROC_NULL};
+    const auto processor_without_bottom_neighbour = ProcessorInfo{0, 1, MPI_PROC_NULL, 2, 3};
+
+    EXPECT_THAT(remove_bottom_row_if_necessary(grid, processor_without_bottom_neighbour), Eq(grid));
+    EXPECT_THAT(remove_bottom_row_if_necessary(grid, processor_with_bottom_neighbour),
+                Eq(Matrix2D{{1, 2, 3}}));
+}
+
 TEST(LeaveBottomRowIfNecessary, LeavesBottomRowOnlyIfThereIsANeighbour) {
     const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}};
 
