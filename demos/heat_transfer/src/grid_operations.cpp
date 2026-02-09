@@ -383,23 +383,14 @@ namespace heat {
     }
 
     auto add_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
-        auto new_grid = internal::add_ghost_layers(grid);
+        using namespace internal;
 
-        if (not processor.has_up_neighbour()) { new_grid = internal::remove_top_row(new_grid); }
-
-        if (not processor.has_down_neighbour()) {
-            new_grid = internal::remove_bottom_row(new_grid);
-        }
-
-        if (not processor.has_left_neighbour()) {
-            new_grid = internal::remove_left_column(new_grid);
-        }
-
-        if (not processor.has_right_neighbour()) {
-            new_grid = internal::remove_right_column(new_grid);
-        }
-
-        return new_grid;
+        return remove_top_row(
+                remove_bottom_row(
+                        remove_left_column(remove_right_column(add_ghost_layers(grid), processor),
+                                           processor),
+                        processor),
+                processor);
     }
 
     auto remove_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
