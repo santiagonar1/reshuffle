@@ -38,7 +38,7 @@ namespace heat {
         }
 
         auto remove_top_row(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
-            if (processor.has_up_neighbour()) { return remove_top_row(grid); }
+            if (not processor.has_up_neighbour()) { return remove_top_row(grid); }
 
             return grid;
         }
@@ -55,7 +55,7 @@ namespace heat {
         }
 
         auto remove_bottom_row(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
-            if (processor.has_down_neighbour()) { return remove_bottom_row(grid); }
+            if (not processor.has_down_neighbour()) { return remove_bottom_row(grid); }
 
             return grid;
         }
@@ -74,7 +74,7 @@ namespace heat {
         }
 
         auto remove_left_column(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
-            if (processor.has_left_neighbour()) { return remove_left_column(grid); }
+            if (not processor.has_left_neighbour()) { return remove_left_column(grid); }
 
             return grid;
         }
@@ -93,7 +93,7 @@ namespace heat {
         }
 
         auto remove_right_column(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
-            if (processor.has_right_neighbour()) { return remove_right_column(grid); }
+            if (not processor.has_right_neighbour()) { return remove_right_column(grid); }
 
             return grid;
         }

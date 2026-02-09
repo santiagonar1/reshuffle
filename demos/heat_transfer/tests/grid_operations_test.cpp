@@ -99,15 +99,15 @@ TEST(RemoveTopRow, RemovesTheTopRowOfAGrid) {
     EXPECT_THAT(remove_top_row(grid), Eq(expected));
 }
 
-TEST(RemoveTopRow, RemovesTopRowOnlyIfThereIsANeighbour) {
+TEST(RemoveTopRow, RemovesTopRowOnlyIfThereIsNOtANeighbour) {
     const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}};
 
     const auto processor_with_top_neighbour =
             ProcessorInfo{0, 1, MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
     const auto processor_without_top_neighbour = ProcessorInfo{0, MPI_PROC_NULL, 1, 2, 3};
 
-    EXPECT_THAT(remove_top_row(grid, processor_with_top_neighbour), Eq(Matrix2D{{4, 5, 6}}));
-    EXPECT_THAT(remove_top_row(grid, processor_without_top_neighbour), Eq(grid));
+    EXPECT_THAT(remove_top_row(grid, processor_with_top_neighbour), Eq(grid));
+    EXPECT_THAT(remove_top_row(grid, processor_without_top_neighbour), Eq(Matrix2D{{4, 5, 6}}));
 }
 
 TEST(RemoveBottomRow, RemovesTheBottomRowOfAGrid) {
@@ -117,15 +117,16 @@ TEST(RemoveBottomRow, RemovesTheBottomRowOfAGrid) {
     EXPECT_THAT(remove_bottom_row(grid), Eq(expected));
 }
 
-TEST(RemoveBottomRow, RemovesBottomRowOnlyIfThereIsANeighbour) {
+TEST(RemoveBottomRow, RemovesBottomRowOnlyIfThereIsNotANeighbour) {
     const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}};
 
     const auto processor_with_bottom_neighbour =
             ProcessorInfo{0, MPI_PROC_NULL, 1, MPI_PROC_NULL, MPI_PROC_NULL};
     const auto processor_without_bottom_neighbour = ProcessorInfo{0, 1, MPI_PROC_NULL, 2, 3};
 
-    EXPECT_THAT(remove_bottom_row(grid, processor_with_bottom_neighbour), Eq(Matrix2D{{1, 2, 3}}));
-    EXPECT_THAT(remove_bottom_row(grid, processor_without_bottom_neighbour), Eq(grid));
+    EXPECT_THAT(remove_bottom_row(grid, processor_with_bottom_neighbour), Eq(grid));
+    EXPECT_THAT(remove_bottom_row(grid, processor_without_bottom_neighbour),
+                Eq(Matrix2D{{1, 2, 3}}));
 }
 
 TEST(RemoveLeftColumn, RemovesTheLeftColumnOfAGrid) {
@@ -135,16 +136,16 @@ TEST(RemoveLeftColumn, RemovesTheLeftColumnOfAGrid) {
     EXPECT_THAT(remove_left_column(grid), Eq(expected));
 }
 
-TEST(RemoveLeftColumn, RemovesLeftColumnONlyIfThereIsANeighbour) {
+TEST(RemoveLeftColumn, RemovesLeftColumnONlyIfThereIsNotANeighbour) {
     const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}};
 
     const auto processor_with_left_neighbour =
             ProcessorInfo{0, MPI_PROC_NULL, MPI_PROC_NULL, 1, MPI_PROC_NULL};
     const auto processor_without_left_neighbour = ProcessorInfo{0, 1, 2, MPI_PROC_NULL, 3};
 
-    EXPECT_THAT(remove_left_column(grid, processor_with_left_neighbour),
+    EXPECT_THAT(remove_left_column(grid, processor_with_left_neighbour), Eq(grid));
+    EXPECT_THAT(remove_left_column(grid, processor_without_left_neighbour),
                 Eq(Matrix2D{{2, 3}, {5, 6}}));
-    EXPECT_THAT(remove_left_column(grid, processor_without_left_neighbour), Eq(grid));
 }
 
 TEST(RemoveRightColumn, RemovesTheRightColumnOfAGrid) {
@@ -154,16 +155,16 @@ TEST(RemoveRightColumn, RemovesTheRightColumnOfAGrid) {
     EXPECT_THAT(remove_right_column(grid), Eq(expected));
 }
 
-TEST(RemoveRightColumn, RemovesRightColumnONlyIfThereIsANeighbour) {
+TEST(RemoveRightColumn, RemovesRightColumnOnlyIfThereIsNotANeighbour) {
     const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}};
 
     const auto processor_with_right_neighbour =
             ProcessorInfo{0, MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL, 1};
     const auto processor_without_right_neighbour = ProcessorInfo{0, 1, 2, 3, MPI_PROC_NULL};
 
-    EXPECT_THAT(remove_right_column(grid, processor_with_right_neighbour),
+    EXPECT_THAT(remove_right_column(grid, processor_with_right_neighbour), Eq(grid));
+    EXPECT_THAT(remove_right_column(grid, processor_without_right_neighbour),
                 Eq(Matrix2D{{1, 2}, {4, 5}}));
-    EXPECT_THAT(remove_right_column(grid, processor_without_right_neighbour), Eq(grid));
 }
 
 TEST(AddGhostLayers, AddGhostLayersToGrid) {
