@@ -37,6 +37,13 @@ namespace heat {
             return new_grid;
         }
 
+        auto remove_top_row_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
+                -> Matrix2D {
+            if (not processor.has_up_neighbour()) { return grid; }
+
+            return remove_top_row(grid);
+        }
+
         auto leave_top_row_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
                 -> Matrix2D {
             if (processor.has_up_neighbour()) { return grid; }

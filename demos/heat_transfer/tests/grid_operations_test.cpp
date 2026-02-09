@@ -99,6 +99,18 @@ TEST(RemoveTopRow, RemovesTheTopRowOfAGrid) {
     EXPECT_THAT(remove_top_row(grid), Eq(expected));
 }
 
+TEST(RemoveTopRowIfNecessary, RemovesTopRowOnlyIfThereIsANeighbour) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}};
+
+    const auto processor_with_top_neighbour =
+            ProcessorInfo{0, 1, MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
+    const auto processor_without_top_neighbour = ProcessorInfo{0, MPI_PROC_NULL, 1, 2, 3};
+
+    EXPECT_THAT(remove_top_row_if_necessary(grid, processor_without_top_neighbour), Eq(grid));
+    EXPECT_THAT(remove_top_row_if_necessary(grid, processor_with_top_neighbour),
+                Eq(Matrix2D{{4, 5, 6}}));
+}
+
 TEST(LeaveTopRowIfNecessary, LeavesTopRowOnlyIfThereIsANeighbour) {
     const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}};
 
