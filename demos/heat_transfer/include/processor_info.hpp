@@ -11,6 +11,8 @@ namespace heat {
     class ProcessorInfo {
     public:
         explicit ProcessorInfo(const MPI_Comm &cartesian_comm);
+        ProcessorInfo(int rank, reshuffle::RankId up_neighbour, reshuffle::RankId down_neighbour,
+                      reshuffle::RankId left_neighbour, reshuffle::RankId right_neighbour);
 
         [[nodiscard]] auto get_rank() const -> int;
 
@@ -25,7 +27,7 @@ namespace heat {
         [[nodiscard]] auto has_right_neighbour() const -> bool;
 
     private:
-        enum DIRECTIONS { DOWN, UP, LEFT, RIGHT };
+        enum DIRECTIONS { UP, DOWN, LEFT, RIGHT };
         const std::array<int, 4> _neighbours;
         const int _rank;
 

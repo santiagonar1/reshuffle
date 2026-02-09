@@ -3,10 +3,15 @@
 #include <mpi_utils.hpp>
 
 namespace heat {
-
     ProcessorInfo::ProcessorInfo(const MPI_Comm &cartesian_comm)
         : _neighbours(get_neighbours(cartesian_comm)),
           _rank(reshuffle::mpi::get_rank_id(cartesian_comm).value()) {}
+
+    ProcessorInfo::ProcessorInfo(const int rank, const reshuffle::RankId up_neighbour,
+                                 const reshuffle::RankId down_neighbour,
+                                 const reshuffle::RankId left_neighbour,
+                                 const reshuffle::RankId right_neighbour)
+        : _neighbours{up_neighbour, down_neighbour, left_neighbour, right_neighbour}, _rank(rank) {}
 
     auto ProcessorInfo::get_rank() const -> int { return _rank; }
 
