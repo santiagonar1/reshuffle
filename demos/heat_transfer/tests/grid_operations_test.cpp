@@ -182,6 +182,58 @@ TEST(AddGhostLayers, DoesNothingIfGridIsEmpty) {
     EXPECT_TRUE(add_ghost_layers(grid).empty());
 }
 
+TEST(AddGhostLayers, AddsTopLayerOnlyIfProcessorHasANeighbour) {
+    const auto grid = Matrix2D{{4, 5, 6}, {7, 8, 9}};
+
+    const auto processor_with_top_neighbour =
+            ProcessorInfo{0, 1, MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
+    const auto processor_without_top_neighbour = ProcessorInfo{0, MPI_PROC_NULL, 2, 3, 4};
+
+    EXPECT_THAT(add_ghost_layers(grid, processor_with_top_neighbour),
+                Eq(Matrix2D{{0, 0, 0}, {4, 5, 6}, {7, 8, 9}}));
+    EXPECT_THAT(add_ghost_layers(grid, processor_without_top_neighbour),
+                Eq(Matrix2D{{0, 4, 5, 6, 0}, {0, 7, 8, 9, 0}, {0, 0, 0, 0, 0}}));
+}
+
+TEST(AddGhostLayers, AddsBottomLayerOnlyIfProcessorHasANeighbour) {
+    const auto grid = Matrix2D{{4, 5, 6}, {7, 8, 9}};
+
+    const auto processor_with_bottom_neighbour =
+            ProcessorInfo{0, MPI_PROC_NULL, 1, MPI_PROC_NULL, MPI_PROC_NULL};
+    const auto processor_without_bottom_neighbour = ProcessorInfo{0, 1, MPI_PROC_NULL, 3, 4};
+
+    EXPECT_THAT(add_ghost_layers(grid, processor_with_bottom_neighbour),
+                Eq(Matrix2D{{4, 5, 6}, {7, 8, 9}, {0, 0, 0}}));
+    EXPECT_THAT(add_ghost_layers(grid, processor_without_bottom_neighbour),
+                Eq(Matrix2D{{0, 0, 0, 0, 0}, {0, 4, 5, 6, 0}, {0, 7, 8, 9, 0}}));
+}
+
+TEST(AddGhostLayers, AddsLeftLayerOnlyIfProcessorHasANeighbour) {
+    const auto grid = Matrix2D{{4, 5, 6}, {7, 8, 9}};
+
+    const auto processor_with_left_neighbour =
+            ProcessorInfo{0, MPI_PROC_NULL, MPI_PROC_NULL, 1, MPI_PROC_NULL};
+    const auto processor_without_left_neighbour = ProcessorInfo{0, 1, 2, MPI_PROC_NULL, 4};
+
+    EXPECT_THAT(add_ghost_layers(grid, processor_with_left_neighbour),
+                Eq(Matrix2D{{0, 4, 5, 6}, {0, 7, 8, 9}}));
+    EXPECT_THAT(add_ghost_layers(grid, processor_without_left_neighbour),
+                Eq(Matrix2D{{0, 0, 0, 0}, {4, 5, 6, 0}, {7, 8, 9, 0}, {0, 0, 0, 0}}));
+}
+
+TEST(AddGhostLayers, AddsRightLayerOnlyIfProcessorHasANeighbour) {
+    const auto grid = Matrix2D{{4, 5, 6}, {7, 8, 9}};
+
+    const auto processor_with_right_neighbour =
+            ProcessorInfo{0, MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL, 1};
+    const auto processor_without_right_neighbour = ProcessorInfo{0, 1, 2, 3, MPI_PROC_NULL};
+
+    EXPECT_THAT(add_ghost_layers(grid, processor_with_right_neighbour),
+                Eq(Matrix2D{{4, 5, 6, 0}, {7, 8, 9, 0}}));
+    EXPECT_THAT(add_ghost_layers(grid, processor_without_right_neighbour),
+                Eq(Matrix2D{{0, 0, 0, 0}, {0, 4, 5, 6}, {0, 7, 8, 9}, {0, 0, 0, 0}}));
+}
+
 TEST(GetTopRow, ReturnsGridTopRow) {
     const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
 
