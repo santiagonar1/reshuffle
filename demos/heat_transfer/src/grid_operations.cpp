@@ -92,6 +92,12 @@ namespace heat {
             return new_grid;
         }
 
+        auto remove_right_column(const Matrix2D &grid, const ProcessorInfo &processor) -> Matrix2D {
+            if (processor.has_right_neighbour()) { return remove_right_column(grid); }
+
+            return grid;
+        }
+
         auto get_top_row(const Matrix2D &grid) -> std::vector<double> {
             if (grid.empty()) { return {}; }
 

@@ -28,6 +28,8 @@ namespace heat {
                 -> Matrix2D;
         [[nodiscard]] auto remove_left_column(const Matrix2D &grid, const ProcessorInfo &processor)
                 -> Matrix2D;
+        [[nodiscard]] auto remove_right_column(const Matrix2D &grid, const ProcessorInfo &processor)
+                -> Matrix2D;
 
         [[nodiscard]] auto get_top_row(const Matrix2D &grid) -> std::vector<double>;
         [[nodiscard]] auto get_bottom_row(const Matrix2D &grid) -> std::vector<double>;
