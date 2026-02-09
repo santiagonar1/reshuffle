@@ -36,8 +36,8 @@ namespace heat {
 
     auto ProcessorInfo::get_neighbours(const MPI_Comm &cartesian_comm) -> std::array<int, 4> {
         auto neighbours = std::array<int, 4>{};
-        MPI_Cart_shift(cartesian_comm, 0, 1, &neighbours[LEFT], &neighbours[RIGHT]);
-        MPI_Cart_shift(cartesian_comm, 1, 1, &neighbours[UP], &neighbours[DOWN]);
+        MPI_Cart_shift(cartesian_comm, 1, 1, &neighbours[LEFT], &neighbours[RIGHT]);
+        MPI_Cart_shift(cartesian_comm, 0, 1, &neighbours[UP], &neighbours[DOWN]);
 
         return neighbours;
     }
