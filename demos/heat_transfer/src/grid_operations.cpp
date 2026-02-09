@@ -39,9 +39,9 @@ namespace heat {
 
         auto remove_top_row_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
                 -> Matrix2D {
-            if (not processor.has_up_neighbour()) { return remove_top_row(grid); }
+            if (processor.has_up_neighbour()) { return grid; }
 
-            return grid;
+            return remove_top_row(grid);
         }
 
         auto remove_bottom_row(const Matrix2D &grid) -> Matrix2D {
@@ -57,9 +57,9 @@ namespace heat {
 
         auto remove_bottom_row_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
                 -> Matrix2D {
-            if (not processor.has_down_neighbour()) { return remove_bottom_row(grid); }
+            if (processor.has_down_neighbour()) { return grid; }
 
-            return grid;
+            return remove_bottom_row(grid);
         }
 
         auto remove_left_column(const Matrix2D &grid) -> Matrix2D {
@@ -77,9 +77,9 @@ namespace heat {
 
         auto remove_left_column_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
                 -> Matrix2D {
-            if (not processor.has_left_neighbour()) { return remove_left_column(grid); }
+            if (processor.has_left_neighbour()) { return grid; }
 
-            return grid;
+            return remove_left_column(grid);
         }
 
         auto remove_right_column(const Matrix2D &grid) -> Matrix2D {
@@ -97,9 +97,9 @@ namespace heat {
 
         auto remove_right_column_if_necessary(const Matrix2D &grid, const ProcessorInfo &processor)
                 -> Matrix2D {
-            if (not processor.has_right_neighbour()) { return remove_right_column(grid); }
+            if (processor.has_right_neighbour()) { return grid; }
 
-            return grid;
+            return remove_right_column(grid);
         }
 
         auto get_top_row(const Matrix2D &grid) -> std::vector<double> {
