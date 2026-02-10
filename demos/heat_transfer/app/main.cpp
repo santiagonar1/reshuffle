@@ -13,6 +13,9 @@ enum class GetCartesianCommError {
 
 auto get_processor_grid() -> reshuffle::ProcessorGrid<2>;
 auto get_cartesian_comm(MPI_Comm base_comm, reshuffle::ProcessorGrid<2> processor_grid)
+[[nodiscard]] auto get_processor_grid() -> reshuffle::ProcessorGrid<2>;
+[[nodiscard]] auto get_cartesian_comm(MPI_Comm base_comm,
+                                      reshuffle::ProcessorGrid<2> processor_grid)
         -> std::expected<MPI_Comm, GetCartesianCommError>;
 
 int main(int argc, char *argv[]) {
