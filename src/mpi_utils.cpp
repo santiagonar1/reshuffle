@@ -76,7 +76,7 @@ namespace reshuffle::mpi {
     auto belongs_to_comm(const MPI_Comm &comm) -> bool {
         int dummy_rank{};
 
-        if (comm == MPI_COMM_NULL) { return false; }
+        if (is_comm_null(comm)) { return false; }
 
         const MPI_Errhandler current_errhandler =
                 internal::enable_mpi_errors_return(MPI_COMM_WORLD);
