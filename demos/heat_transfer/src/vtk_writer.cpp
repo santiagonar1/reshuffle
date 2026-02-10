@@ -1,5 +1,7 @@
 #include "vtk_writer.hpp"
 
+#include "grid_operations.hpp"
+
 #include <fstream>
 
 namespace heat::vtk {
@@ -47,8 +49,7 @@ namespace heat::vtk {
     }
 
     auto VTKWriter::write_file(std::ostream &output, const Matrix2D &grid) -> void {
-        const auto nx = grid.size();
-        const auto ny = grid[0].size();
+        const auto [nx, ny] = get_dimensions(grid);
 
         write_header(output, ny, nx);
         write_data(output, grid);
