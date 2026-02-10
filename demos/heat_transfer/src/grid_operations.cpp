@@ -309,7 +309,7 @@ namespace heat {
 
         auto exchange_left_right_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor,
                                               MPI_Comm cartesian_comm) -> Matrix2D {
-            const auto [num_rows, _] = get_dimensions(grid);
+            const auto [num_rows, num_columns] = get_dimensions(grid);
 
             auto new_left_layer = processor.has_left_neighbour() ? std::vector<double>(num_rows)
                                                                  : std::vector<double>{};
@@ -319,11 +319,11 @@ namespace heat {
             auto requests = std::array<MPI_Request, 4>{};
             auto n = 0;
 
-            const auto left_layer = processor.has_left_neighbour()
-                                            ? get_ghost_layer(grid, Location::LEFT)
-                                            : std::vector<double>{};
+            // I want the columns after and before the left and right ghost layers
+            const auto left_layer = processor.has_left_neighbour() ? get_column(grid, 1).value()
+                                                                   : std::vector<double>{};
             const auto right_layer = processor.has_right_neighbour()
-                                             ? get_ghost_layer(grid, Location::RIGHT)
+                                             ? get_column(grid, num_columns - 2).value()
                                              : std::vector<double>{};
 
             MPI_Irecv(new_left_layer.data(), new_left_layer.size(), MPI_DOUBLE,
@@ -363,11 +363,11 @@ namespace heat {
             auto requests = std::array<MPI_Request, 4>{};
             auto n = 0;
 
-            const auto up_layer = processor.has_up_neighbour()
-                                          ? get_ghost_layer(grid, Location::TOP)
-                                          : std::vector<double>{};
+            // We want the row below and above the ghost layers
+            const auto up_layer =
+                    processor.has_up_neighbour() ? get_row(grid, 1).value() : std::vector<double>{};
             const auto down_layer = processor.has_down_neighbour()
-                                            ? get_ghost_layer(grid, Location::BOTTOM)
+                                            ? get_row(grid, num_rows - 2).value()
                                             : std::vector<double>{};
 
             MPI_Irecv(new_up_layer.data(), new_up_layer.size(), MPI_DOUBLE,
