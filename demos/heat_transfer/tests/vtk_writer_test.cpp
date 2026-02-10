@@ -77,7 +77,7 @@ TEST(RecordTimestep, CanWriteResultsIntoAFile) {
     const auto writer = VTKWriter{output_folder, files_prefix};
 
 
-    writer.record_timestep(current_iteration, data);
+    writer.record_timestep(current_iteration, data, 0);
 
     const auto expected_path =
             output_folder / (files_prefix + std::to_string(current_iteration) + ".vtk");
@@ -104,4 +104,21 @@ TEST(RecordTimestep, CanWriteResultsIntoAFile) {
 
     EXPECT_THAT(output.str(), Eq(expected));
     std::filesystem::remove_all(output_folder);
+}
+
+TEST(RecordTimestep, OnlyRank0RecordsATimeStep) {
+    const auto data = Matrix2D{{1, 2}, {3, 4}};
+
+    const auto output_folder = std::filesystem::path{"test_OnlyRank0RecordsATimeStep"};
+    const auto files_prefix = "vtk_output_";
+    constexpr auto current_iteration = 0;
+
+    const auto writer = VTKWriter{output_folder, files_prefix};
+
+
+    writer.record_timestep(current_iteration, data, 1);
+
+    const auto expected_path =
+            output_folder / (files_prefix + std::to_string(current_iteration) + ".vtk");
+    ASSERT_FALSE(std::filesystem::exists(expected_path));
 }

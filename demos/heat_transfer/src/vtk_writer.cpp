@@ -10,8 +10,10 @@ namespace heat::vtk {
         std::filesystem::create_directories(output_folder);
     }
 
-    auto VTKWriter::record_timestep(unsigned int current_iteration, const Matrix2D &grid) const
-            -> void {
+    auto VTKWriter::record_timestep(unsigned int current_iteration, const Matrix2D &grid,
+                                    const reshuffle::RankId rank) const -> void {
+        if (rank != 0) { return; }
+
         const auto path =
                 _output_folder / (_files_prefix + std::to_string(current_iteration) + ".vtk");
         auto vtk_file = std::ofstream{path};

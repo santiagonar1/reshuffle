@@ -3,6 +3,8 @@
 
 #include <filesystem>
 
+#include <rank_id.hpp>
+
 #include "matrix.hpp"
 
 namespace heat::vtk {
@@ -10,7 +12,8 @@ namespace heat::vtk {
     public:
         VTKWriter(const std::filesystem::path &output_folder, std::string files_prefix);
 
-        auto record_timestep(unsigned int current_iteration, const Matrix2D &grid) const -> void;
+        auto record_timestep(unsigned int current_iteration, const Matrix2D &grid,
+                             reshuffle::RankId rank) const -> void;
 
         static auto write_file(std::ostream &output, const Matrix2D &grid) -> void;
         static auto write_header(std::ostream &output, unsigned int ny, unsigned int nx) -> void;

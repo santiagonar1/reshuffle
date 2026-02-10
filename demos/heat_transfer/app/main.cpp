@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
                                            current_context, write_vtk_context))
                         .value();
 
-        if (reshuffle::mpi::is_root(cartesian_comm)) { writer.record_timestep(i, print_grid); }
+        writer.record_timestep(i, print_grid, processor_info.get_rank());
         local_grid = heat::apply_jacobi(local_grid);
     }
 
