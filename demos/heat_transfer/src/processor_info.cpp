@@ -11,7 +11,9 @@ namespace heat {
                                  const reshuffle::RankId down_neighbour,
                                  const reshuffle::RankId left_neighbour,
                                  const reshuffle::RankId right_neighbour)
-        : _neighbours{up_neighbour, down_neighbour, left_neighbour, right_neighbour}, _rank(rank) {}
+        : _neighbours{
+                  get_neighbours(up_neighbour, down_neighbour, left_neighbour, right_neighbour)},
+          _rank(rank) {}
 
     auto ProcessorInfo::get_rank() const -> int { return _rank; }
 
@@ -50,6 +52,21 @@ namespace heat {
         auto neighbours = std::array<reshuffle::RankId, 4>{};
         MPI_Cart_shift(cartesian_comm, 1, 1, &neighbours[LEFT], &neighbours[RIGHT]);
         MPI_Cart_shift(cartesian_comm, 0, 1, &neighbours[UP], &neighbours[DOWN]);
+
+        return neighbours;
+    }
+
+    auto ProcessorInfo::get_neighbours(const reshuffle::RankId up_neighbour,
+                                       const reshuffle::RankId down_neighbour,
+                                       const reshuffle::RankId left_neighbour,
+                                       const reshuffle::RankId right_neighbour)
+            -> std::array<reshuffle::RankId, 4> {
+        auto neighbours = std::array<reshuffle::RankId, 4>{};
+
+        neighbours[UP] = up_neighbour;
+        neighbours[DOWN] = down_neighbour;
+        neighbours[LEFT] = left_neighbour;
+        neighbours[RIGHT] = right_neighbour;
 
         return neighbours;
     }

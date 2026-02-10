@@ -34,6 +34,10 @@ namespace heat {
 
         static auto get_neighbours(const MPI_Comm &cartesian_comm)
                 -> std::array<reshuffle::RankId, 4>;
+        static auto get_neighbours(reshuffle::RankId up_neighbour, reshuffle::RankId down_neighbour,
+                                   reshuffle::RankId left_neighbour,
+                                   reshuffle::RankId right_neighbour)
+                -> std::array<reshuffle::RankId, 4>;
     };
 }// namespace heat
 
