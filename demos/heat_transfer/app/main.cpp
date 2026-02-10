@@ -11,8 +11,11 @@ enum class GetCartesianCommError {
     INVALID_PROCESSOR_GRID,
 };
 
-auto get_processor_grid() -> reshuffle::ProcessorGrid<2>;
-auto get_cartesian_comm(MPI_Comm base_comm, reshuffle::ProcessorGrid<2> processor_grid)
+enum class GetCommError {
+    INVALID_NUM_RANKS,
+    INVALID_COMM,
+};
+
 [[nodiscard]] auto get_processor_grid() -> reshuffle::ProcessorGrid<2>;
 [[nodiscard]] auto get_cartesian_comm(MPI_Comm base_comm,
                                       reshuffle::ProcessorGrid<2> processor_grid)
@@ -96,9 +99,9 @@ auto get_processor_grid() -> reshuffle::ProcessorGrid<2> {
 auto get_cartesian_comm(const MPI_Comm base_comm, const reshuffle::ProcessorGrid<2> processor_grid)
         -> std::expected<MPI_Comm, GetCartesianCommError> {
     constexpr auto num_dimensions = 2;
-    const auto num_available_ranks = reshuffle::mpi::get_num_ranks(base_comm);
 
-    if (processor_grid.get_num_processors() != num_available_ranks) {
+    if (const auto num_available_ranks = reshuffle::mpi::get_num_ranks(base_comm);
+        processor_grid.get_num_processors() != num_available_ranks) {
         return std::unexpected(GetCartesianCommError::INVALID_PROCESSOR_GRID);
     }
 
