@@ -14,6 +14,13 @@ namespace heat {
     enum class GetRowError { INDEX_OUT_OF_BOUNDS, EMPTY_GRID };
     enum class GetColumnError { INDEX_OUT_OF_BOUNDS, EMPTY_GRID };
 
+    struct GridDimensions {
+        unsigned int num_rows;
+        unsigned int num_columns;
+
+        constexpr bool operator==(const GridDimensions &) const = default;
+    };
+
     using OneDimensionRepresentation = std::pair<std::vector<double>, reshuffle::Dimensions<2>>;
 
     namespace internal {
@@ -80,8 +87,7 @@ namespace heat {
     [[nodiscard]] auto to_grid(const OneDimensionRepresentation &input)
             -> std::expected<Matrix2D, ToGridError>;
 
-    [[nodiscard]] auto get_dimensions(const Matrix2D &grid)
-            -> std::pair<unsigned int, unsigned int>;
+    [[nodiscard]] auto get_dimensions(const Matrix2D &grid) -> GridDimensions;
     [[nodiscard]] auto apply_jacobi(const Matrix2D &grid) -> Matrix2D;
 
     [[nodiscard]] auto add_ghost_layers(const Matrix2D &grid, const ProcessorInfo &processor)

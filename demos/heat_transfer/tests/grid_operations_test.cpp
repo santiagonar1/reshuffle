@@ -12,7 +12,7 @@ TEST(InitializeGrid, CreatesGridOfGivenDimentions) {
     const auto grid = initialize_grid(2, 3);
     const auto dimensions = get_dimensions(grid);
 
-    EXPECT_THAT(dimensions, Eq(std::pair{2, 3}));
+    EXPECT_THAT(dimensions, Eq(GridDimensions{2, 3}));
 }
 
 TEST(InitializeGrid, InitializesBoundaryTo100) {
@@ -70,13 +70,13 @@ TEST(SetBoundaryTo, DoesNothingIfGridIsEmtpy) {
 
 TEST(GetDimensions, ReturnsGridDimensions) {
     const auto grid = initialize_grid(2, 3);
-    constexpr auto expected = std::pair{2, 3};
+    constexpr auto expected = GridDimensions{2, 3};
     EXPECT_THAT(get_dimensions(grid), Eq(expected));
 }
 
 TEST(GetDimensions, WorksWithEmptyGrids) {
     constexpr auto grid = Matrix2D{};
-    EXPECT_THAT(get_dimensions(grid), Eq(std::pair{0, 0}));
+    EXPECT_THAT(get_dimensions(grid), Eq(GridDimensions{0, 0}));
 }
 
 TEST(ApplyJacobi, AppliesJacobiMethodToGrid) {

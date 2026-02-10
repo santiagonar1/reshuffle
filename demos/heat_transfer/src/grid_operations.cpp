@@ -419,10 +419,11 @@ namespace heat {
         return grid;
     }
 
-    auto get_dimensions(const Matrix2D &grid) -> std::pair<unsigned int, unsigned int> {
+    auto get_dimensions(const Matrix2D &grid) -> GridDimensions {
         if (grid.empty()) { return {}; }
 
-        return {grid.size(), grid[0].size()};
+        return {.num_rows = static_cast<unsigned int>(grid.size()),
+                .num_columns = static_cast<unsigned int>(grid[0].size())};
     }
 
     auto apply_jacobi(const Matrix2D &grid) -> Matrix2D {
