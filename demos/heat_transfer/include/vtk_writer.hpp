@@ -13,7 +13,7 @@ namespace heat::vtk {
         auto record_timestep(unsigned int current_iteration, const Matrix2D &grid) const -> void;
 
         static auto write_file(std::ostream &output, const Matrix2D &grid) -> void;
-        static auto write_header(std::ostream &output, unsigned int nx, unsigned int ny) -> void;
+        static auto write_header(std::ostream &output, unsigned int ny, unsigned int nx) -> void;
         static auto write_data(std::ostream &output, const Matrix2D &grid, int precision = 5)
                 -> void;
 

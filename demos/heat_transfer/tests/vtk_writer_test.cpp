@@ -47,19 +47,19 @@ TEST(WriteData, WritesDataToStream) {
 TEST(WriteFile, WritesAVTKFile) {
     auto ss = std::ostringstream{};
 
-    const auto data = Matrix2D{{1, 2}, {3, 4}};
+    const auto data = Matrix2D{{1, 2, 3}, {4, 5, 6}};
 
     const auto expected_header = std::string{"# vtk DataFile Version 4.1\n"
                                              "vtk output\n"
                                              "ASCII\n"
                                              "DATASET STRUCTURED_POINTS\n"
-                                             "DIMENSIONS 2 2 1\n"
+                                             "DIMENSIONS 3 2 1\n"
                                              "SPACING 1 1 1\n"
                                              "ORIGIN 0 0 0\n"
-                                             "POINT_DATA 4\n"
+                                             "POINT_DATA 6\n"
                                              "SCALARS ScalarField double\n"
                                              "LOOKUP_TABLE default\n"};
-    const auto expected_data = std::string{"1.00000 2.00000\n3.00000 4.00000\n"};
+    const auto expected_data = std::string{"1.00000 2.00000 3.00000\n4.00000 5.00000 6.00000\n"};
 
     const auto expected = expected_header + expected_data;
 
