@@ -22,70 +22,165 @@ enum class GetCommError {
         -> std::expected<MPI_Comm, GetCartesianCommError>;
 [[nodiscard]] auto get_comm(unsigned int num_ranks, MPI_Comm base_comm)
         -> std::expected<MPI_Comm, GetCommError>;
+[[nodiscard]] auto get_next_num_ranks(int num_adaptations,
+                                      const std::vector<reshuffle::RankId> &adaptation_vector)
+        -> unsigned int;
 
 int main(int argc, char *argv[]) {
     constexpr auto num_iterations = 200;
     constexpr auto num_rows = 100;
     constexpr auto num_columns = num_rows;
+    constexpr auto adaptation_frequency = 50;
+
     constexpr auto global_dimensions = reshuffle::Dimensions{num_rows, num_columns};
 
     MPI_Init(&argc, &argv);
 
     const auto num_available_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
+    const auto initial_num_ranks = 1;
 
-    const auto processor_grid = get_processor_grid(num_available_ranks);
-    auto cartesian_comm = get_cartesian_comm(MPI_COMM_WORLD, processor_grid).value();
-    const auto processor_info = heat::ProcessorInfo{cartesian_comm};
+    const auto processor_grid = get_processor_grid(initial_num_ranks);
+
+    auto initial_comm =
+            get_cartesian_comm(get_comm(initial_num_ranks, MPI_COMM_WORLD).value(), processor_grid)
+                    .value();
+    const auto initial_processor_info = heat::ProcessorInfo{initial_comm};
 
     const auto output_folder = std::filesystem::current_path() / "output";
     const auto files_prefix = "vtk_output_";
 
     const auto writer = heat::vtk::VTKWriter{output_folder, files_prefix};
 
-    const auto global_grid = reshuffle::mpi::is_root(cartesian_comm)
+    const auto global_grid = reshuffle::mpi::is_root(initial_comm)
                                      ? heat::initialize_grid(num_rows, num_columns)
                                      : heat::Grid{};
 
     const auto initial_context = reshuffle::Context<2>{
             reshuffle::BlockWise<2>{global_dimensions, reshuffle::ProcessorGrid{1, 1}},
-            cartesian_comm};
+            initial_comm};
     const auto final_context = reshuffle::Context<2>{
-            reshuffle::BlockWise<2>{global_dimensions, processor_grid}, cartesian_comm};
+            reshuffle::BlockWise<2>{global_dimensions, processor_grid}, initial_comm};
 
     auto local_grid = heat::add_ghost_layers(
-            heat::to_grid(reshuffle::shuffle(global_grid, initial_context, final_context)).value(),
-            processor_info);
+            heat::to_grid(reshuffle::shuffle(global_grid, initial_context, final_context))
+                    .value_or(heat::Grid{}),
+            initial_processor_info);
 
-    const auto local_rank_grid = heat::RankGrid(
-            local_grid.size() - (processor_info.has_up_neighbour() ? 1 : 0) -
-                    (processor_info.has_down_neighbour() ? 1 : 0),
-            std::vector(local_grid[0].size() - (processor_info.has_left_neighbour() ? 1 : 0) -
-                                (processor_info.has_right_neighbour() ? 1 : 0),
-                        processor_info.get_rank()));
+    auto local_rank_grid =
+            reshuffle::mpi::belongs_to_comm(initial_comm)
+                    ? heat::RankGrid(
+                              local_grid.size() -
+                                      (initial_processor_info.has_up_neighbour() ? 1 : 0) -
+                                      (initial_processor_info.has_down_neighbour() ? 1 : 0),
+                              std::vector(
+                                      local_grid[0].size() -
+                                              (initial_processor_info.has_left_neighbour() ? 1
+                                                                                           : 0) -
+                                              (initial_processor_info.has_right_neighbour() ? 1
+                                                                                            : 0),
+                                      initial_processor_info.get_rank()))
+                    : heat::RankGrid{};
 
-    const auto rank_grid =
+    auto rank_grid =
             heat::to_grid(reshuffle::shuffle(local_rank_grid, final_context, initial_context))
-                    .value();
+                    .value_or(heat::RankGrid{});
 
+    auto current_comm = initial_comm;
+    const auto adaptation_vector = std::views::iota(1) | std::views::take(num_available_ranks) |
+                                   std::ranges::to<std::vector<reshuffle::RankId>>();
+    auto num_adaptations = 0;
     for (auto i = 0; i < num_iterations; i++) {
-        local_grid = heat::exchange_ghost_layers(local_grid, processor_info, cartesian_comm);
+        // Simplification: we only do adaptations inside the computational loop
+        if (i % adaptation_frequency == 0) {
+            MPI_Barrier(MPI_COMM_WORLD);
 
-        const auto &current_context = final_context;
-        const auto write_vtk_context = reshuffle::Context<2>{
-                reshuffle::BlockWise<2>{global_dimensions, reshuffle::ProcessorGrid{1, 1}},
-                cartesian_comm};
+            const auto new_num_ranks = get_next_num_ranks(num_adaptations, adaptation_vector);
+            auto current_num_ranks = reshuffle::mpi::belongs_to_comm(current_comm)
+                                             ? reshuffle::mpi::get_num_ranks(current_comm)
+                                             : 1;
 
-        const auto print_grid =
-                heat::to_grid(
-                        reshuffle::shuffle(heat::remove_ghost_layers(local_grid, processor_info),
-                                           current_context, write_vtk_context))
-                        .value();
+            MPI_Bcast(&current_num_ranks, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-        writer.record_timestep(i, print_grid, processor_info.get_rank(), rank_grid);
-        local_grid = heat::apply_jacobi(local_grid);
+            const auto current_processor_grid = get_processor_grid(current_num_ranks);
+            const auto new_processor_grid = get_processor_grid(new_num_ranks);
+
+            auto new_comm = get_cartesian_comm(get_comm(new_num_ranks, MPI_COMM_WORLD).value(),
+                                               new_processor_grid)
+                                    .value();
+
+            const auto current_context = reshuffle::Context<2>{
+                    reshuffle::BlockWise<2>{global_dimensions, current_processor_grid},
+                    current_comm};
+
+            const auto new_context = reshuffle::Context<2>{
+                    reshuffle::BlockWise<2>{global_dimensions, new_processor_grid}, new_comm};
+
+            const auto current_processor_info = heat::ProcessorInfo{current_comm};
+            const auto new_processor_info = heat::ProcessorInfo{new_comm};
+
+            local_grid = heat::add_ghost_layers(
+                    heat::to_grid(reshuffle::shuffle(heat::remove_ghost_layers(
+                                                             local_grid, current_processor_info),
+                                                     current_context, new_context))
+                            .value_or(heat::Grid{}),
+                    new_processor_info);
+
+            local_rank_grid =
+                    reshuffle::mpi::belongs_to_comm(new_comm)
+                            ? heat::RankGrid(
+                                      local_grid.size() -
+                                              (new_processor_info.has_up_neighbour() ? 1 : 0) -
+                                              (new_processor_info.has_down_neighbour() ? 1 : 0),
+                                      std::vector(local_grid[0].size() -
+                                                          (new_processor_info.has_left_neighbour()
+                                                                   ? 1
+                                                                   : 0) -
+                                                          (new_processor_info.has_right_neighbour()
+                                                                   ? 1
+                                                                   : 0),
+                                                  new_processor_info.get_rank()))
+                            : heat::RankGrid{};
+
+            rank_grid =
+                    heat::to_grid(reshuffle::shuffle(local_rank_grid, new_context, initial_context))
+                            .value_or(heat::RankGrid{});
+
+            if (current_comm != initial_comm and current_comm != MPI_COMM_NULL) {
+                MPI_Comm_free(&current_comm);
+            }
+
+            current_comm = new_comm;
+            num_adaptations++;
+        }
+
+
+        if (reshuffle::mpi::belongs_to_comm(current_comm)) {
+            const auto current_processor_info = heat::ProcessorInfo{current_comm};
+            local_grid =
+                    heat::exchange_ghost_layers(local_grid, current_processor_info, current_comm);
+
+            const auto current_num_ranks = reshuffle::mpi::get_num_ranks(current_comm);
+            const auto current_processor_grid = get_processor_grid(current_num_ranks);
+            const auto current_context = reshuffle::Context<2>{
+                    reshuffle::BlockWise<2>{global_dimensions, current_processor_grid},
+                    current_comm};
+
+            const auto write_vtk_context = reshuffle::Context<2>{
+                    reshuffle::BlockWise<2>{global_dimensions, reshuffle::ProcessorGrid{1, 1}},
+                    current_comm};
+
+            const auto print_grid =
+                    heat::to_grid(reshuffle::shuffle(heat::remove_ghost_layers(
+                                                             local_grid, current_processor_info),
+                                                     current_context, write_vtk_context))
+                            .value();
+
+            writer.record_timestep(i, print_grid, current_processor_info.get_rank(), rank_grid);
+            local_grid = heat::apply_jacobi(local_grid);
+        }
     }
 
-    MPI_Comm_free(&cartesian_comm);
+    if (initial_comm != MPI_COMM_NULL) { MPI_Comm_free(&initial_comm); }
     MPI_Finalize();
     return 0;
 }
@@ -134,4 +229,13 @@ auto get_comm(const unsigned int num_ranks, const MPI_Comm base_comm)
     std::ranges::iota(ranks.begin(), ranks.end(), 0);
 
     return reshuffle::mpi::get_sub_comm(base_comm, ranks);
+}
+
+auto get_next_num_ranks(const int num_adaptations,
+                        const std::vector<reshuffle::RankId> &adaptation_vector) -> unsigned int {
+    const auto num_possible_values = adaptation_vector.size();
+    auto next_num_ranks = adaptation_vector[num_adaptations % num_possible_values];
+
+
+    return next_num_ranks;
 }
