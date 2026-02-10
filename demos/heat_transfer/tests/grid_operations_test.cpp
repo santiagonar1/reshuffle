@@ -337,6 +337,27 @@ TEST(RemoveGhostLayers, RemovesRightLayerOnlyIfProcessorHasANeighbour) {
                 Eq(Matrix2D{{4, 5, 6, 0}, {7, 8, 9, 0}}));
 }
 
+TEST(GetRow, ReturnsRowByIndex) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    constexpr auto row_index = 1;
+
+    EXPECT_THAT(get_row(grid, row_index), Eq(std::vector<double>{4, 5, 6}));
+}
+
+TEST(GetRow, ReturnsErrorIfIndexOutOfBounds) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    const auto index_out_of_bounds = grid.size();
+
+    EXPECT_THAT(get_row(grid, index_out_of_bounds).error(), Eq(GetRowError::INDEX_OUT_OF_BOUNDS));
+}
+
+TEST(GetRow, ReturnsErrorIfGridIsEmtpy) {
+    constexpr auto empty_grid = Matrix2D{};
+    constexpr auto dummy_index = 0;
+
+    EXPECT_THAT(get_row(empty_grid, dummy_index).error(), Eq(GetRowError::EMPTY_GRID));
+}
+
 TEST(GetTopRow, ReturnsGridTopRow) {
     const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
 
