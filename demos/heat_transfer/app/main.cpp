@@ -102,6 +102,8 @@ auto get_cartesian_comm(const MPI_Comm base_comm, const reshuffle::ProcessorGrid
         -> std::expected<MPI_Comm, GetCartesianCommError> {
     constexpr auto num_dimensions = 2;
 
+    if (not reshuffle::mpi::belongs_to_comm(base_comm)) { return MPI_COMM_NULL; }
+
     if (const auto num_available_ranks = reshuffle::mpi::get_num_ranks(base_comm);
         processor_grid.get_num_processors() != num_available_ranks) {
         return std::unexpected(GetCartesianCommError::INVALID_PROCESSOR_GRID);
