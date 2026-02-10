@@ -16,7 +16,7 @@ enum class GetCommError {
     INVALID_COMM,
 };
 
-[[nodiscard]] auto get_processor_grid(MPI_Comm comm) -> reshuffle::ProcessorGrid<2>;
+[[nodiscard]] auto get_processor_grid(unsigned int num_ranks) -> reshuffle::ProcessorGrid<2>;
 [[nodiscard]] auto get_cartesian_comm(MPI_Comm base_comm,
                                       reshuffle::ProcessorGrid<2> processor_grid)
         -> std::expected<MPI_Comm, GetCartesianCommError>;
@@ -31,7 +31,9 @@ int main(int argc, char *argv[]) {
 
     MPI_Init(&argc, &argv);
 
-    const auto processor_grid = get_processor_grid(MPI_COMM_WORLD);
+    const auto num_available_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
+
+    const auto processor_grid = get_processor_grid(num_available_ranks);
     auto cartesian_comm = get_cartesian_comm(MPI_COMM_WORLD, processor_grid).value();
     const auto processor_info = heat::ProcessorInfo{cartesian_comm};
 
@@ -88,12 +90,11 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-auto get_processor_grid(const MPI_Comm comm) -> reshuffle::ProcessorGrid<2> {
+auto get_processor_grid(const unsigned int num_ranks) -> reshuffle::ProcessorGrid<2> {
     constexpr auto num_dimensions = 2;
-    const auto num_ranks = reshuffle::mpi::get_num_ranks(comm);
 
     auto dimensions = reshuffle::Dimensions<num_dimensions>{};
-    MPI_Dims_create(num_ranks, num_dimensions, dimensions.data());
+    MPI_Dims_create(static_cast<int>(num_ranks), num_dimensions, dimensions.data());
 
     return reshuffle::ProcessorGrid{dimensions};
 }
