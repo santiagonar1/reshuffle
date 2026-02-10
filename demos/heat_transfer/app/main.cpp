@@ -61,6 +61,10 @@ int main(int argc, char *argv[]) {
                                 (processor_info.has_right_neighbour() ? 1 : 0),
                         processor_info.get_rank()));
 
+    const auto rank_grid =
+            heat::to_grid(reshuffle::shuffle(local_rank_grid, final_context, initial_context))
+                    .value();
+
     for (auto i = 0; i < num_iterations; i++) {
         local_grid = heat::exchange_ghost_layers(local_grid, processor_info, cartesian_comm);
 
@@ -74,10 +78,6 @@ int main(int argc, char *argv[]) {
                         reshuffle::shuffle(heat::remove_ghost_layers(local_grid, processor_info),
                                            current_context, write_vtk_context))
                         .value();
-
-        const auto rank_grid = heat::to_grid(reshuffle::shuffle(local_rank_grid, current_context,
-                                                                write_vtk_context))
-                                       .value();
 
         writer.record_timestep(i, print_grid, processor_info.get_rank(), rank_grid);
         local_grid = heat::apply_jacobi(local_grid);
