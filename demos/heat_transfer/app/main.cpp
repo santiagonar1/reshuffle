@@ -1,5 +1,4 @@
 #include <expected>
-#include <iostream>
 #include <mpi.h>
 
 #include <reshuffle.hpp>
@@ -49,9 +48,19 @@ int main(int argc, char *argv[]) {
 
     for (auto i = 0; i < num_iterations; i++) {
         local_grid = heat::exchange_ghost_layers(local_grid, processor_info, cartesian_comm);
-        if (reshuffle::mpi::is_root(cartesian_comm)) {
-            writer.record_timestep(i, heat::remove_ghost_layers(local_grid, processor_info));
-        }
+
+        const auto &current_context = final_context;
+        const auto write_vtk_context = reshuffle::Context<2>{
+                reshuffle::BlockWise<2>{global_dimensions, reshuffle::ProcessorGrid{1, 1}},
+                cartesian_comm};
+
+        const auto print_grid =
+                heat::to_grid(
+                        reshuffle::shuffle(heat::remove_ghost_layers(local_grid, processor_info),
+                                           current_context, write_vtk_context))
+                        .value();
+
+        if (reshuffle::mpi::is_root(cartesian_comm)) { writer.record_timestep(i, print_grid); }
         local_grid = heat::apply_jacobi(local_grid);
     }
 
