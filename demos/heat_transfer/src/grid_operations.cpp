@@ -141,6 +141,21 @@ namespace heat {
             return grid[row_index];
         }
 
+        auto get_column(const Matrix2D &grid, unsigned int column_index)
+                -> std::expected<std::vector<double>, GetColumnError> {
+            if (grid.empty()) { return std::unexpected(GetColumnError::EMPTY_GRID); }
+
+            const auto [_, num_columns] = get_dimensions(grid);
+            if (column_index >= num_columns) {
+                return std::unexpected(GetColumnError::INDEX_OUT_OF_BOUNDS);
+            }
+
+            auto column = std::vector<double>{};
+            for (const auto &row: grid) { column.emplace_back(row[column_index]); }
+
+            return column;
+        }
+
         auto get_top_row(const Matrix2D &grid) -> std::vector<double> {
             if (grid.empty()) { return {}; }
 

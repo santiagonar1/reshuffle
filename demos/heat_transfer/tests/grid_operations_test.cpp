@@ -358,6 +358,28 @@ TEST(GetRow, ReturnsErrorIfGridIsEmtpy) {
     EXPECT_THAT(get_row(empty_grid, dummy_index).error(), Eq(GetRowError::EMPTY_GRID));
 }
 
+TEST(GetColumn, ReturnsColumnByIndex) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    constexpr auto column_index = 1;
+
+    EXPECT_THAT(get_column(grid, column_index).value(), Eq(std::vector<double>{2, 5, 8}));
+}
+
+TEST(GetColumn, ReturnsErrorIfIndexOutOfBounds) {
+    const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    const auto index_out_of_bounds = grid[0].size();
+
+    EXPECT_THAT(get_column(grid, index_out_of_bounds).error(),
+                Eq(GetColumnError::INDEX_OUT_OF_BOUNDS));
+}
+
+TEST(GetColumn, ReturnsErrorIfGridIsEmpty) {
+    constexpr auto empty_grid = Matrix2D{};
+    constexpr auto dummy_index = 0;
+
+    EXPECT_THAT(get_column(empty_grid, dummy_index).error(), Eq(GetColumnError::EMPTY_GRID));
+}
+
 TEST(GetTopRow, ReturnsGridTopRow) {
     const auto grid = Matrix2D{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
 

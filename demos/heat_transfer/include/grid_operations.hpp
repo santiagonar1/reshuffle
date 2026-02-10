@@ -12,6 +12,7 @@ namespace heat {
     enum class SetBoundaryError { INVALID_NUM_VALUES, EMPTY_VALUES, EMPTY_GRID };
     enum class ToGridError { MISMATCH_DIMENSIONS_AND_NUM_VALUES };
     enum class GetRowError { INDEX_OUT_OF_BOUNDS, EMPTY_GRID };
+    enum class GetColumnError { INDEX_OUT_OF_BOUNDS, EMPTY_GRID };
 
     using OneDimensionRepresentation = std::pair<std::vector<double>, reshuffle::Dimensions<2>>;
 
@@ -49,6 +50,8 @@ namespace heat {
 
         [[nodiscard]] auto get_row(const Matrix2D &grid, unsigned int row_index)
                 -> std::expected<std::vector<double>, GetRowError>;
+        [[nodiscard]] auto get_column(const Matrix2D &grid, unsigned int column_index)
+                -> std::expected<std::vector<double>, GetColumnError>;
 
         [[nodiscard]] auto get_top_row(const Matrix2D &grid) -> std::vector<double>;
         [[nodiscard]] auto get_bottom_row(const Matrix2D &grid) -> std::vector<double>;
