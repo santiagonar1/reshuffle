@@ -2,7 +2,6 @@ set(LIBRARY_NAME "heat_transfer")
 
 set(SOURCES
         src/grid_operations.cpp
-        src/matrix.cpp
         src/processor_info.cpp
         src/vtk_writer.cpp
 )

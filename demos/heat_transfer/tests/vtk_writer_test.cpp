@@ -38,7 +38,7 @@ TEST(WriteHeader, WritesHeaderVTKFile) {
 TEST(WriteData, WritesDataToStream) {
     auto ss = std::ostringstream{};
 
-    const auto data = Matrix2D{{1, 2}, {3, 4}};
+    const auto data = Grid{{1, 2}, {3, 4}};
     const auto expected = std::string{"1.00000 2.00000\n3.00000 4.00000\n"};
     VTKWriter::write_data(ss, data);
     EXPECT_THAT(ss.str(), Eq(expected));
@@ -47,7 +47,7 @@ TEST(WriteData, WritesDataToStream) {
 TEST(WriteRankData, WritesRankDataToStream) {
     auto ss = std::ostringstream{};
 
-    const auto rank_data = Matrix2D{{0, 0}, {1, 1}};
+    const auto rank_data = RankGrid{{0, 0}, {1, 1}};
     const auto expected = std::string{"SCALARS RankId int\nLOOKUP_TABLE default\n0 0\n1 1\n"};
     VTKWriter::write_rank_data(ss, rank_data);
     EXPECT_THAT(ss.str(), Eq(expected));
@@ -56,7 +56,7 @@ TEST(WriteRankData, WritesRankDataToStream) {
 TEST(WriteFile, WritesAVTKFile) {
     auto ss = std::ostringstream{};
 
-    const auto data = Matrix2D{{1, 2, 3}, {4, 5, 6}};
+    const auto data = Grid{{1, 2, 3}, {4, 5, 6}};
 
     const auto expected_header = std::string{"# vtk DataFile Version 4.1\n"
                                              "vtk output\n"
@@ -77,7 +77,7 @@ TEST(WriteFile, WritesAVTKFile) {
 }
 
 TEST(RecordTimestep, CanWriteResultsIntoAFile) {
-    const auto data = Matrix2D{{1, 2}, {3, 4}};
+    const auto data = Grid{{1, 2}, {3, 4}};
 
     const auto output_folder = std::filesystem::path{"test_CanWriteResultsIntoAFile"};
     const auto files_prefix = "vtk_output_";
@@ -116,8 +116,8 @@ TEST(RecordTimestep, CanWriteResultsIntoAFile) {
 }
 
 TEST(RecordTimestep, CanWriteResultsWithRankInfoIntoAFile) {
-    const auto data = Matrix2D{{1, 2}, {3, 4}};
-    const auto rank_data = Matrix2D{{0, 0}, {1, 1}};
+    const auto data = Grid{{1, 2}, {3, 4}};
+    const auto rank_data = RankGrid{{0, 0}, {1, 1}};
 
     const auto output_folder = std::filesystem::path{"test_CanWriteResultsWithRankInfoIntoAFile"};
     const auto files_prefix = "vtk_output_";
@@ -157,7 +157,7 @@ TEST(RecordTimestep, CanWriteResultsWithRankInfoIntoAFile) {
 }
 
 TEST(RecordTimestep, OnlyRank0RecordsATimeStep) {
-    const auto data = Matrix2D{{1, 2}, {3, 4}};
+    const auto data = Grid{{1, 2}, {3, 4}};
 
     const auto output_folder = std::filesystem::path{"test_OnlyRank0RecordsATimeStep"};
     const auto files_prefix = "vtk_output_";

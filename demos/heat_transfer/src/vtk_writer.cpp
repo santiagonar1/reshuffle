@@ -10,9 +10,9 @@ namespace heat::vtk {
         std::filesystem::create_directories(output_folder);
     }
 
-    auto VTKWriter::record_timestep(const unsigned int current_iteration, const Matrix2D &grid,
+    auto VTKWriter::record_timestep(const unsigned int current_iteration, const Grid &grid,
                                     const reshuffle::RankId rank,
-                                    const std::optional<Matrix2D> &rank_grid) const -> void {
+                                    const std::optional<RankGrid> &rank_grid) const -> void {
         if (rank != 0) { return; }
 
         const auto path =
@@ -26,7 +26,8 @@ namespace heat::vtk {
         write_file(vtk_file, grid, rank_grid);
     }
 
-    auto VTKWriter::write_header(std::ostream &output, unsigned int ny, unsigned int nx) -> void {
+    auto VTKWriter::write_header(std::ostream &output, const unsigned int ny, const unsigned int nx)
+            -> void {
         output << "# vtk DataFile Version 4.1\n";
         output << "vtk output\n";
         output << "ASCII\n";
@@ -39,7 +40,7 @@ namespace heat::vtk {
         output << "LOOKUP_TABLE default\n";
     }
 
-    auto VTKWriter::write_data(std::ostream &output, const Matrix2D &grid, const int precision)
+    auto VTKWriter::write_data(std::ostream &output, const Grid &grid, const int precision)
             -> void {
         for (const auto &row: grid) {
             auto delimiter = std::string{};
@@ -51,20 +52,18 @@ namespace heat::vtk {
         }
     }
 
-    auto VTKWriter::write_rank_data(std::ostream &output, const Matrix2D &rank_grid) -> void {
+    auto VTKWriter::write_rank_data(std::ostream &output, const RankGrid &rank_grid) -> void {
         output << "SCALARS RankId int\n";
         output << "LOOKUP_TABLE default\n";
         for (const auto &row: rank_grid) {
             auto delimiter = std::string{};
-            for (const auto &value: row) {
-                output << std::exchange(delimiter, " ") << static_cast<int>(value);
-            }
+            for (const auto &value: row) { output << std::exchange(delimiter, " ") << value; }
             output << std::endl;
         }
     }
 
-    auto VTKWriter::write_file(std::ostream &output, const Matrix2D &grid,
-                               const std::optional<Matrix2D> &rank_grid) -> void {
+    auto VTKWriter::write_file(std::ostream &output, const Grid &grid,
+                               const std::optional<RankGrid> &rank_grid) -> void {
         const auto [nx, ny] = get_dimensions(grid);
 
         write_header(output, ny, nx);

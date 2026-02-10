@@ -1,11 +1,26 @@
 #ifndef RESHUFFLE_MATRIX_HPP
 #define RESHUFFLE_MATRIX_HPP
+
+#include <ostream>
 #include <vector>
 
 namespace heat {
-    using Matrix2D = std::vector<std::vector<double>>;
+    template<typename T>
+    using Matrix2D = std::vector<std::vector<T>>;
 
-    auto operator<<(std::ostream &os, const Matrix2D &grid) -> std::ostream &;
+    template<typename T>
+    auto operator<<(std::ostream &os, const Matrix2D<T> &matrix) -> std::ostream & {
+        os << "[";
+        for (const auto &row: matrix) {
+            auto delimiter = std::string{};
+            os << "(";
+            for (const auto &ele: row) { os << std::exchange(delimiter, " ") << ele; }
+            os << ")";
+        }
+        os << "]";
+
+        return os;
+    }
 }// namespace heat
 
 #endif//RESHUFFLE_MATRIX_HPP
