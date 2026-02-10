@@ -16,10 +16,12 @@ enum class GetCommError {
     INVALID_COMM,
 };
 
-[[nodiscard]] auto get_processor_grid() -> reshuffle::ProcessorGrid<2>;
+[[nodiscard]] auto get_processor_grid(MPI_Comm comm) -> reshuffle::ProcessorGrid<2>;
 [[nodiscard]] auto get_cartesian_comm(MPI_Comm base_comm,
                                       reshuffle::ProcessorGrid<2> processor_grid)
         -> std::expected<MPI_Comm, GetCartesianCommError>;
+[[nodiscard]] auto get_comm(unsigned int num_ranks, MPI_Comm base_comm)
+        -> std::expected<MPI_Comm, GetCommError>;
 
 int main(int argc, char *argv[]) {
     constexpr auto num_iterations = 200;
@@ -29,7 +31,7 @@ int main(int argc, char *argv[]) {
 
     MPI_Init(&argc, &argv);
 
-    const auto processor_grid = get_processor_grid();
+    const auto processor_grid = get_processor_grid(MPI_COMM_WORLD);
     auto cartesian_comm = get_cartesian_comm(MPI_COMM_WORLD, processor_grid).value();
     const auto processor_info = heat::ProcessorInfo{cartesian_comm};
 
@@ -86,9 +88,9 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-auto get_processor_grid() -> reshuffle::ProcessorGrid<2> {
+auto get_processor_grid(const MPI_Comm comm) -> reshuffle::ProcessorGrid<2> {
     constexpr auto num_dimensions = 2;
-    const auto num_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
+    const auto num_ranks = reshuffle::mpi::get_num_ranks(comm);
 
     auto dimensions = reshuffle::Dimensions<num_dimensions>{};
     MPI_Dims_create(num_ranks, num_dimensions, dimensions.data());
@@ -112,4 +114,21 @@ auto get_cartesian_comm(const MPI_Comm base_comm, const reshuffle::ProcessorGrid
                     periods.data(), reorder, &cartesian_comm);
 
     return cartesian_comm;
+}
+
+auto get_comm(const unsigned int num_ranks, const MPI_Comm base_comm)
+        -> std::expected<MPI_Comm, GetCommError> {
+    if (num_ranks == 0) { return std::unexpected(GetCommError::INVALID_NUM_RANKS); }
+
+    if (base_comm == MPI_COMM_NULL) { return std::unexpected(GetCommError::INVALID_COMM); }
+
+    if (const auto available_ranks = reshuffle::mpi::get_num_ranks(base_comm);
+        num_ranks > available_ranks) {
+        return std::unexpected(GetCommError::INVALID_NUM_RANKS);
+    }
+
+    auto ranks = std::vector<int>(num_ranks);
+    std::ranges::iota(ranks.begin(), ranks.end(), 0);
+
+    return reshuffle::mpi::get_sub_comm(base_comm, ranks);
 }
