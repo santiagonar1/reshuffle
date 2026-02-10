@@ -11,10 +11,11 @@ namespace heat {
     class ProcessorInfo {
     public:
         explicit ProcessorInfo(const MPI_Comm &cartesian_comm);
-        ProcessorInfo(int rank, reshuffle::RankId up_neighbour, reshuffle::RankId down_neighbour,
-                      reshuffle::RankId left_neighbour, reshuffle::RankId right_neighbour);
+        ProcessorInfo(reshuffle::RankId rank, reshuffle::RankId up_neighbour,
+                      reshuffle::RankId down_neighbour, reshuffle::RankId left_neighbour,
+                      reshuffle::RankId right_neighbour);
 
-        [[nodiscard]] auto get_rank() const -> int;
+        [[nodiscard]] auto get_rank() const -> reshuffle::RankId;
 
         [[nodiscard]] auto get_up_neighbour() const -> reshuffle::RankId;
         [[nodiscard]] auto get_down_neighbour() const -> reshuffle::RankId;
@@ -28,10 +29,11 @@ namespace heat {
 
     private:
         enum DIRECTIONS { UP, DOWN, LEFT, RIGHT };
-        const std::array<int, 4> _neighbours;
-        const int _rank;
+        const std::array<reshuffle::RankId, 4> _neighbours;
+        const reshuffle::RankId _rank;
 
-        static auto get_neighbours(const MPI_Comm &cartesian_comm) -> std::array<int, 4>;
+        static auto get_neighbours(const MPI_Comm &cartesian_comm)
+                -> std::array<reshuffle::RankId, 4>;
     };
 }// namespace heat
 
