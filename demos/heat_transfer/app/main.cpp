@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 
     const auto global_grid = reshuffle::mpi::is_root(cartesian_comm)
                                      ? heat::initialize_grid(num_rows, num_columns)
-                                     : heat::Matrix2D{};
+                                     : heat::Grid{};
 
     const auto initial_context = reshuffle::Context<2>{
             reshuffle::BlockWise<2>{global_dimensions, reshuffle::ProcessorGrid{1, 1}},
@@ -45,6 +45,13 @@ int main(int argc, char *argv[]) {
     auto local_grid = heat::add_ghost_layers(
             heat::to_grid(reshuffle::shuffle(global_grid, initial_context, final_context)).value(),
             processor_info);
+
+    const auto local_rank_grid = heat::RankGrid(
+            local_grid.size() - (processor_info.has_up_neighbour() ? 1 : 0) -
+                    (processor_info.has_down_neighbour() ? 1 : 0),
+            std::vector(local_grid[0].size() - (processor_info.has_left_neighbour() ? 1 : 0) -
+                                (processor_info.has_right_neighbour() ? 1 : 0),
+                        processor_info.get_rank()));
 
     for (auto i = 0; i < num_iterations; i++) {
         local_grid = heat::exchange_ghost_layers(local_grid, processor_info, cartesian_comm);
@@ -60,7 +67,11 @@ int main(int argc, char *argv[]) {
                                            current_context, write_vtk_context))
                         .value();
 
-        writer.record_timestep(i, print_grid, processor_info.get_rank());
+        const auto rank_grid = heat::to_grid(reshuffle::shuffle(local_rank_grid, current_context,
+                                                                write_vtk_context))
+                                       .value();
+
+        writer.record_timestep(i, print_grid, processor_info.get_rank(), rank_grid);
         local_grid = heat::apply_jacobi(local_grid);
     }
 
