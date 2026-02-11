@@ -96,6 +96,8 @@ namespace reshuffle::mpi {
         auto const group = get_group(comm);
         auto const subgroup = get_group(possible_sub_comm);
 
+        if (not belongs_to_comm(comm)) { return false; }
+
         auto local_result{false};
         if (group.has_value() and subgroup.has_value()) {
             MPI_Group intersection;
@@ -111,7 +113,7 @@ namespace reshuffle::mpi {
 
         auto is_sub_comm{false};
 
-        MPI_Allreduce(&local_result, &is_sub_comm, 1, MPI_CXX_BOOL, MPI_LOR, MPI_COMM_WORLD);
+        MPI_Allreduce(&local_result, &is_sub_comm, 1, MPI_CXX_BOOL, MPI_LOR, comm);
 
         return is_sub_comm;
     }
