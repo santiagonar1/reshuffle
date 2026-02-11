@@ -5,6 +5,8 @@
 
 
 #include <array>
+#include <expected>
+
 #include <mpi.h>
 
 namespace heat {
@@ -32,8 +34,13 @@ namespace heat {
         const std::array<reshuffle::RankId, 4> _neighbours;
         const reshuffle::RankId _rank;
 
+        enum class GetNeighboursError {
+            RANK_NOT_IN_COMM,
+            COMM_IS_NULL,
+        };
+
         static auto get_neighbours(const MPI_Comm &cartesian_comm)
-                -> std::array<reshuffle::RankId, 4>;
+                -> std::expected<std::array<reshuffle::RankId, 4>, GetNeighboursError>;
         static auto get_neighbours(reshuffle::RankId up_neighbour, reshuffle::RankId down_neighbour,
                                    reshuffle::RankId left_neighbour,
                                    reshuffle::RankId right_neighbour)

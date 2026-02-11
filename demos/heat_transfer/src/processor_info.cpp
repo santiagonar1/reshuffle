@@ -4,8 +4,10 @@
 
 namespace heat {
     ProcessorInfo::ProcessorInfo(const MPI_Comm &cartesian_comm)
-        : _neighbours(get_neighbours(cartesian_comm)),
-          _rank(reshuffle::mpi::get_rank_id(cartesian_comm).value()) {}
+        : _neighbours(get_neighbours(cartesian_comm)
+                              .value_or(std::array{MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
+                                                   MPI_PROC_NULL})),
+          _rank(reshuffle::mpi::get_rank_id(cartesian_comm).value_or(MPI_PROC_NULL)) {}
 
     ProcessorInfo::ProcessorInfo(const reshuffle::RankId rank, const reshuffle::RankId up_neighbour,
                                  const reshuffle::RankId down_neighbour,
@@ -48,7 +50,16 @@ namespace heat {
     }
 
     auto ProcessorInfo::get_neighbours(const MPI_Comm &cartesian_comm)
-            -> std::array<reshuffle::RankId, 4> {
+            -> std::expected<std::array<reshuffle::RankId, 4>, GetNeighboursError> {
+
+        if (cartesian_comm == MPI_COMM_NULL) {
+            return std::unexpected{GetNeighboursError::COMM_IS_NULL};
+        }
+
+        if (not reshuffle::mpi::belongs_to_comm(cartesian_comm)) {
+            return std::unexpected{GetNeighboursError::COMM_IS_NULL};
+        }
+
         auto neighbours = std::array<reshuffle::RankId, 4>{};
         MPI_Cart_shift(cartesian_comm, 1, 1, &neighbours[LEFT], &neighbours[RIGHT]);
         MPI_Cart_shift(cartesian_comm, 0, 1, &neighbours[UP], &neighbours[DOWN]);
