@@ -37,7 +37,7 @@ namespace reshuffle {
 
     template<std::size_t N>
     auto Context<N>::operator==(const Context &other) const -> bool {
-        return _distribution == other._distribution and _comm == other._comm;
+        return *_distribution == *other._distribution and _comm == other._comm;
     }
 
     template<std::size_t N>
