@@ -454,6 +454,8 @@ namespace heat {
     auto add_ghost_layers(const Grid &grid, const ProcessorInfo &processor) -> Grid {
         using namespace internal;
 
+        if (grid.empty()) { return {}; }
+
         return leave_top_row_if_necessary(
                 leave_bottom_row_if_necessary(
                         leave_left_column_if_necessary(
@@ -465,6 +467,8 @@ namespace heat {
 
     auto remove_ghost_layers(const Grid &grid, const ProcessorInfo &processor) -> Grid {
         using namespace internal;
+
+        if (grid.empty()) { return {}; }
 
         return remove_top_row_if_necessary(
                 remove_bottom_row_if_necessary(
