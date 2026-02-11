@@ -144,6 +144,30 @@ TEST(Shuffle, CanShuffleUsingGeneralDataDistribution) {
     }
 }
 
+TEST(Shuffle, CanBeCalledByARankNotInCommunicators) {
+    constexpr auto num_global_values = 4;
+
+    const auto values =
+            is_root(MPI_COMM_WORLD) ? std::vector(num_global_values, 1) : std::vector<int>{};
+
+    // Trick: same communicator created twice to have different contexts
+    const auto comm_v1 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+    const auto comm_v2 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+
+    const auto only_rank_0 =
+            Context{BlockWise{Dimensions{num_global_values}, ProcessorGrid{1}}, comm_v1};
+    const auto final_context =
+            Context{BlockWise{Dimensions{num_global_values}, ProcessorGrid{1}}, comm_v2};
+
+    // I  can only test this in rank 0 because in rank 1 both comms are MPI_COMM_NULL (i.e., same distributions)
+    if (is_root(MPI_COMM_WORLD)) { EXPECT_FALSE(only_rank_0 == final_context); }
+
+    const auto new_values =
+            shuffle(std::mdspan{values.data(), values.size()}, only_rank_0, final_context).first;
+
+    EXPECT_THAT(new_values, Eq(values));
+}
+
 TEST(Shuffle, CanShuffleFromOneToManyIn2DVerticalSplit) {
     const auto values =
             is_root(MPI_COMM_WORLD) ? std::vector{0, 1, 2, 3, 4, 5} : std::vector<int>();
