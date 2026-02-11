@@ -1,6 +1,7 @@
 #ifndef RESHUFFLE_SCATTER_EXCHANGER_HPP
 #define RESHUFFLE_SCATTER_EXCHANGER_HPP
 
+#include "context.hpp"
 #include "data_exchanger.hpp"
 #include "grid_overlay.hpp"
 
