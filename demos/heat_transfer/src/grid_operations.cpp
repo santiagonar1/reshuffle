@@ -342,7 +342,7 @@ namespace heat {
             }
 
             if (processor.has_right_neighbour()) {
-                new_grid = set_ghost_layer(grid, new_right_layer, Location::RIGHT).value();
+                new_grid = set_ghost_layer(new_grid, new_right_layer, Location::RIGHT).value();
             }
 
             return new_grid;
@@ -388,7 +388,7 @@ namespace heat {
             }
 
             if (processor.has_down_neighbour()) {
-                new_grid = set_ghost_layer(grid, new_down_layer, Location::BOTTOM).value();
+                new_grid = set_ghost_layer(new_grid, new_down_layer, Location::BOTTOM).value();
             }
 
             return new_grid;
