@@ -8,6 +8,10 @@
 
 namespace reshuffle::internal {
     auto create_inter_communicator(MPI_Comm comm1, MPI_Comm comm2) -> MPI_Comm {
+        if (not mpi::belongs_to_comm(comm1) and not mpi::belongs_to_comm(comm2)) {
+            return MPI_COMM_NULL;
+        }
+
         if (mpi::is_sub_comm(comm1, comm2)) { return comm1; }
         if (mpi::is_sub_comm(comm2, comm1)) { return comm2; }
         throw std::runtime_error("inter-communicator requires for now one of the communicators "
