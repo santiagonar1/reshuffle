@@ -19,6 +19,9 @@ namespace reshuffle::internal {
     InterCommunicator::InterCommunicator(const MPI_Comm initial_comm, const MPI_Comm final_comm)
         : _inter_communicator{create_inter_communicator(initial_comm, final_comm)},
           _initial_comm{initial_comm}, _final_comm{final_comm} {
+        // If this is called from a rank in neither of the communicators, skip initialization
+        if (not mpi::belongs_to_comm(_inter_communicator)) { return; }
+
         //gets the rank in the MPI_Comm that is NOT the sub communicator
         const auto rank_inter_comm = mpi::get_rank_id(_inter_communicator).value();
 
