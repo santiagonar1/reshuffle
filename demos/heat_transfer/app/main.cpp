@@ -85,9 +85,7 @@ int main(int argc, char *argv[]) {
             get_dimensions_without_ghost_layers(local_grid, initial_processor_info),
             initial_processor_info.get_rank());
 
-    auto rank_grid =
-            heat::to_grid(reshuffle::shuffle(local_rank_grid, final_context, initial_context))
-                    .value_or(heat::RankGrid{});
+    auto rank_grid = gather_in_root(local_rank_grid, global_dimensions, initial_comm);
 
     auto current_comm = initial_comm;
     const auto adaptation_vector = std::views::iota(1) | std::views::take(num_available_ranks) |
