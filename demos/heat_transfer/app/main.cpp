@@ -260,11 +260,11 @@ auto do_adaptation(heat::Grid &local_grid, heat::RankGrid &rank_grid,
             get_cartesian_comm(get_comm(new_num_ranks, MPI_COMM_WORLD).value(), new_processor_grid)
                     .value();
 
-    const auto current_context = reshuffle::Context<2>{
-            reshuffle::BlockWise<2>{global_dimensions, current_processor_grid}, current_comm};
+    const auto current_context = reshuffle::Context{
+            reshuffle::BlockWise{global_dimensions, current_processor_grid}, current_comm};
 
-    const auto new_context = reshuffle::Context<2>{
-            reshuffle::BlockWise<2>{global_dimensions, new_processor_grid}, new_comm};
+    const auto new_context = reshuffle::Context{
+            reshuffle::BlockWise{global_dimensions, new_processor_grid}, new_comm};
 
     const auto current_processor_info = heat::ProcessorInfo{current_comm};
     const auto new_processor_info = heat::ProcessorInfo{new_comm};
