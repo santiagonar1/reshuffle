@@ -2,6 +2,7 @@
 #define RESHUFFLE_MATRIX_HPP
 
 #include <ostream>
+#include <utility>
 #include <vector>
 
 namespace heat {
