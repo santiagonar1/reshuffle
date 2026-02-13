@@ -30,6 +30,10 @@ enum class GetCommError {
         -> heat::GridDimensions;
 [[nodiscard]] auto get_local_rank_grid(const heat::GridDimensions &local_dimensions,
                                        reshuffle::RankId rank) -> heat::RankGrid;
+[[nodiscard]] auto gather_in_root(const heat::Grid &local_grid,
+                                  const reshuffle::Dimensions<2> &global_dimensions,
+                                  const heat::ProcessorInfo &processor, MPI_Comm comm)
+        -> heat::Grid;
 [[nodiscard]] auto do_adaptation(heat::Grid &local_grid, heat::RankGrid &rank_grid,
                                  const reshuffle::Dimensions<2> &global_dimensions,
                                  unsigned int new_num_ranks, MPI_Comm current_comm) -> MPI_Comm;
@@ -110,23 +114,11 @@ int main(int argc, char *argv[]) {
             local_grid =
                     heat::exchange_ghost_layers(local_grid, current_processor_info, current_comm);
 
-            const auto current_num_ranks = reshuffle::mpi::get_num_ranks(current_comm);
-            const auto current_processor_grid = get_processor_grid(current_num_ranks);
-            const auto current_context = reshuffle::Context<2>{
-                    reshuffle::BlockWise<2>{global_dimensions, current_processor_grid},
-                    current_comm};
+            writer.record_timestep(i,
+                                   gather_in_root(local_grid, global_dimensions,
+                                                  current_processor_info, current_comm),
+                                   current_processor_info.get_rank(), rank_grid);
 
-            const auto write_vtk_context = reshuffle::Context<2>{
-                    reshuffle::BlockWise<2>{global_dimensions, reshuffle::ProcessorGrid{1, 1}},
-                    current_comm};
-
-            const auto print_grid =
-                    heat::to_grid(reshuffle::shuffle(heat::remove_ghost_layers(
-                                                             local_grid, current_processor_info),
-                                                     current_context, write_vtk_context))
-                            .value();
-
-            writer.record_timestep(i, print_grid, current_processor_info.get_rank(), rank_grid);
             local_grid = heat::apply_jacobi(local_grid);
         }
     }
@@ -209,6 +201,24 @@ auto get_dimensions_without_ghost_layers(const heat::Grid &grid,
     if (local_dimensions.num_rows == 0 or local_dimensions.num_columns == 0) { return {}; }
 
     return {local_dimensions.num_rows, std::vector(local_dimensions.num_columns, rank)};
+}
+
+auto gather_in_root(const heat::Grid &local_grid, const reshuffle::Dimensions<2> &global_dimensions,
+                    const heat::ProcessorInfo &processor, const MPI_Comm comm) -> heat::Grid {
+    const auto current_num_ranks = reshuffle::mpi::get_num_ranks(comm);
+    const auto current_processor_grid = get_processor_grid(current_num_ranks);
+    const auto current_context = reshuffle::Context{
+            reshuffle::BlockWise{global_dimensions, current_processor_grid}, comm};
+
+    const auto all_in_rank_0 = reshuffle::Context{
+            reshuffle::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1, 1}}, comm};
+
+    const auto global_grid =
+            heat::to_grid(reshuffle::shuffle(heat::remove_ghost_layers(local_grid, processor),
+                                             current_context, all_in_rank_0))
+                    .value();
+
+    return global_grid;
 }
 
 auto do_adaptation(heat::Grid &local_grid, heat::RankGrid &rank_grid,
