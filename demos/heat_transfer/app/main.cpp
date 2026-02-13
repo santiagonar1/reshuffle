@@ -25,6 +25,9 @@ enum class GetCommError {
 [[nodiscard]] auto get_next_num_ranks(int num_adaptations,
                                       const std::vector<reshuffle::RankId> &adaptation_vector)
         -> unsigned int;
+[[nodiscard]] auto do_adaptation(heat::Grid &local_grid, heat::RankGrid &rank_grid,
+                                 const reshuffle::Dimensions<2> &global_dimensions,
+                                 unsigned int new_num_ranks, MPI_Comm current_comm) -> MPI_Comm;
 
 int main(int argc, char *argv[]) {
     constexpr auto num_iterations = 200;
@@ -95,55 +98,9 @@ int main(int argc, char *argv[]) {
             MPI_Barrier(MPI_COMM_WORLD);
 
             const auto new_num_ranks = get_next_num_ranks(num_adaptations, adaptation_vector);
-            auto current_num_ranks = reshuffle::mpi::belongs_to_comm(current_comm)
-                                             ? reshuffle::mpi::get_num_ranks(current_comm)
-                                             : 1;
 
-            MPI_Bcast(&current_num_ranks, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-            const auto current_processor_grid = get_processor_grid(current_num_ranks);
-            const auto new_processor_grid = get_processor_grid(new_num_ranks);
-
-            auto new_comm = get_cartesian_comm(get_comm(new_num_ranks, MPI_COMM_WORLD).value(),
-                                               new_processor_grid)
-                                    .value();
-
-            const auto current_context = reshuffle::Context<2>{
-                    reshuffle::BlockWise<2>{global_dimensions, current_processor_grid},
-                    current_comm};
-
-            const auto new_context = reshuffle::Context<2>{
-                    reshuffle::BlockWise<2>{global_dimensions, new_processor_grid}, new_comm};
-
-            const auto current_processor_info = heat::ProcessorInfo{current_comm};
-            const auto new_processor_info = heat::ProcessorInfo{new_comm};
-
-            local_grid = heat::add_ghost_layers(
-                    heat::to_grid(reshuffle::shuffle(heat::remove_ghost_layers(
-                                                             local_grid, current_processor_info),
-                                                     current_context, new_context))
-                            .value_or(heat::Grid{}),
-                    new_processor_info);
-
-            local_rank_grid =
-                    reshuffle::mpi::belongs_to_comm(new_comm)
-                            ? heat::RankGrid(
-                                      local_grid.size() -
-                                              (new_processor_info.has_up_neighbour() ? 1 : 0) -
-                                              (new_processor_info.has_down_neighbour() ? 1 : 0),
-                                      std::vector(local_grid[0].size() -
-                                                          (new_processor_info.has_left_neighbour()
-                                                                   ? 1
-                                                                   : 0) -
-                                                          (new_processor_info.has_right_neighbour()
-                                                                   ? 1
-                                                                   : 0),
-                                                  new_processor_info.get_rank()))
-                            : heat::RankGrid{};
-
-            rank_grid =
-                    heat::to_grid(reshuffle::shuffle(local_rank_grid, new_context, initial_context))
-                            .value_or(heat::RankGrid{});
+            const auto new_comm = do_adaptation(local_grid, rank_grid, global_dimensions,
+                                                new_num_ranks, current_comm);
 
             if (current_comm != initial_comm and current_comm != MPI_COMM_NULL) {
                 MPI_Comm_free(&current_comm);
@@ -238,4 +195,58 @@ auto get_next_num_ranks(const int num_adaptations,
 
 
     return next_num_ranks;
+}
+
+auto do_adaptation(heat::Grid &local_grid, heat::RankGrid &rank_grid,
+                   const reshuffle::Dimensions<2> &global_dimensions,
+                   const unsigned int new_num_ranks, MPI_Comm current_comm) -> MPI_Comm {
+
+    auto current_num_ranks = reshuffle::mpi::belongs_to_comm(current_comm)
+                                     ? reshuffle::mpi::get_num_ranks(current_comm)
+                                     : 1;
+
+    MPI_Bcast(&current_num_ranks, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    const auto current_processor_grid = get_processor_grid(current_num_ranks);
+    const auto new_processor_grid = get_processor_grid(new_num_ranks);
+
+    auto new_comm =
+            get_cartesian_comm(get_comm(new_num_ranks, MPI_COMM_WORLD).value(), new_processor_grid)
+                    .value();
+
+    const auto current_context = reshuffle::Context<2>{
+            reshuffle::BlockWise<2>{global_dimensions, current_processor_grid}, current_comm};
+
+    const auto new_context = reshuffle::Context<2>{
+            reshuffle::BlockWise<2>{global_dimensions, new_processor_grid}, new_comm};
+
+    const auto current_processor_info = heat::ProcessorInfo{current_comm};
+    const auto new_processor_info = heat::ProcessorInfo{new_comm};
+
+    local_grid = heat::add_ghost_layers(
+            heat::to_grid(reshuffle::shuffle(
+                                  heat::remove_ghost_layers(local_grid, current_processor_info),
+                                  current_context, new_context))
+                    .value_or(heat::Grid{}),
+            new_processor_info);
+
+    const auto new_local_rank_grid =
+            reshuffle::mpi::belongs_to_comm(new_comm)
+                    ? heat::RankGrid(
+                              local_grid.size() - (new_processor_info.has_up_neighbour() ? 1 : 0) -
+                                      (new_processor_info.has_down_neighbour() ? 1 : 0),
+                              std::vector(
+                                      local_grid[0].size() -
+                                              (new_processor_info.has_left_neighbour() ? 1 : 0) -
+                                              (new_processor_info.has_right_neighbour() ? 1 : 0),
+                                      new_processor_info.get_rank()))
+                    : heat::RankGrid{};
+
+    const auto all_rank_0 = reshuffle::Context{
+            reshuffle::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1, 1}}, current_comm};
+
+    rank_grid = heat::to_grid(reshuffle::shuffle(new_local_rank_grid, new_context, all_rank_0))
+                        .value_or(heat::RankGrid{});
+
+    return new_comm;
 }
