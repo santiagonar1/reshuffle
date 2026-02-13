@@ -5,8 +5,10 @@
 #include <fstream>
 
 namespace heat::vtk {
-    VTKWriter::VTKWriter(const std::filesystem::path &output_folder, std::string files_prefix)
-        : _output_folder{output_folder}, _files_prefix(std::move(files_prefix)) {
+    VTKWriter::VTKWriter(const std::filesystem::path &output_folder, std::string files_prefix,
+                         const unsigned int max_number_digits_iteration)
+        : _output_folder{output_folder}, _files_prefix(std::move(files_prefix)),
+          _max_number_digits_iteration(max_number_digits_iteration) {
         std::filesystem::create_directories(output_folder);
     }
 
@@ -15,8 +17,9 @@ namespace heat::vtk {
                                     const std::optional<RankGrid> &rank_grid) const -> void {
         if (rank != 0) { return; }
 
-        const auto path =
-                _output_folder / (_files_prefix + std::to_string(current_iteration) + ".vtk");
+        const auto filename = get_filename(current_iteration);
+        const auto path = _output_folder / filename;
+
         auto vtk_file = std::ofstream{path};
 
         if (not vtk_file.is_open()) {
@@ -24,6 +27,15 @@ namespace heat::vtk {
         }
 
         write_file(vtk_file, grid, rank_grid);
+    }
+
+    auto VTKWriter::get_filename(unsigned int iteration) const -> std::string {
+        auto filename = std::ostringstream{};
+        filename << _files_prefix << std::setfill('0')
+                 << std::setw(static_cast<int>(_max_number_digits_iteration)) << iteration
+                 << ".vtk";
+
+        return filename.str();
     }
 
     auto VTKWriter::write_header(std::ostream &output, const unsigned int ny, const unsigned int nx)

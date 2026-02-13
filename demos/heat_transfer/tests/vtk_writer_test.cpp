@@ -12,7 +12,7 @@ using testing::Eq;
 
 TEST(VTKWriter, CreatesAnOutputFolder) {
     constexpr auto output_folder = "test_CreatesAnOutputFolder";
-    const auto _ = VTKWriter{output_folder, "dummy-prefix"};
+    const auto _ = VTKWriter{output_folder, "dummy-prefix", 3};
 
     EXPECT_TRUE(std::filesystem::exists(output_folder));
     std::filesystem::remove_all(output_folder);
@@ -81,15 +81,14 @@ TEST(RecordTimestep, CanWriteResultsIntoAFile) {
 
     const auto output_folder = std::filesystem::path{"test_CanWriteResultsIntoAFile"};
     const auto files_prefix = "vtk_output_";
+
+    const auto writer = VTKWriter{output_folder, files_prefix, 3};
+
+
     constexpr auto current_iteration = 0;
-
-    const auto writer = VTKWriter{output_folder, files_prefix};
-
-
     writer.record_timestep(current_iteration, data, 0);
 
-    const auto expected_path =
-            output_folder / (files_prefix + std::to_string(current_iteration) + ".vtk");
+    const auto expected_path = output_folder / (files_prefix + std::string{"000"} + ".vtk");
     ASSERT_TRUE(std::filesystem::exists(expected_path));
 
 
@@ -121,14 +120,13 @@ TEST(RecordTimestep, CanWriteResultsWithRankInfoIntoAFile) {
 
     const auto output_folder = std::filesystem::path{"test_CanWriteResultsWithRankInfoIntoAFile"};
     const auto files_prefix = "vtk_output_";
+
+    const auto writer = VTKWriter{output_folder, files_prefix, 3};
+
     constexpr auto current_iteration = 0;
-
-    const auto writer = VTKWriter{output_folder, files_prefix};
-
     writer.record_timestep(current_iteration, data, 0, rank_data);
 
-    const auto expected_path =
-            output_folder / (files_prefix + std::to_string(current_iteration) + ".vtk");
+    const auto expected_path = output_folder / (files_prefix + std::string{"000"} + ".vtk");
     ASSERT_TRUE(std::filesystem::exists(expected_path));
 
     auto input = std::ifstream{expected_path, std::ios::in | std::ios::binary};
@@ -163,7 +161,7 @@ TEST(RecordTimestep, OnlyRank0RecordsATimeStep) {
     const auto files_prefix = "vtk_output_";
     constexpr auto current_iteration = 0;
 
-    const auto writer = VTKWriter{output_folder, files_prefix};
+    const auto writer = VTKWriter{output_folder, files_prefix, 3};
 
 
     writer.record_timestep(current_iteration, data, 1);
@@ -171,4 +169,14 @@ TEST(RecordTimestep, OnlyRank0RecordsATimeStep) {
     const auto expected_path =
             output_folder / (files_prefix + std::to_string(current_iteration) + ".vtk");
     ASSERT_FALSE(std::filesystem::exists(expected_path));
+}
+
+TEST(GetFilename, ReturnsTheFilenameWhereDataWillBeStored) {
+    const auto output_folder =
+            std::filesystem::path{"test_ReturnsTheFilenameWhereDataWillBeStored"};
+    const auto files_prefix = "vtk_output_";
+    constexpr auto current_iteration = 1;
+
+    const auto writer = VTKWriter{output_folder, files_prefix, 3};
+    EXPECT_THAT(writer.get_filename(current_iteration), Eq(std::string{"vtk_output_001.vtk"}));
 }

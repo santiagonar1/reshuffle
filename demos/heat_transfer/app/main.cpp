@@ -25,6 +25,7 @@ enum class GetCommError {
     INVALID_COMM,
 };
 
+[[nodiscard]] auto get_num_digits(unsigned int num) -> unsigned int;
 [[nodiscard]] auto get_processor_grid(unsigned int num_ranks) -> reshuffle::ProcessorGrid<2>;
 [[nodiscard]] auto get_cartesian_comm(MPI_Comm base_comm,
                                       reshuffle::ProcessorGrid<2> processor_grid)
@@ -87,7 +88,8 @@ int main(int argc, char *argv[]) {
     const auto initial_processor_info = heat::ProcessorInfo{initial_comm};
 
 
-    const auto writer = heat::vtk::VTKWriter{output_folder, files_prefix};
+    const auto writer =
+            heat::vtk::VTKWriter{output_folder, files_prefix, get_num_digits(num_iterations)};
 
     const auto global_grid = reshuffle::mpi::is_root(initial_comm)
                                      ? heat::initialize_grid(num_rows, num_columns)
@@ -140,6 +142,10 @@ int main(int argc, char *argv[]) {
     if (initial_comm != MPI_COMM_NULL) { MPI_Comm_free(&initial_comm); }
     MPI_Finalize();
     return 0;
+}
+
+auto get_num_digits(unsigned int num) -> unsigned int {
+    return num == 0 ? 1 : static_cast<unsigned int>(std::log10(num)) + 1;
 }
 
 auto get_processor_grid(const unsigned int num_ranks) -> reshuffle::ProcessorGrid<2> {
