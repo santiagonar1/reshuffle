@@ -509,8 +509,9 @@ namespace heat {
         throw std::runtime_error("Invalid location");
     }
 
-    auto exchange_ghost_layers(const Grid &grid, const ProcessorInfo &processor,
-                               const MPI_Comm cartesian_comm) -> Grid {
+    auto exchange_ghost_layers(const Grid &grid, const MPI_Comm cartesian_comm) -> Grid {
+        const auto processor = heat::ProcessorInfo{cartesian_comm};
+
         return internal::exchange_bottom_up_ghost_layers(
                 internal::exchange_left_right_ghost_layers(grid, processor, cartesian_comm),
                 processor, cartesian_comm);

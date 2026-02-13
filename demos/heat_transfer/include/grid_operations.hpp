@@ -95,8 +95,7 @@ namespace heat {
     [[nodiscard]] auto set_ghost_layer(const Grid &grid, const std::vector<double> &values,
                                        const Location &location)
             -> std::expected<Grid, SetBoundaryError>;
-    [[nodiscard]] auto exchange_ghost_layers(const Grid &grid, const ProcessorInfo &processor,
-                                             MPI_Comm cartesian_comm) -> Grid;
+    [[nodiscard]] auto exchange_ghost_layers(const Grid &grid, MPI_Comm cartesian_comm) -> Grid;
 
 }// namespace heat
 

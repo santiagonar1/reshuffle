@@ -106,10 +106,9 @@ int main(int argc, char *argv[]) {
 
 
         if (reshuffle::mpi::belongs_to_comm(current_comm)) {
-            const auto current_processor_info = heat::ProcessorInfo{current_comm};
-            local_grid =
-                    heat::exchange_ghost_layers(local_grid, current_processor_info, current_comm);
+            local_grid = heat::exchange_ghost_layers(local_grid, current_comm);
 
+            const auto current_processor_info = heat::ProcessorInfo{current_comm};
             writer.record_timestep(i, gather_in_root(local_grid, global_dimensions, current_comm),
                                    current_processor_info.get_rank(), rank_grid);
 
