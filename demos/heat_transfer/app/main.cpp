@@ -25,6 +25,9 @@ enum class GetCommError {
 [[nodiscard]] auto get_next_num_ranks(int num_adaptations,
                                       const std::vector<reshuffle::RankId> &adaptation_vector)
         -> unsigned int;
+[[nodiscard]] auto get_dimensions_without_ghost_layers(const heat::Grid &grid,
+                                                       const heat::ProcessorInfo &processor)
+        -> heat::GridDimensions;
 [[nodiscard]] auto get_local_rank_grid(const heat::GridDimensions &local_grid_dimensions,
                                        const heat::ProcessorInfo &processor) -> heat::RankGrid;
 [[nodiscard]] auto do_adaptation(heat::Grid &local_grid, heat::RankGrid &rank_grid,
@@ -185,6 +188,19 @@ auto get_next_num_ranks(const int num_adaptations,
 
 
     return next_num_ranks;
+}
+
+auto get_dimensions_without_ghost_layers(const heat::Grid &grid,
+                                         const heat::ProcessorInfo &processor)
+        -> heat::GridDimensions {
+    const auto dimensions = heat::get_dimensions(grid);
+
+    if (dimensions.num_rows == 0 or dimensions.num_columns == 0) { return {}; }
+
+    return heat::GridDimensions{dimensions.num_rows - (processor.has_up_neighbour() ? 1 : 0) -
+                                        (processor.has_down_neighbour() ? 1 : 0),
+                                dimensions.num_columns - (processor.has_left_neighbour() ? 1 : 0) -
+                                        (processor.has_right_neighbour() ? 1 : 0)};
 }
 
 [[nodiscard]] auto get_local_rank_grid(const heat::GridDimensions &local_grid_dimensions,
