@@ -34,8 +34,7 @@ enum class GetCommError {
                                      const reshuffle::Dimensions<2> &global_dimensions,
                                      unsigned int num_ranks, MPI_Comm comm) -> heat::Grid;
 [[nodiscard]] auto gather_in_root(const heat::Grid &local_grid,
-                                  const reshuffle::Dimensions<2> &global_dimensions,
-                                  const heat::ProcessorInfo &processor, MPI_Comm comm)
+                                  const reshuffle::Dimensions<2> &global_dimensions, MPI_Comm comm)
         -> heat::Grid;
 [[nodiscard]] auto gather_in_root(const heat::RankGrid &local_grid,
                                   const reshuffle::Dimensions<2> &global_dimensions, MPI_Comm comm)
@@ -111,9 +110,7 @@ int main(int argc, char *argv[]) {
             local_grid =
                     heat::exchange_ghost_layers(local_grid, current_processor_info, current_comm);
 
-            writer.record_timestep(i,
-                                   gather_in_root(local_grid, global_dimensions,
-                                                  current_processor_info, current_comm),
+            writer.record_timestep(i, gather_in_root(local_grid, global_dimensions, current_comm),
                                    current_processor_info.get_rank(), rank_grid);
 
             local_grid = heat::apply_jacobi(local_grid);
@@ -218,7 +215,9 @@ auto scatter_from_root(const heat::Grid &global_grid,
 }
 
 auto gather_in_root(const heat::Grid &local_grid, const reshuffle::Dimensions<2> &global_dimensions,
-                    const heat::ProcessorInfo &processor, const MPI_Comm comm) -> heat::Grid {
+                    const MPI_Comm comm) -> heat::Grid {
+    const auto processor = heat::ProcessorInfo{comm};
+
     const auto current_num_ranks = reshuffle::mpi::get_num_ranks(comm);
     const auto current_processor_grid = get_processor_grid(current_num_ranks);
     const auto current_context = reshuffle::Context{
