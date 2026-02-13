@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
 
     const auto num_available_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
-    const auto initial_num_ranks = 1;
+    constexpr auto initial_num_ranks = 1;
 
     const auto processor_grid = get_processor_grid(initial_num_ranks);
 
