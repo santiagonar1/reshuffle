@@ -25,6 +25,8 @@ enum class GetCommError {
 [[nodiscard]] auto get_next_num_ranks(int num_adaptations,
                                       const std::vector<reshuffle::RankId> &adaptation_vector)
         -> unsigned int;
+[[nodiscard]] auto get_local_rank_grid(const heat::GridDimensions &local_grid_dimensions,
+                                       const heat::ProcessorInfo &processor) -> heat::RankGrid;
 [[nodiscard]] auto do_adaptation(heat::Grid &local_grid, heat::RankGrid &rank_grid,
                                  const reshuffle::Dimensions<2> &global_dimensions,
                                  unsigned int new_num_ranks, MPI_Comm current_comm) -> MPI_Comm;
@@ -70,19 +72,7 @@ int main(int argc, char *argv[]) {
             initial_processor_info);
 
     auto local_rank_grid =
-            reshuffle::mpi::belongs_to_comm(initial_comm)
-                    ? heat::RankGrid(
-                              local_grid.size() -
-                                      (initial_processor_info.has_up_neighbour() ? 1 : 0) -
-                                      (initial_processor_info.has_down_neighbour() ? 1 : 0),
-                              std::vector(
-                                      local_grid[0].size() -
-                                              (initial_processor_info.has_left_neighbour() ? 1
-                                                                                           : 0) -
-                                              (initial_processor_info.has_right_neighbour() ? 1
-                                                                                            : 0),
-                                      initial_processor_info.get_rank()))
-                    : heat::RankGrid{};
+            get_local_rank_grid(heat::get_dimensions(local_grid), initial_processor_info);
 
     auto rank_grid =
             heat::to_grid(reshuffle::shuffle(local_rank_grid, final_context, initial_context))
@@ -197,6 +187,20 @@ auto get_next_num_ranks(const int num_adaptations,
     return next_num_ranks;
 }
 
+[[nodiscard]] auto get_local_rank_grid(const heat::GridDimensions &local_grid_dimensions,
+                                       const heat::ProcessorInfo &processor) -> heat::RankGrid {
+    if (local_grid_dimensions.num_rows == 0 or local_grid_dimensions.num_columns == 0) {
+        return {};
+    }
+
+    return {local_grid_dimensions.num_rows - (processor.has_up_neighbour() ? 1 : 0) -
+                    (processor.has_down_neighbour() ? 1 : 0),
+            std::vector(local_grid_dimensions.num_columns -
+                                (processor.has_left_neighbour() ? 1 : 0) -
+                                (processor.has_right_neighbour() ? 1 : 0),
+                        processor.get_rank())};
+}
+
 auto do_adaptation(heat::Grid &local_grid, heat::RankGrid &rank_grid,
                    const reshuffle::Dimensions<2> &global_dimensions,
                    const unsigned int new_num_ranks, MPI_Comm current_comm) -> MPI_Comm {
@@ -231,16 +235,7 @@ auto do_adaptation(heat::Grid &local_grid, heat::RankGrid &rank_grid,
             new_processor_info);
 
     const auto new_local_rank_grid =
-            reshuffle::mpi::belongs_to_comm(new_comm)
-                    ? heat::RankGrid(
-                              local_grid.size() - (new_processor_info.has_up_neighbour() ? 1 : 0) -
-                                      (new_processor_info.has_down_neighbour() ? 1 : 0),
-                              std::vector(
-                                      local_grid[0].size() -
-                                              (new_processor_info.has_left_neighbour() ? 1 : 0) -
-                                              (new_processor_info.has_right_neighbour() ? 1 : 0),
-                                      new_processor_info.get_rank()))
-                    : heat::RankGrid{};
+            get_local_rank_grid(heat::get_dimensions(local_grid), new_processor_info);
 
     const auto all_rank_0 = reshuffle::Context{
             reshuffle::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1, 1}}, current_comm};
