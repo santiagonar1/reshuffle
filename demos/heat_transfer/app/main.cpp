@@ -1,3 +1,6 @@
+#include <absl/flags/flag.h>
+#include <absl/flags/parse.h>
+#include <absl/flags/usage.h>
 #include <expected>
 #include <mpi.h>
 
@@ -6,6 +9,12 @@
 #include <grid_operations.hpp>
 #include <processor_info.hpp>
 #include <vtk_writer.hpp>
+
+ABSL_FLAG(int, num_iterations, 200, "Number of iterations");
+ABSL_FLAG(int, num_rows, 100, "Number of rows");
+ABSL_FLAG(int, num_columns, 100, "Number of columns (defaults to num_rows if not specified)");
+ABSL_FLAG(int, adaptation_frequency, 50, "Frequency of adaptation");
+ABSL_FLAG(std::string, output_folder, "output", "Output folder path");
 
 enum class GetCartesianCommError {
     INVALID_PROCESSOR_GRID,
@@ -44,14 +53,28 @@ enum class GetCommError {
                                  unsigned int new_num_ranks, MPI_Comm current_comm) -> MPI_Comm;
 
 int main(int argc, char *argv[]) {
-    constexpr auto num_iterations = 200;
-    constexpr auto num_rows = 100;
-    constexpr auto num_columns = num_rows;
-    constexpr auto adaptation_frequency = 50;
+    absl::SetProgramUsageMessage("Heat transfer simulation with dynamic process adaptation.");
+    absl::ParseCommandLine(argc, argv);
 
-    constexpr auto global_dimensions = reshuffle::Dimensions{num_rows, num_columns};
+    const auto num_iterations = absl::GetFlag(FLAGS_num_iterations);
+    const auto num_rows = absl::GetFlag(FLAGS_num_rows);
+    const auto num_columns = absl::GetFlag(FLAGS_num_columns);
+    const auto adaptation_frequency = absl::GetFlag(FLAGS_adaptation_frequency);
+    const auto output_folder = std::filesystem::path{absl::GetFlag(FLAGS_output_folder)};
+    const auto files_prefix = "vtk_output_";
 
     MPI_Init(&argc, &argv);
+
+    if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
+        std::cout << "Starting simulation with:\n"
+                  << "  num_iterations: " << num_iterations << "\n"
+                  << "  num_rows: " << num_rows << "\n"
+                  << "  num_columns: " << num_columns << "\n"
+                  << "  adaptation_frequency: " << adaptation_frequency << "\n"
+                  << "  output_folder: " << output_folder << std::endl;
+    }
+
+    const auto global_dimensions = reshuffle::Dimensions<2>{num_rows, num_columns};
 
     const auto num_available_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
     constexpr auto initial_num_ranks = 1;
@@ -63,8 +86,6 @@ int main(int argc, char *argv[]) {
                     .value();
     const auto initial_processor_info = heat::ProcessorInfo{initial_comm};
 
-    const auto output_folder = std::filesystem::current_path() / "output";
-    const auto files_prefix = "vtk_output_";
 
     const auto writer = heat::vtk::VTKWriter{output_folder, files_prefix};
 
