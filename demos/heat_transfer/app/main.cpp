@@ -30,6 +30,9 @@ enum class GetCommError {
         -> heat::GridDimensions;
 [[nodiscard]] auto get_local_rank_grid(const heat::GridDimensions &local_dimensions,
                                        reshuffle::RankId rank) -> heat::RankGrid;
+[[nodiscard]] auto scatter_from_root(const heat::Grid &global_grid,
+                                     const reshuffle::Dimensions<2> &global_dimensions,
+                                     unsigned int num_ranks, MPI_Comm comm) -> heat::Grid;
 [[nodiscard]] auto gather_in_root(const heat::Grid &local_grid,
                                   const reshuffle::Dimensions<2> &global_dimensions,
                                   const heat::ProcessorInfo &processor, MPI_Comm comm)
@@ -70,15 +73,8 @@ int main(int argc, char *argv[]) {
                                      ? heat::initialize_grid(num_rows, num_columns)
                                      : heat::Grid{};
 
-    const auto initial_context = reshuffle::Context<2>{
-            reshuffle::BlockWise<2>{global_dimensions, reshuffle::ProcessorGrid{1, 1}},
-            initial_comm};
-    const auto final_context = reshuffle::Context<2>{
-            reshuffle::BlockWise<2>{global_dimensions, processor_grid}, initial_comm};
-
     auto local_grid = heat::add_ghost_layers(
-            heat::to_grid(reshuffle::shuffle(global_grid, initial_context, final_context))
-                    .value_or(heat::Grid{}),
+            scatter_from_root(global_grid, global_dimensions, initial_num_ranks, initial_comm),
             initial_processor_info);
 
     auto local_rank_grid = get_local_rank_grid(
@@ -197,11 +193,28 @@ auto get_dimensions_without_ghost_layers(const heat::Grid &grid,
                                         (processor.has_right_neighbour() ? 1 : 0)};
 }
 
-[[nodiscard]] auto get_local_rank_grid(const heat::GridDimensions &local_dimensions,
-                                       const reshuffle::RankId rank) -> heat::RankGrid {
+auto get_local_rank_grid(const heat::GridDimensions &local_dimensions, const reshuffle::RankId rank)
+        -> heat::RankGrid {
     if (local_dimensions.num_rows == 0 or local_dimensions.num_columns == 0) { return {}; }
 
     return {local_dimensions.num_rows, std::vector(local_dimensions.num_columns, rank)};
+}
+
+auto scatter_from_root(const heat::Grid &global_grid,
+                       const reshuffle::Dimensions<2> &global_dimensions,
+                       const unsigned int num_ranks, MPI_Comm comm) -> heat::Grid {
+
+    const auto processor_grid = get_processor_grid(num_ranks);
+
+    const auto all_in_root = reshuffle::Context{
+            reshuffle::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1, 1}}, comm};
+    const auto final_context =
+            reshuffle::Context{reshuffle::BlockWise{global_dimensions, processor_grid}, comm};
+
+    auto local_grid = heat::to_grid(reshuffle::shuffle(global_grid, all_in_root, final_context))
+                              .value_or(heat::Grid{});
+
+    return local_grid;
 }
 
 auto gather_in_root(const heat::Grid &local_grid, const reshuffle::Dimensions<2> &global_dimensions,
