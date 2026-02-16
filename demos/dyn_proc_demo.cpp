@@ -13,8 +13,7 @@ struct StringArray {
 
     StringArray() = default;
 
-    explicit StringArray(int size) : _size(size) {
-        _data = (char **) malloc(size * sizeof(char *));
+    explicit StringArray(const int size) : _size(size) {
         _data = static_cast<char **>(std::malloc(size * sizeof(char *)));
     }
 
