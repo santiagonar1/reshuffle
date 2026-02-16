@@ -14,7 +14,11 @@ int main() {
 
     const auto num_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
     if (num_global_values % num_ranks != 0) {
-        throw std::runtime_error("Number of values not divisible by number of ranks");
+        const auto error_msg =
+                std::format("Number of values {} not divisible by number of ranks {}",
+                            num_global_values, num_ranks);
+        std::cerr << error_msg << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
     const auto local_values = reshuffle::mpi::is_root(MPI_COMM_WORLD)

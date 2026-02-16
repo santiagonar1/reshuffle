@@ -32,7 +32,8 @@ int main() {
     if (num_ranks != 4) {
         const std::string error_msg =
                 "Please run with 4 ranks. Currently running with " + std::to_string(num_ranks);
-        throw std::invalid_argument(error_msg);
+        std::cerr << error_msg << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
     auto matrix = is_root() ? init_vector(num_values) : std::vector<int>{};
