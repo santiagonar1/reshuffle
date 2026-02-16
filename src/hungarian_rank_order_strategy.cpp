@@ -11,12 +11,9 @@ namespace reshuffle::internal {
 
         // generation of cost matrix since we want to transform our maximization problem into a
         // minimization problem, which can be handled with the Hungarian algorythm
-        int max_val = 0;
-        for (const auto &row: matrix) {
-            for (int w: row) {
-                if (w > max_val) max_val = w;
-            }
-        }
+        auto flat_matrix = matrix | std::views::join;
+        const auto max_val = *std::ranges::max_element(flat_matrix);
+
         const int dummy_weight = max_val + 1;
         std::vector<std::vector<int>> a(n + 1, std::vector<int>(n + 1, dummy_weight));
         for (auto i = 1; i <= rows; ++i) {
