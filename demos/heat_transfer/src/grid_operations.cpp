@@ -310,13 +310,13 @@ namespace heat {
                                              ? get_column(grid, num_columns - 2).value()
                                              : std::vector<double>{};
 
-            MPI_Irecv(new_left_layer.data(), new_left_layer.size(), MPI_DOUBLE,
+            MPI_Irecv(new_left_layer.data(), static_cast<int>(new_left_layer.size()), MPI_DOUBLE,
                       processor.get_left_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
-            MPI_Irecv(new_right_layer.data(), new_right_layer.size(), MPI_DOUBLE,
+            MPI_Irecv(new_right_layer.data(), static_cast<int>(new_right_layer.size()), MPI_DOUBLE,
                       processor.get_right_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
-            MPI_Isend(left_layer.data(), left_layer.size(), MPI_DOUBLE,
+            MPI_Isend(left_layer.data(), static_cast<int>(left_layer.size()), MPI_DOUBLE,
                       processor.get_left_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
-            MPI_Isend(right_layer.data(), right_layer.size(), MPI_DOUBLE,
+            MPI_Isend(right_layer.data(), static_cast<int>(right_layer.size()), MPI_DOUBLE,
                       processor.get_right_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
 
             MPI_Waitall(n, requests.data(), MPI_STATUSES_IGNORE);
@@ -354,15 +354,15 @@ namespace heat {
                                             ? get_row(grid, num_rows - 2).value()
                                             : std::vector<double>{};
 
-            MPI_Irecv(new_up_layer.data(), new_up_layer.size(), MPI_DOUBLE,
+            MPI_Irecv(new_up_layer.data(), static_cast<int>(new_up_layer.size()), MPI_DOUBLE,
                       processor.get_up_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
-            MPI_Irecv(new_down_layer.data(), new_down_layer.size(), MPI_DOUBLE,
+            MPI_Irecv(new_down_layer.data(), static_cast<int>(new_down_layer.size()), MPI_DOUBLE,
                       processor.get_down_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
 
 
-            MPI_Isend(up_layer.data(), up_layer.size(), MPI_DOUBLE, processor.get_up_neighbour(), 0,
-                      MPI_COMM_WORLD, &requests[n++]);
-            MPI_Isend(down_layer.data(), down_layer.size(), MPI_DOUBLE,
+            MPI_Isend(up_layer.data(), static_cast<int>(up_layer.size()), MPI_DOUBLE,
+                      processor.get_up_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
+            MPI_Isend(down_layer.data(), static_cast<int>(down_layer.size()), MPI_DOUBLE,
                       processor.get_down_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
 
             MPI_Waitall(n, requests.data(), MPI_STATUSES_IGNORE);
