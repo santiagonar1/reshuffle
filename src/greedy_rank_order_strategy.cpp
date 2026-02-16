@@ -34,12 +34,11 @@ namespace reshuffle::internal {
         }
         for (auto it = std::ranges::find(permutation, -1); it != permutation.end();
              it = std::ranges::find(permutation, -1)) {
-            for (int i = 0; i < static_cast<int>(used.size()); ++i) {
-                if (!used[i]) {
-                    *it = i;
-                    used[i] = true;
-                    break;
-                }
+            if (auto unused_it = std::ranges::find_if(used, [](const bool b) { return not b; });
+                unused_it != used.end()) {
+                const auto idx = static_cast<RankId>(std::distance(used.begin(), unused_it));
+                *it = idx;
+                *unused_it = true;
             }
         }
 

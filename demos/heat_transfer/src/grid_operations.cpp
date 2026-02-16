@@ -29,12 +29,7 @@ namespace heat {
         auto remove_top_row(const Grid &grid) -> Grid {
             if (grid.empty()) { return {}; }
 
-            auto new_grid = Grid{};
-            for (const auto &row: grid | std::ranges::views::drop(1)) {
-                new_grid.emplace_back(row);
-            }
-
-            return new_grid;
+            return Grid{std::next(grid.begin()), grid.end()};
         }
 
         auto remove_top_row_if_necessary(const Grid &grid, const ProcessorInfo &processor) -> Grid {
@@ -52,12 +47,7 @@ namespace heat {
         auto remove_bottom_row(const Grid &grid) -> Grid {
             if (grid.empty()) { return {}; }
 
-            auto new_grid = Grid{};
-            for (const auto &row: grid | std::ranges::views::take(grid.size() - 1)) {
-                new_grid.emplace_back(row);
-            }
-
-            return new_grid;
+            return Grid{grid.begin(), std::prev(grid.end())};
         }
 
         auto remove_bottom_row_if_necessary(const Grid &grid, const ProcessorInfo &processor)
@@ -149,7 +139,10 @@ namespace heat {
             }
 
             auto column = std::vector<double>{};
-            for (const auto &row: grid) { column.emplace_back(row[column_index]); }
+            column.reserve(grid.size());
+
+            std::ranges::transform(grid, std::back_inserter(column),
+                                   [column_index](const auto &row) { return row[column_index]; });
 
             return column;
         }
@@ -169,19 +162,15 @@ namespace heat {
         auto get_left_column(const Grid &grid) -> std::vector<double> {
             if (grid.empty()) { return {}; }
 
-            auto column = std::vector<double>{};
-            for (const auto &row: grid) { column.emplace_back(row.front()); }
-
-            return column;
+            return get_column(grid, 0).value();
         }
 
         auto get_right_column(const Grid &grid) -> std::vector<double> {
             if (grid.empty()) { return {}; }
 
-            auto column = std::vector<double>{};
-            for (const auto &row: grid) { column.emplace_back(row.back()); }
+            const auto [_, num_columns] = get_dimensions(grid);
 
-            return column;
+            return get_column(grid, num_columns - 1).value();
         }
 
         auto do_checks(const Grid &grid, const std::vector<double> &values)
@@ -213,9 +202,8 @@ namespace heat {
             auto new_grid = Grid{};
             new_grid.emplace_back(values);
 
-            for (const auto &row: grid | std::ranges::views::drop(1)) {
-                new_grid.emplace_back(row);
-            }
+            new_grid.reserve(grid.size());
+            std::copy(std::next(grid.begin()), grid.end(), std::back_inserter(new_grid));
 
             return new_grid;
         }
@@ -233,10 +221,7 @@ namespace heat {
                 return std::unexpected(SetBoundaryError::INVALID_NUM_VALUES);
             }
 
-            auto new_grid = Grid{};
-            for (const auto &row: grid | std::ranges::views::take(grid.size() - 1)) {
-                new_grid.emplace_back(row);
-            }
+            auto new_grid = Grid{grid.begin(), std::prev(grid.end())};
 
             new_grid.emplace_back(values);
 
@@ -324,13 +309,13 @@ namespace heat {
                                              ? get_column(grid, num_columns - 2).value()
                                              : std::vector<double>{};
 
-            MPI_Irecv(new_left_layer.data(), new_left_layer.size(), MPI_DOUBLE,
+            MPI_Irecv(new_left_layer.data(), static_cast<int>(new_left_layer.size()), MPI_DOUBLE,
                       processor.get_left_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
-            MPI_Irecv(new_right_layer.data(), new_right_layer.size(), MPI_DOUBLE,
+            MPI_Irecv(new_right_layer.data(), static_cast<int>(new_right_layer.size()), MPI_DOUBLE,
                       processor.get_right_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
-            MPI_Isend(left_layer.data(), left_layer.size(), MPI_DOUBLE,
+            MPI_Isend(left_layer.data(), static_cast<int>(left_layer.size()), MPI_DOUBLE,
                       processor.get_left_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
-            MPI_Isend(right_layer.data(), right_layer.size(), MPI_DOUBLE,
+            MPI_Isend(right_layer.data(), static_cast<int>(right_layer.size()), MPI_DOUBLE,
                       processor.get_right_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
 
             MPI_Waitall(n, requests.data(), MPI_STATUSES_IGNORE);
@@ -368,15 +353,15 @@ namespace heat {
                                             ? get_row(grid, num_rows - 2).value()
                                             : std::vector<double>{};
 
-            MPI_Irecv(new_up_layer.data(), new_up_layer.size(), MPI_DOUBLE,
+            MPI_Irecv(new_up_layer.data(), static_cast<int>(new_up_layer.size()), MPI_DOUBLE,
                       processor.get_up_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
-            MPI_Irecv(new_down_layer.data(), new_down_layer.size(), MPI_DOUBLE,
+            MPI_Irecv(new_down_layer.data(), static_cast<int>(new_down_layer.size()), MPI_DOUBLE,
                       processor.get_down_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
 
 
-            MPI_Isend(up_layer.data(), up_layer.size(), MPI_DOUBLE, processor.get_up_neighbour(), 0,
-                      MPI_COMM_WORLD, &requests[n++]);
-            MPI_Isend(down_layer.data(), down_layer.size(), MPI_DOUBLE,
+            MPI_Isend(up_layer.data(), static_cast<int>(up_layer.size()), MPI_DOUBLE,
+                      processor.get_up_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
+            MPI_Isend(down_layer.data(), static_cast<int>(down_layer.size()), MPI_DOUBLE,
                       processor.get_down_neighbour(), 0, MPI_COMM_WORLD, &requests[n++]);
 
             MPI_Waitall(n, requests.data(), MPI_STATUSES_IGNORE);

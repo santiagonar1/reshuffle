@@ -2,7 +2,7 @@
 
 #include "mpi_utils.hpp"
 
-#include <assert.h>
+#include <cassert>
 
 namespace reshuffle::mpi {
     namespace internal {

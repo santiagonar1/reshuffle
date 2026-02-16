@@ -13,12 +13,14 @@ struct StringArray {
 
     StringArray() = default;
 
-    explicit StringArray(int size) : _size(size) {
-        _data = (char **) malloc(size * sizeof(char *));
+    explicit StringArray(const int size) : _size(size) {
+        _data = static_cast<char **>(std::malloc(size * sizeof(char *)));
     }
 
     StringArray(const StringArray &other) : _size(other._size) {
-        _data = (char **) malloc(_size * sizeof(char *));
+        _data = static_cast<char **>(std::malloc(_size * sizeof(char *)));
+        if (_data == nullptr) { throw std::bad_alloc(); }
+
         for (int i = 0; i < _size; ++i) { _data[i] = strdup(other._data[i]); }
     }
 
@@ -29,7 +31,10 @@ struct StringArray {
         free(_data);
 
         _size = other._size;
-        _data = (char **) malloc(_size * sizeof(char *));
+
+        _data = static_cast<char **>(std::malloc(_size * sizeof(char *)));
+        if (_data == nullptr) { throw std::bad_alloc(); }
+
         for (int i = 0; i < _size; ++i) { _data[i] = strdup(other._data[i]); }
 
         return *this;
@@ -41,23 +46,23 @@ struct StringArray {
     }
 };
 
-reshuffle::rank_id get_rank(const MPI_Comm &comm = MPI_COMM_WORLD);
+reshuffle::RankId get_rank(const MPI_Comm &comm = MPI_COMM_WORLD);
 int get_num_ranks(const MPI_Comm &comm = MPI_COMM_WORLD);
 MPI_Comm get_comm_from_pset(const std::string &pset_name, const MPI_Session &session);
 bool is_dynamic_process(const MPI_Session &session);
-std::string get_grown_main_pset(std::string default_pset, const MPI_Session &session);
+std::string get_grown_main_pset(const std::string &default_pset, const MPI_Session &session);
 std::string get_main_pset(const MPI_Session &session);
 
 void request_expansion(const std::string &main_pset, const MPI_Session &session);
 void request_reduction(const std::string &main_pset, const MPI_Session &session);
 
-std::pair<int, StringArray> get_set_operation_info(std::string main_pset,
+std::pair<int, StringArray> get_set_operation_info(const std::string &main_pset,
                                                    const MPI_Session &session);
 
-std::string get_new_main_pset(std::string main_pset, std::string delta_pset,
+std::string get_new_main_pset(const std::string &main_pset, const std::string &delta_pset,
                               const MPI_Session &session);
 
-bool is_process_leaving(std::string delta_pset, const MPI_Session &session) {
+bool is_process_leaving(const std::string &delta_pset, const MPI_Session &session) {
     MPI_Info info = MPI_INFO_NULL;
     auto boolean_string = std::string{16, ' '};
     int flag{};
@@ -119,7 +124,7 @@ int main(int argc, char **argv) {
         MPI_Comm old_comm = comm;
 
         if (is_process_leaving(output_psets._data[0], session)) {
-            data = reshuffle::shuffle(data, old_comm, MPI_COMM_NULL);
+            const auto _ = reshuffle::shuffle(data, old_comm, MPI_COMM_NULL);
             break;
         }
 
@@ -170,7 +175,6 @@ void request_reduction(const std::string &main_pset, const MPI_Session &session)
     /* Send the Set Operation request */
     MPI_Session_dyn_v2a_psetop(session, &op, input_psets._data, 1, &output_psets._data, &noutput,
                                info);
-    output_psets._size = noutput;
     MPI_Info_free(&info);
 
     /* Publish the name of the new main PSet on the delta Pset */
@@ -197,7 +201,6 @@ void request_expansion(const std::string &main_pset, const MPI_Session &session)
     /* Send the Set Operation request */
     MPI_Session_dyn_v2a_psetop(session, &op, input_psets._data, 1, &output_psets._data, &noutput,
                                info);
-    output_psets._size = noutput;
     MPI_Info_free(&info);
 
     /* Publish the name of the new main PSet on the delta Pset */
@@ -207,7 +210,7 @@ void request_expansion(const std::string &main_pset, const MPI_Session &session)
     MPI_Info_free(&info);
 }
 
-std::pair<int, StringArray> get_set_operation_info(std::string main_pset,
+std::pair<int, StringArray> get_set_operation_info(const std::string &main_pset,
                                                    const MPI_Session &session) {
     StringArray output_psets;
     int n_output{}, op{};
@@ -219,8 +222,8 @@ std::pair<int, StringArray> get_set_operation_info(std::string main_pset,
 }
 
 
-reshuffle::rank_id get_rank(const MPI_Comm &comm) {
-    reshuffle::rank_id id{};
+reshuffle::RankId get_rank(const MPI_Comm &comm) {
+    reshuffle::RankId id{};
     MPI_Comm_rank(comm, &id);
 
     return id;
@@ -260,7 +263,7 @@ bool is_dynamic_process(const MPI_Session &session) {
     return flag and strcmp(boolean_string.data(), "True") == 0;
 }
 
-std::string get_grown_main_pset(std::string default_pset, const MPI_Session &session) {
+std::string get_grown_main_pset(const std::string &default_pset, const MPI_Session &session) {
     auto main_pset = std::string(MPI_MAX_PSET_NAME_LEN, ' ');
     StringArray dict_key(1);
     dict_key._data[0] = strdup("main_pset");
@@ -284,7 +287,7 @@ std::string get_main_pset(const MPI_Session &session) {
     return default_pset;
 }
 
-std::string get_new_main_pset(std::string main_pset, std::string delta_pset,
+std::string get_new_main_pset(const std::string &main_pset, const std::string &delta_pset,
                               const MPI_Session &session) {
     main_pset.reserve(MPI_MAX_PSET_NAME_LEN);
     MPI_Info info = MPI_INFO_NULL;

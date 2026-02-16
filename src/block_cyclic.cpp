@@ -4,7 +4,8 @@ namespace reshuffle::internal {
     auto create_blocks(const int num_values, const int block_size, const int num_processors)
             -> std::vector<Block> {
         PROFILE_SCOPE_NAMED("create_blocks_1d");
-        std::vector<Block> blocks{};
+
+        auto blocks = std::vector<Block>{};
 
         for (int i = 0; i < num_values; i += block_size) {
             const auto starting_index = i;
@@ -13,13 +14,14 @@ namespace reshuffle::internal {
             blocks.emplace_back(Interval{starting_index, last_index}, owner);
         }
 
-        if (not blocks.empty()) {
-            const Block last_block{
-                    Interval{blocks.back().get_interval().get_left_bound(), num_values},
-                    blocks.back().get_owner()};
-            blocks.pop_back();
-            blocks.push_back(last_block);
-        }
+        if (blocks.empty()) { return blocks; }
+
+        const auto last_block =
+                Block{Interval{blocks.back().get_interval().get_left_bound(), num_values},
+                      blocks.back().get_owner()};
+        blocks.pop_back();
+        blocks.push_back(last_block);
+
 
         return blocks;
     }

@@ -169,6 +169,7 @@ TEST(RecordTimestep, OnlyRank0RecordsATimeStep) {
     const auto expected_path =
             output_folder / (files_prefix + std::to_string(current_iteration) + ".vtk");
     ASSERT_FALSE(std::filesystem::exists(expected_path));
+    std::filesystem::remove_all(output_folder);
 }
 
 TEST(GetFilename, ReturnsTheFilenameWhereDataWillBeStored) {
@@ -179,4 +180,5 @@ TEST(GetFilename, ReturnsTheFilenameWhereDataWillBeStored) {
 
     const auto writer = VTKWriter{output_folder, files_prefix, 3};
     EXPECT_THAT(writer.get_filename(current_iteration), Eq(std::string{"vtk_output_001.vtk"}));
+    std::filesystem::remove_all(output_folder);
 }
