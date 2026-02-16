@@ -29,12 +29,7 @@ namespace heat {
         auto remove_top_row(const Grid &grid) -> Grid {
             if (grid.empty()) { return {}; }
 
-            auto new_grid = Grid{};
-            for (const auto &row: grid | std::ranges::views::drop(1)) {
-                new_grid.emplace_back(row);
-            }
-
-            return new_grid;
+            return Grid{std::next(grid.begin()), grid.end()};
         }
 
         auto remove_top_row_if_necessary(const Grid &grid, const ProcessorInfo &processor) -> Grid {
@@ -52,12 +47,7 @@ namespace heat {
         auto remove_bottom_row(const Grid &grid) -> Grid {
             if (grid.empty()) { return {}; }
 
-            auto new_grid = Grid{};
-            for (const auto &row: grid | std::ranges::views::take(grid.size() - 1)) {
-                new_grid.emplace_back(row);
-            }
-
-            return new_grid;
+            return Grid{grid.begin(), std::prev(grid.end())};
         }
 
         auto remove_bottom_row_if_necessary(const Grid &grid, const ProcessorInfo &processor)
@@ -213,9 +203,8 @@ namespace heat {
             auto new_grid = Grid{};
             new_grid.emplace_back(values);
 
-            for (const auto &row: grid | std::ranges::views::drop(1)) {
-                new_grid.emplace_back(row);
-            }
+            new_grid.reserve(grid.size());
+            std::copy(std::next(grid.begin()), grid.end(), std::back_inserter(new_grid));
 
             return new_grid;
         }
@@ -233,10 +222,7 @@ namespace heat {
                 return std::unexpected(SetBoundaryError::INVALID_NUM_VALUES);
             }
 
-            auto new_grid = Grid{};
-            for (const auto &row: grid | std::ranges::views::take(grid.size() - 1)) {
-                new_grid.emplace_back(row);
-            }
+            auto new_grid = Grid{grid.begin(), std::prev(grid.end())};
 
             new_grid.emplace_back(values);
 
