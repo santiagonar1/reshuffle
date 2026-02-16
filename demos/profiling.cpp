@@ -35,8 +35,8 @@ int main() {
             reshuffle::BlockCyclic{{num_global_values}, {1000}, final_processor_grid};
     const auto final_context = reshuffle::Context{final_distribution, MPI_COMM_WORLD};
 
-    const auto [fst, snd] = shuffle(std::mdspan{local_values.data(), local_values.size()},
-                                    initial_context, final_context);
+    const auto _ = shuffle(std::mdspan{local_values.data(), local_values.size()}, initial_context,
+                           final_context);
 
 
 #ifdef ENABLE_PROFILING_RESHUFFLE
