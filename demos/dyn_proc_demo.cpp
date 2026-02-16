@@ -19,8 +19,9 @@ struct StringArray {
     }
 
     StringArray(const StringArray &other) : _size(other._size) {
-        _data = (char **) malloc(_size * sizeof(char *));
         _data = static_cast<char **>(std::malloc(_size * sizeof(char *)));
+        if (_data == nullptr) { throw std::bad_alloc(); }
+
         for (int i = 0; i < _size; ++i) { _data[i] = strdup(other._data[i]); }
     }
 
@@ -31,8 +32,10 @@ struct StringArray {
         free(_data);
 
         _size = other._size;
-        _data = (char **) malloc(_size * sizeof(char *));
+
         _data = static_cast<char **>(std::malloc(_size * sizeof(char *)));
+        if (_data == nullptr) { throw std::bad_alloc(); }
+
         for (int i = 0; i < _size; ++i) { _data[i] = strdup(other._data[i]); }
 
         return *this;
