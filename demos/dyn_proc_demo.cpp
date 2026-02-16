@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
         MPI_Comm old_comm = comm;
 
         if (is_process_leaving(output_psets._data[0], session)) {
-            data = reshuffle::shuffle(data, old_comm, MPI_COMM_NULL);
+            const auto _ = reshuffle::shuffle(data, old_comm, MPI_COMM_NULL);
             break;
         }
 
@@ -175,7 +175,6 @@ void request_reduction(const std::string &main_pset, const MPI_Session &session)
     /* Send the Set Operation request */
     MPI_Session_dyn_v2a_psetop(session, &op, input_psets._data, 1, &output_psets._data, &noutput,
                                info);
-    output_psets._size = noutput;
     MPI_Info_free(&info);
 
     /* Publish the name of the new main PSet on the delta Pset */
@@ -202,7 +201,6 @@ void request_expansion(const std::string &main_pset, const MPI_Session &session)
     /* Send the Set Operation request */
     MPI_Session_dyn_v2a_psetop(session, &op, input_psets._data, 1, &output_psets._data, &noutput,
                                info);
-    output_psets._size = noutput;
     MPI_Info_free(&info);
 
     /* Publish the name of the new main PSet on the delta Pset */
