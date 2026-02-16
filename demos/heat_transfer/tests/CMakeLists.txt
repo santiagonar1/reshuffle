@@ -1,13 +1,9 @@
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-function(reshuffle_register_test TEST_NAME)
+function(register_test TEST_NAME)
     # create an executable in which the tests will be stored
     add_executable(${TEST_NAME} ${ARGN})
-
-    target_include_directories(${TEST_NAME}
-            PRIVATE include
-    )
 
     # link the Google test infrastructure, mocking library, and a default main function to
     # the test executable.  Remove g_test_main if writing your own main function.
@@ -15,7 +11,8 @@ function(reshuffle_register_test TEST_NAME)
             PRIVATE GTest::gtest
             PRIVATE GTest::gmock
             PRIVATE GTest::gtest_main
-            PRIVATE reshuffle)
+            PRIVATE ${LIBRARY_NAME}
+    )
 
     target_compile_definitions(${TEST_NAME} PRIVATE RESHUFFLE_TESTING)
 
@@ -34,5 +31,6 @@ file(GLOB SOURCES
         *.cpp
 )
 
-reshuffle_register_test(reshuffle_tests
-        ${SOURCES})
+register_test(${LIBRARY_NAME}_tests
+        ${SOURCES}
+)

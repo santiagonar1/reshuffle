@@ -25,6 +25,12 @@ TEST(InterCommunicator, OnlyWorksIfOneCommunicatorIsSubcommunicatorOfTheOther) {
     EXPECT_THROW(InterCommunicator(comm_rank_0, comm_rank_1), std::runtime_error);
 }
 
+TEST(InterCommunicator, WorksIfCalledFromRankInNeitherOfTwoCommunicators) {
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+
+    const auto inter_comm = InterCommunicator(comm_rank_0, comm_rank_0);
+}
+
 TEST(InterCommunicator, CanGetRankInIntercommunicatorFromInitialCommunicator) {
     const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
     const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector{1});

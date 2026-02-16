@@ -1,6 +1,7 @@
 #ifndef RESHUFFLE_SCATTER_EXCHANGER_HPP
 #define RESHUFFLE_SCATTER_EXCHANGER_HPP
 
+#include "context.hpp"
 #include "data_exchanger.hpp"
 #include "grid_overlay.hpp"
 
@@ -36,6 +37,8 @@ namespace reshuffle::internal {
 
         const auto inter_communicator =
                 InterCommunicator(_initial_context.get_comm(), _final_context.get_comm());
+
+        if (not mpi::belongs_to_comm(inter_communicator.get_inter_communicator())) { return {}; }
 
         const auto this_rank = RankInformation{
                 inter_communicator, _initial_context.get_distribution().get_processor_grid(),

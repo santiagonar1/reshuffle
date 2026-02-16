@@ -50,6 +50,11 @@ namespace reshuffle {
             return {internal::get_1D_data(local_values), internal::get_dimensions(local_values)};
         }
 
+        if (not mpi::belongs_to_comm(initial_context.get_comm()) and
+            not mpi::belongs_to_comm(final_context.get_comm())) {
+            return {};
+        }
+
         const auto data_exchanger = internal::select_exchanger<T, Extents>(
                 local_values, initial_context, final_context);
 

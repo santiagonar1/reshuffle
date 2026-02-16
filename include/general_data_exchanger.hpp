@@ -52,6 +52,8 @@ namespace reshuffle::internal {
         const auto inter_communicator =
                 InterCommunicator(_initial_context.get_comm(), _final_context.get_comm());
 
+        if (not mpi::belongs_to_comm(inter_communicator.get_inter_communicator())) { return {}; }
+
         const auto this_rank = RankInformation{
                 inter_communicator, _initial_context.get_distribution().get_processor_grid(),
                 _final_context.get_distribution().get_processor_grid()};

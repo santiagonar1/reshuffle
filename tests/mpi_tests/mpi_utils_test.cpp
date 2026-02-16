@@ -122,6 +122,12 @@ TEST(IsSubComm, ReturnsFalseIfNotSubComm) {
     EXPECT_FALSE(reshuffle::mpi::is_sub_comm(comm_rank_0, comm_rank_1));
 }
 
+TEST(IsSubComm, OnlyNeedsToBeCalledByRanksInComm) {
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+
+    if (is_root(MPI_COMM_WORLD)) { EXPECT_TRUE(is_sub_comm(comm_rank_0, comm_rank_0)); }
+}
+
 TEST(IsSubComm, CommunicatorIsSubCommOfItself) {
     EXPECT_TRUE(reshuffle::mpi::is_sub_comm(MPI_COMM_WORLD, MPI_COMM_WORLD));
 }
