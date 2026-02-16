@@ -50,19 +50,19 @@ reshuffle::RankId get_rank(const MPI_Comm &comm = MPI_COMM_WORLD);
 int get_num_ranks(const MPI_Comm &comm = MPI_COMM_WORLD);
 MPI_Comm get_comm_from_pset(const std::string &pset_name, const MPI_Session &session);
 bool is_dynamic_process(const MPI_Session &session);
-std::string get_grown_main_pset(std::string default_pset, const MPI_Session &session);
+std::string get_grown_main_pset(const std::string &default_pset, const MPI_Session &session);
 std::string get_main_pset(const MPI_Session &session);
 
 void request_expansion(const std::string &main_pset, const MPI_Session &session);
 void request_reduction(const std::string &main_pset, const MPI_Session &session);
 
-std::pair<int, StringArray> get_set_operation_info(std::string main_pset,
+std::pair<int, StringArray> get_set_operation_info(const std::string &main_pset,
                                                    const MPI_Session &session);
 
-std::string get_new_main_pset(std::string main_pset, std::string delta_pset,
+std::string get_new_main_pset(const std::string &main_pset, const std::string &delta_pset,
                               const MPI_Session &session);
 
-bool is_process_leaving(std::string delta_pset, const MPI_Session &session) {
+bool is_process_leaving(const std::string &delta_pset, const MPI_Session &session) {
     MPI_Info info = MPI_INFO_NULL;
     auto boolean_string = std::string{16, ' '};
     int flag{};
@@ -212,7 +212,7 @@ void request_expansion(const std::string &main_pset, const MPI_Session &session)
     MPI_Info_free(&info);
 }
 
-std::pair<int, StringArray> get_set_operation_info(std::string main_pset,
+std::pair<int, StringArray> get_set_operation_info(const std::string &main_pset,
                                                    const MPI_Session &session) {
     StringArray output_psets;
     int n_output{}, op{};
@@ -265,7 +265,7 @@ bool is_dynamic_process(const MPI_Session &session) {
     return flag and strcmp(boolean_string.data(), "True") == 0;
 }
 
-std::string get_grown_main_pset(std::string default_pset, const MPI_Session &session) {
+std::string get_grown_main_pset(const std::string &default_pset, const MPI_Session &session) {
     auto main_pset = std::string(MPI_MAX_PSET_NAME_LEN, ' ');
     StringArray dict_key(1);
     dict_key._data[0] = strdup("main_pset");
@@ -289,7 +289,7 @@ std::string get_main_pset(const MPI_Session &session) {
     return default_pset;
 }
 
-std::string get_new_main_pset(std::string main_pset, std::string delta_pset,
+std::string get_new_main_pset(const std::string &main_pset, const std::string &delta_pset,
                               const MPI_Session &session) {
     main_pset.reserve(MPI_MAX_PSET_NAME_LEN);
     MPI_Info info = MPI_INFO_NULL;
