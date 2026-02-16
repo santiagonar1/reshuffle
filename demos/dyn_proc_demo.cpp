@@ -46,7 +46,7 @@ struct StringArray {
     }
 };
 
-reshuffle::rank_id get_rank(const MPI_Comm &comm = MPI_COMM_WORLD);
+reshuffle::RankId get_rank(const MPI_Comm &comm = MPI_COMM_WORLD);
 int get_num_ranks(const MPI_Comm &comm = MPI_COMM_WORLD);
 MPI_Comm get_comm_from_pset(const std::string &pset_name, const MPI_Session &session);
 bool is_dynamic_process(const MPI_Session &session);
@@ -224,8 +224,8 @@ std::pair<int, StringArray> get_set_operation_info(std::string main_pset,
 }
 
 
-reshuffle::rank_id get_rank(const MPI_Comm &comm) {
-    reshuffle::rank_id id{};
+reshuffle::RankId get_rank(const MPI_Comm &comm) {
+    reshuffle::RankId id{};
     MPI_Comm_rank(comm, &id);
 
     return id;
