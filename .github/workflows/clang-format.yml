@@ -28,8 +28,15 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Run clang-format
-        uses: jidicula/clang-format-action@v4.16.0
+      - name: Set up Python
+        uses: actions/setup-python@v6
         with:
-          clang-format-version: '21'
-          check-path: ${{ matrix.path }}
+          python-version: '3.x'
+
+      - name: Install clang-format
+        run: pip install "clang-format>=21,<22"
+
+      - name: Run clang-format
+        run: |
+          find ./${{ matrix.path }} -type f \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -style=file -i {} +
+          git diff --exit-code
