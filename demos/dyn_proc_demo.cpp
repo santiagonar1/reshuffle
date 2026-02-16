@@ -15,10 +15,12 @@ struct StringArray {
 
     explicit StringArray(int size) : _size(size) {
         _data = (char **) malloc(size * sizeof(char *));
+        _data = static_cast<char **>(std::malloc(size * sizeof(char *)));
     }
 
     StringArray(const StringArray &other) : _size(other._size) {
         _data = (char **) malloc(_size * sizeof(char *));
+        _data = static_cast<char **>(std::malloc(_size * sizeof(char *)));
         for (int i = 0; i < _size; ++i) { _data[i] = strdup(other._data[i]); }
     }
 
@@ -30,6 +32,7 @@ struct StringArray {
 
         _size = other._size;
         _data = (char **) malloc(_size * sizeof(char *));
+        _data = static_cast<char **>(std::malloc(_size * sizeof(char *)));
         for (int i = 0; i < _size; ++i) { _data[i] = strdup(other._data[i]); }
 
         return *this;
