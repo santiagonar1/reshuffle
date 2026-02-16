@@ -165,10 +165,9 @@ namespace heat {
         auto get_right_column(const Grid &grid) -> std::vector<double> {
             if (grid.empty()) { return {}; }
 
-            auto column = std::vector<double>{};
-            for (const auto &row: grid) { column.emplace_back(row.back()); }
+            const auto [_, num_columns] = get_dimensions(grid);
 
-            return column;
+            return get_column(grid, num_columns - 1).value();
         }
 
         auto do_checks(const Grid &grid, const std::vector<double> &values)
