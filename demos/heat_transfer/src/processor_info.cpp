@@ -13,8 +13,8 @@ namespace heat {
                                  const reshuffle::RankId down_neighbour,
                                  const reshuffle::RankId left_neighbour,
                                  const reshuffle::RankId right_neighbour)
-        : _neighbours{
-                  get_neighbours(up_neighbour, down_neighbour, left_neighbour, right_neighbour)},
+        : _neighbours{get_neighbours(up_neighbour, down_neighbour, left_neighbour,
+                                     right_neighbour)},
           _rank(rank) {}
 
     auto ProcessorInfo::get_rank() const -> int { return _rank; }
