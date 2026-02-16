@@ -139,7 +139,10 @@ namespace heat {
             }
 
             auto column = std::vector<double>{};
-            for (const auto &row: grid) { column.emplace_back(row[column_index]); }
+            column.reserve(grid.size());
+
+            std::ranges::transform(grid, std::back_inserter(column),
+                                   [column_index](const auto &row) { return row[column_index]; });
 
             return column;
         }
