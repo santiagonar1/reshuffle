@@ -15,6 +15,9 @@ enum class ToGridError { MISMATCH_DIMENSIONS_AND_NUM_VALUES };
 [[nodiscard]] auto to_matrix(const std::vector<int> &values,
                              const reshuffle::Dimensions<2> &dimensions)
         -> std::expected<Matrix, ToGridError>;
+auto print_domain_decomposition(const reshuffle::Context<2> &current_context,
+                                const reshuffle::Dimensions<2> &local_dimensions,
+                                const reshuffle::Dimensions<2> &global_dimensions) -> void;
 
 auto operator<<(std::ostream &os, const Matrix &matrix) -> std::ostream &;
 
@@ -51,8 +54,9 @@ int main() {
     };
 
     if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
-        std::cout << "******************************" << std::endl;
-        std::cout << "= Initial matrix =" << std::endl;
+        std::cout << "\n\n*******************************************************\n\n";
+
+        std::cout << "Initial matrix" << std::endl;
         std::cout << global_matrix << std::endl;
     }
 
@@ -62,10 +66,12 @@ int main() {
                 reshuffle::shuffle(matrix, contexts[i - 1], contexts[i]);
         matrix = to_matrix(new_values, new_dimensions).value();
         if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
-            std::cout << "******************************" << std::endl;
-            std::cout << "[Rank 0] After shuffle " << i << ":" << std::endl;
+            std::cout << "\n\n****************** Shuffle " << i << " *************************\n\n";
+            std::cout << "Values in Rank 0" << std::endl;
             std::cout << matrix << std::endl;
         }
+
+        print_domain_decomposition(contexts[i], new_dimensions, global_dimensions);
     }
 
     MPI_Finalize();
@@ -101,6 +107,37 @@ auto to_matrix(const std::vector<int> &values, const reshuffle::Dimensions<2> &d
     }
 
     return grid;
+}
+
+auto print_domain_decomposition(const reshuffle::Context<2> &current_context,
+                                const reshuffle::Dimensions<2> &local_dimensions,
+                                const reshuffle::Dimensions<2> &global_dimensions) -> void {
+
+    constexpr auto rank_to_char = std::array{'#', '@', '*', '$'};
+    const auto rank = reshuffle::mpi::get_rank_id(MPI_COMM_WORLD).value();
+
+    const unsigned long num_rows = local_dimensions[0];
+    const unsigned long num_columns = local_dimensions[1];
+    const auto local_decomposition =
+            std::vector{num_rows, std::vector(num_columns, rank_to_char[rank])};
+
+    const auto all_in_root = reshuffle::Context{
+            reshuffle::distribution::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1, 1}},
+            MPI_COMM_WORLD};
+
+    const auto [global_decomposition_values, dimensions] =
+            reshuffle::shuffle(local_decomposition, current_context, all_in_root);
+
+    if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
+        std::println("Domain Decomposition: Rank 0: {}, Rank 1: {}, Rank 2: {}, Rank 3: {}",
+                     rank_to_char[0], rank_to_char[1], rank_to_char[2], rank_to_char[3]);
+        const auto matrix_view =
+                std::mdspan{global_decomposition_values.data(), dimensions[0], dimensions[1]};
+        for (int i = 0; i < dimensions[0]; i++) {
+            for (int j = 0; j < dimensions[1]; j++) { std::cout << matrix_view[i, j]; }
+            std::cout << std::endl;
+        }
+    }
 }
 
 auto operator<<(std::ostream &os, const Matrix &matrix) -> std::ostream & {
