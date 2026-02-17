@@ -30,7 +30,7 @@ int main() {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    auto matrix =
+    const auto global_matrix =
             reshuffle::mpi::is_root(MPI_COMM_WORLD) ? init_matrix(num_rows, num_columns) : Matrix{};
     constexpr auto global_dimensions = reshuffle::Dimensions<2>{num_rows, num_columns};
 
@@ -52,14 +52,14 @@ int main() {
     if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
         std::cout << "******************************" << std::endl;
         std::cout << "= Initial matrix =" << std::endl;
-        std::cout << matrix << std::endl;
+        std::cout << global_matrix << std::endl;
     }
 
+    auto matrix = global_matrix;
     for (auto i = 1; i < contexts.size(); ++i) {
         const auto [new_values, new_dimensions] =
                 reshuffle::shuffle(matrix, contexts[i - 1], contexts[i]);
         matrix = to_matrix(new_values, new_dimensions).value();
-        global_dimensions = new_dimensions;
         if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
             std::cout << "******************************" << std::endl;
             std::cout << "[Rank 0] After shuffle " << i << ":" << std::endl;
