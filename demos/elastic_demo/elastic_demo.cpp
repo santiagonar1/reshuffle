@@ -27,6 +27,14 @@ int main() {
             reshuffle::distribution::BlockWise{global_dimensions,
                                                reshuffle::ProcessorGrid{available_ranks}},
             MPI_COMM_WORLD};
+
+    if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
+        std::cout << "\n\n*******************************************************\n\n";
+
+        std::cout << "Initial values" << std::endl;
+        std::cout << original_buffer << std::endl;
+    }
+
     for (int active_ranks = 1; active_ranks <= available_ranks; active_ranks++) {
         auto comm = simulate_adaptation(active_ranks);
         const auto destiny_context = reshuffle::Context{
@@ -39,7 +47,11 @@ int main() {
                         .first;
 
         if (is_rank_active(active_ranks)) {
-            if (reshuffle::mpi::is_root(comm)) { std::cout << buffer << std::endl; }
+            if (reshuffle::mpi::is_root(comm)) {
+                std::cout << "\n\n******** Active Ranks " << active_ranks << " *************\n\n";
+                std::cout << "Values in Rank 0 " << std::endl;
+                std::cout << buffer << std::endl;
+            }
             MPI_Comm_free(&comm);
         }
     }
