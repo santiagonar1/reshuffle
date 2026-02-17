@@ -21,15 +21,16 @@ int main() {
 
     const auto original_buffer = std::vector(num_values_per_rank, rank);
     const auto global_num_values = num_values_per_rank * available_ranks;
+    const auto global_dimensions = reshuffle::Dimensions{global_num_values};
 
     const auto origin_context = reshuffle::Context{
-            reshuffle::distribution::BlockWise{reshuffle::Dimensions{global_num_values},
+            reshuffle::distribution::BlockWise{global_dimensions,
                                                reshuffle::ProcessorGrid{available_ranks}},
             MPI_COMM_WORLD};
     for (int active_ranks = 1; active_ranks <= available_ranks; active_ranks++) {
         auto comm = simulate_adaptation(active_ranks);
         const auto destiny_context = reshuffle::Context{
-                reshuffle::distribution::BlockWise{reshuffle::Dimensions{global_num_values},
+                reshuffle::distribution::BlockWise{global_dimensions,
                                                    reshuffle::ProcessorGrid{active_ranks}},
                 comm};
         const auto buffer =
