@@ -7,5 +7,5 @@ matrix can be distributed across multiple processors, and how this distribution 
 To run, execute the following command:
 
 ```shell
-mpirun -np 4 ./basic_demo
+mpirun -np 4 ./basic_demo.out
 ```
