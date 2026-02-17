@@ -8,6 +8,7 @@
 #include <context.hpp>
 
 using namespace reshuffle;
+using namespace reshuffle::distribution;
 using namespace reshuffle::mpi;
 using namespace reshuffle::internal;
 

@@ -10,6 +10,7 @@
 #include "null_reporter.hpp"
 
 using namespace reshuffle;
+using namespace reshuffle::distribution;
 
 using SendType = double;
 using SerializationType = MoleculeLJ;

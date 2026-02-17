@@ -1,6 +1,6 @@
 #include "block_cyclic.hpp"
 
-namespace reshuffle::internal {
+namespace reshuffle::distribution::internal {
     auto create_blocks(const int num_values, const int block_size, const int num_processors)
             -> std::vector<Block> {
         PROFILE_SCOPE_NAMED("create_blocks_1d");
@@ -25,4 +25,4 @@ namespace reshuffle::internal {
 
         return blocks;
     }
-}// namespace reshuffle::internal
+}// namespace reshuffle::distribution::internal

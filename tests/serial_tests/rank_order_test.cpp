@@ -6,6 +6,7 @@
 #include <hungarian_rank_order_strategy.hpp>
 #include <rank_order.hpp>
 
+using namespace reshuffle::distribution;
 
 using testing::Eq;
 
@@ -13,11 +14,9 @@ TEST(CommunicationWeight, CommunicationWeightCanHandleOneToTwoProcessors) {
 
     constexpr auto num_global_values = 6;
 
-    const auto initial_distribution =
-            reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid{1}};
+    const auto initial_distribution = BlockWise{{num_global_values}, reshuffle::ProcessorGrid{1}};
 
-    const auto final_distribution =
-            reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid{2}};
+    const auto final_distribution = BlockWise{{num_global_values}, reshuffle::ProcessorGrid{2}};
 
     const auto rank_order =
             reshuffle::internal::RankOrder{initial_distribution, final_distribution,
@@ -38,11 +37,9 @@ TEST(CommunicationWeight, CommunicationWeightCanHandleTwoToOneProcessors) {
 
     constexpr auto num_global_values = 6;
 
-    const auto initial_distribution =
-            reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid{2}};
+    const auto initial_distribution = BlockWise{{num_global_values}, reshuffle::ProcessorGrid{2}};
 
-    const auto final_distribution =
-            reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid{1}};
+    const auto final_distribution = BlockWise{{num_global_values}, reshuffle::ProcessorGrid{1}};
 
     const auto rank_order =
             reshuffle::internal::RankOrder{initial_distribution, final_distribution,
@@ -64,11 +61,9 @@ TEST(CommunicationWeight, CommunicationWeightCanHandleTwoToOneProcessors) {
 TEST(CommunicationWeight, CommunicationWeightCanHandleUnevenDistribution) {
     constexpr auto num_global_values = 11;
 
-    const auto initial_distribution =
-            reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid{3}};
+    const auto initial_distribution = BlockWise{{num_global_values}, reshuffle::ProcessorGrid{3}};
 
-    const auto final_distribution =
-            reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid{2}};
+    const auto final_distribution = BlockWise{{num_global_values}, reshuffle::ProcessorGrid{2}};
 
     const auto rank_order =
             reshuffle::internal::RankOrder{initial_distribution, final_distribution,
@@ -90,11 +85,10 @@ TEST(CommunicationWeight, CommunicationWeightCanHandle2DDistribution) {
     constexpr auto num_global_values_y = 4;
 
     const auto initial_distribution =
-            reshuffle::BlockWise{{num_global_values_x, num_global_values_y},
-                                 reshuffle::ProcessorGrid{2, 2}};
+            BlockWise{{num_global_values_x, num_global_values_y}, reshuffle::ProcessorGrid{2, 2}};
 
-    const auto final_distribution = reshuffle::BlockWise{{num_global_values_x, num_global_values_y},
-                                                         reshuffle::ProcessorGrid{2, 2}};
+    const auto final_distribution =
+            BlockWise{{num_global_values_x, num_global_values_y}, reshuffle::ProcessorGrid{2, 2}};
 
     const auto rank_order =
             reshuffle::internal::RankOrder<2>{initial_distribution, final_distribution,
@@ -118,11 +112,10 @@ TEST(CommunicationWeight, CommunicationWeightCanHandleUneven2DDistribution) {
     constexpr auto num_global_values_y = 3;
 
     const auto initial_distribution =
-            reshuffle::BlockWise{{num_global_values_x, num_global_values_y},
-                                 reshuffle::ProcessorGrid{2, 2}};
+            BlockWise{{num_global_values_x, num_global_values_y}, reshuffle::ProcessorGrid{2, 2}};
 
-    const auto final_distribution = reshuffle::BlockWise{{num_global_values_x, num_global_values_y},
-                                                         reshuffle::ProcessorGrid{1, 2}};
+    const auto final_distribution =
+            BlockWise{{num_global_values_x, num_global_values_y}, reshuffle::ProcessorGrid{1, 2}};
 
     const auto rank_order =
             reshuffle::internal::RankOrder<2>{initial_distribution, final_distribution,
@@ -143,11 +136,9 @@ TEST(CommunicationWeight, CommunicationWeightCanHandleUneven2DDistribution) {
 TEST(compute_optimal_rank_order, CanHandleMoreColsThanRows) {
     constexpr auto num_global_values = 8;
 
-    const auto initial_distribution =
-            reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid{4}};
+    const auto initial_distribution = BlockWise{{num_global_values}, reshuffle::ProcessorGrid{4}};
 
-    const auto final_distribution =
-            reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid{4}};
+    const auto final_distribution = BlockWise{{num_global_values}, reshuffle::ProcessorGrid{4}};
 
     const auto hungarian_strategy = reshuffle::internal::HungarianRankOrderStrategy{};
     const auto greedy_strategy = reshuffle::internal::GreedyRankOrderStrategy{};
@@ -175,11 +166,9 @@ TEST(compute_optimal_rank_order, CanHandleMoreColsThanRows) {
 TEST(compute_optimal_rank_order, CanHandleMoreRowsThanCols) {
     constexpr auto num_global_values = 8;
 
-    const auto initial_distribution =
-            reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid{4}};
+    const auto initial_distribution = BlockWise{{num_global_values}, reshuffle::ProcessorGrid{4}};
 
-    const auto final_distribution =
-            reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid{4}};
+    const auto final_distribution = BlockWise{{num_global_values}, reshuffle::ProcessorGrid{4}};
 
     const auto hungarian_strategy = reshuffle::internal::HungarianRankOrderStrategy{};
     const auto greedy_strategy = reshuffle::internal::GreedyRankOrderStrategy{};
@@ -208,11 +197,9 @@ TEST(compute_optimal_rank_order, GreedyGivesFirstAndHungarianGivesBestSolution) 
 
     constexpr auto num_global_values = 8;
 
-    const auto initial_distribution =
-            reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid{4}};
+    const auto initial_distribution = BlockWise{{num_global_values}, reshuffle::ProcessorGrid{4}};
 
-    const auto final_distribution =
-            reshuffle::BlockWise{{num_global_values}, reshuffle::ProcessorGrid{4}};
+    const auto final_distribution = BlockWise{{num_global_values}, reshuffle::ProcessorGrid{4}};
 
     const auto hungarian_strategy = reshuffle::internal::HungarianRankOrderStrategy{};
     const auto greedy_strategy = reshuffle::internal::GreedyRankOrderStrategy{};
