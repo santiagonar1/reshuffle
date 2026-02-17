@@ -11,8 +11,9 @@ using Matrix = std::vector<std::vector<int>>;
 
 enum class ToGridError { MISMATCH_DIMENSIONS_AND_NUM_VALUES };
 
-auto init_matrix(int num_rows, int num_columns) -> Matrix;
-auto to_matrix(const std::vector<int> &values, const reshuffle::Dimensions<2> &dimensions)
+[[nodiscard]] auto init_matrix(int num_rows, int num_columns) -> Matrix;
+[[nodiscard]] auto to_matrix(const std::vector<int> &values,
+                             const reshuffle::Dimensions<2> &dimensions)
         -> std::expected<Matrix, ToGridError>;
 
 auto operator<<(std::ostream &os, const Matrix &matrix) -> std::ostream &;
