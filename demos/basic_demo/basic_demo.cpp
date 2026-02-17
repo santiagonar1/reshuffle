@@ -8,8 +8,14 @@
 
 
 using Matrix = std::vector<std::vector<int>>;
+using OneDimensionRepresentation = std::pair<std::vector<int>, reshuffle::Dimensions<2>>;
+
+enum class ToGridError { MISMATCH_DIMENSIONS_AND_NUM_VALUES };
+
 
 auto init_matrix(int num_rows, int num_columns) -> Matrix;
+auto to_matrix(const std::vector<int> &values, const reshuffle::Dimensions<2> &dimensions)
+        -> std::expected<Matrix, ToGridError>;
 auto init_vector(int num_values) -> std::vector<int>;
 
 auto operator<<(std::ostream &os, const Matrix &matrix) -> std::ostream &;
@@ -17,7 +23,6 @@ auto operator<<(std::ostream &os, const Matrix &matrix) -> std::ostream &;
 int main() {
     constexpr auto num_rows = 20;
     constexpr auto num_columns = 20;
-    constexpr auto num_values = num_rows * num_columns;
 
     MPI_Init(nullptr, nullptr);
 
@@ -29,7 +34,7 @@ int main() {
     }
 
     auto matrix =
-            reshuffle::mpi::is_root(MPI_COMM_WORLD) ? init_vector(num_values) : std::vector<int>{};
+            reshuffle::mpi::is_root(MPI_COMM_WORLD) ? init_matrix(num_rows, num_columns) : Matrix{};
     auto dimensions = reshuffle::Dimensions<2>{num_rows, num_columns};
 
     const auto contexts = std::vector{
@@ -52,33 +57,20 @@ int main() {
     };
 
     if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
-        auto counter = 0;
-        for (auto rowIndex = 0; rowIndex < dimensions[0]; ++rowIndex) {
-            for (auto columnIndex = 0; columnIndex < dimensions[1]; ++columnIndex) {
-                std::cout << matrix[counter] << " ";
-                counter++;
-            }
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
+        std::cout << "******************************" << std::endl;
+        std::cout << "= Initial matrix =" << std::endl;
+        std::cout << matrix << std::endl;
     }
 
     for (auto i = 1; i < contexts.size(); ++i) {
-        const auto [new_matrix, new_dimensions] =
-                reshuffle::shuffle(std::mdspan{std::as_const(matrix).data(), dimensions},
-                                   contexts[i - 1], contexts[i]);
-        matrix = new_matrix;
+        const auto [new_values, new_dimensions] =
+                reshuffle::shuffle(matrix, contexts[i - 1], contexts[i]);
+        matrix = to_matrix(new_values, new_dimensions).value();
         dimensions = new_dimensions;
         if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
-            auto counter = 0;
-            for (auto rowIndex = 0; rowIndex < dimensions[0]; ++rowIndex) {
-                for (auto columnIndex = 0; columnIndex < dimensions[1]; ++columnIndex) {
-                    std::cout << matrix[counter] << " ";
-                    counter++;
-                }
-                std::cout << std::endl;
-            }
-            std::cout << std::endl;
+            std::cout << "******************************" << std::endl;
+            std::cout << "[Rank 0] After shuffle " << i << ":" << std::endl;
+            std::cout << matrix << std::endl;
         }
     }
 
@@ -98,6 +90,23 @@ auto init_matrix(const int num_rows, const int num_columns) -> Matrix {
     }
 
     return matrix;
+}
+
+auto to_matrix(const std::vector<int> &values, const reshuffle::Dimensions<2> &dimensions)
+        -> std::expected<Matrix, ToGridError> {
+
+    if (reshuffle::internal::calc_total_num_values(dimensions) != values.size()) {
+        return std::unexpected(ToGridError::MISMATCH_DIMENSIONS_AND_NUM_VALUES);
+    }
+
+    const auto as_span = std::mdspan(values.data(), dimensions);
+
+    auto grid = Matrix(dimensions[0], std::vector(dimensions[1], 0));
+    for (int i = 0; i < dimensions[0]; i++) {
+        for (int j = 0; j < dimensions[1]; j++) { grid[i][j] = as_span[i, j]; }
+    }
+
+    return grid;
 }
 
 auto init_vector(const int num_values) -> std::vector<int> {
