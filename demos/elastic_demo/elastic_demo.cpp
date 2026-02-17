@@ -53,13 +53,10 @@ int main() {
 auto simulate_adaptation(const int num_active_ranks) -> MPI_Comm {
     MPI_Barrier(MPI_COMM_WORLD);
 
-    const auto color = is_rank_active(num_active_ranks) ? 1 : MPI_UNDEFINED;
-    const auto rank = reshuffle::mpi::get_rank_id(MPI_COMM_WORLD).value();
+    const auto active_ranks = std::views::iota(0, num_active_ranks) |
+                              std::ranges::to<std::vector<reshuffle::RankId>>();
 
-    MPI_Comm comm_after_adaptation{};
-    MPI_Comm_split(MPI_COMM_WORLD, color, rank, &comm_after_adaptation);
-
-    return comm_after_adaptation;
+    return reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, active_ranks);
 }
 
 auto is_rank_active(const int num_active_ranks) -> bool {
