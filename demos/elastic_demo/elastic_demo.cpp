@@ -6,7 +6,6 @@
 #include <reshuffle.hpp>
 
 
-[[nodiscard]] auto is_rank_active(int num_active_ranks) -> bool;
 [[nodiscard]] auto simulate_adaptation(int num_active_ranks) -> MPI_Comm;
 
 auto print_domain_decomposition(const reshuffle::Context<1> &current_context,
@@ -58,7 +57,7 @@ int main() {
                 reshuffle::shuffle(std::mdspan{original_buffer.data(), original_buffer.size()},
                                    origin_context, destiny_context);
 
-        if (is_rank_active(active_ranks)) {
+        if (reshuffle::mpi::belongs_to_comm(comm)) {
             if (reshuffle::mpi::is_root(comm)) {
                 std::cout << "\n\n******** Active Ranks " << active_ranks << " *************\n\n";
                 std::cout << "Values in Rank 0 " << std::endl;
@@ -81,11 +80,6 @@ auto simulate_adaptation(const int num_active_ranks) -> MPI_Comm {
                               std::ranges::to<std::vector<reshuffle::RankId>>();
 
     return reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, active_ranks);
-}
-
-auto is_rank_active(const int num_active_ranks) -> bool {
-    const auto rank = reshuffle::mpi::get_rank_id(MPI_COMM_WORLD).value();
-    return rank < num_active_ranks;
 }
 
 auto print_domain_decomposition(const reshuffle::Context<1> &current_context,
