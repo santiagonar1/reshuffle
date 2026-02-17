@@ -13,7 +13,7 @@
 #include <format>
 #include <map>
 
-namespace reshuffle {
+namespace reshuffle::distribution {
     using IntervalId = std::size_t;
     using ErrorMessage = std::string;
 
@@ -143,7 +143,7 @@ namespace reshuffle {
             -> std::variant<internal::Ok, ErrorMessage> {
         const auto multidimensional_intervals = internal::get_intervals(global_mapping);
         const auto unidimensional_intervals =
-                internal::to_unidimensional_intervals(multidimensional_intervals);
+                reshuffle::internal::to_unidimensional_intervals(multidimensional_intervals);
 
         if (const auto result = check_contiguity_intervals(multidimensional_intervals);
             std::holds_alternative<ErrorMessage>(result)) {
@@ -186,8 +186,8 @@ namespace reshuffle {
         for (const auto &[rank_id, intervals]: global_mapping) {
             const auto rank_coordinates = processor_grid.get_processor_coordinates(rank_id);
             for (const auto &interval: intervals) {
-                blocks.emplace_back(
-                        internal::build_multidimensional_block(interval, rank_coordinates));
+                blocks.emplace_back(reshuffle::internal::build_multidimensional_block(
+                        interval, rank_coordinates));
             }
         }
 
@@ -258,7 +258,7 @@ namespace reshuffle {
 
             auto group = std::map<Interval, std::vector<MultidimensionalInterval<N - 1>>>{};
             for (const auto &interval: intervals) {
-                group[interval[0]].emplace_back(drop(interval, 0));
+                group[interval[0]].emplace_back(reshuffle::internal::drop(interval, 0));
             }
 
             if constexpr (N == 2) {
@@ -267,8 +267,8 @@ namespace reshuffle {
 
                 // Group maps from Interval to MultidimensionalInterval<1>
                 for (const auto new_intervals: group | std::views::values) {
-                    const auto unidimensional_intervals =
-                            sort(to_unidimensional_intervals(new_intervals)[0]);
+                    const auto unidimensional_intervals = reshuffle::internal::sort(
+                            reshuffle::internal::to_unidimensional_intervals(new_intervals)[0]);
                     starts.emplace_back(unidimensional_intervals[0].get_left_bound());
                     ends.emplace_back(unidimensional_intervals.back().get_right_bound());
                 }
@@ -299,7 +299,8 @@ namespace reshuffle {
         template<>
         inline auto check_for_holes(const std::vector<MultidimensionalInterval<1>> &intervals)
                 -> std::variant<Ok, ErrorMessage> {
-            const auto unidimensional_intervals = to_unidimensional_intervals(intervals)[0];
+            const auto unidimensional_intervals =
+                    reshuffle::internal::to_unidimensional_intervals(intervals)[0];
             const auto problematic_intervals_opt =
                     find_problematic_intervals(unidimensional_intervals);
             if (not problematic_intervals_opt.has_value()) { return Ok{}; }
@@ -310,6 +311,6 @@ namespace reshuffle {
         }
     }// namespace internal
 
-}// namespace reshuffle
+}// namespace reshuffle::distribution
 
 #endif//RESHUFFLE_GENERAL_DATA_DISTRIBUTION_HPP

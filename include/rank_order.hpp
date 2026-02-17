@@ -19,8 +19,8 @@ namespace reshuffle::internal {
 
 
     public:
-        RankOrder(const DataDistribution<N> &initial_distribution,
-                  const DataDistribution<N> &final_distribution,
+        RankOrder(const distribution::DataDistribution<N> &initial_distribution,
+                  const distribution::DataDistribution<N> &final_distribution,
                   const IOptimalRankOrderStrategy &strategy);
 
         [[nodiscard]] auto get_matrix() const -> const Matrix2D<int> &;
@@ -34,8 +34,9 @@ namespace reshuffle::internal {
         static auto get_reordered_comm(const MPI_Comm &comm, const std::vector<RankId> &new_order)
                 -> MPI_Comm;
 
-        auto compute_communication_weights(const DataDistribution<N> &initial_distribution,
-                                           const DataDistribution<N> &final_distribution)
+        auto
+        compute_communication_weights(const distribution::DataDistribution<N> &initial_distribution,
+                                      const distribution::DataDistribution<N> &final_distribution)
                 -> Matrix2D<int>;
 
 
@@ -48,8 +49,8 @@ namespace reshuffle::internal {
     };
 
     template<std::size_t N>
-    RankOrder<N>::RankOrder(const DataDistribution<N> &initial_distribution,
-                            const DataDistribution<N> &final_distribution,
+    RankOrder<N>::RankOrder(const distribution::DataDistribution<N> &initial_distribution,
+                            const distribution::DataDistribution<N> &final_distribution,
                             const IOptimalRankOrderStrategy &strategy)
         : _strategy(strategy) {
         _matrix = compute_communication_weights(initial_distribution, final_distribution);
@@ -93,10 +94,9 @@ namespace reshuffle::internal {
     }
 
     template<std::size_t N>
-    auto
-    RankOrder<N>::compute_communication_weights(const DataDistribution<N> &initial_distribution,
-                                                const DataDistribution<N> &final_distribution)
-            -> Matrix2D<int> {
+    auto RankOrder<N>::compute_communication_weights(
+            const distribution::DataDistribution<N> &initial_distribution,
+            const distribution::DataDistribution<N> &final_distribution) -> Matrix2D<int> {
         auto communicationWeightMatrix = Matrix2D<int>(
                 initial_distribution.get_processor_grid().get_num_processors(),
                 std::vector<int>(final_distribution.get_processor_grid().get_num_processors(), 0));

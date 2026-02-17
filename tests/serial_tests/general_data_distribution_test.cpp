@@ -7,6 +7,8 @@
 
 using namespace reshuffle;
 using namespace reshuffle::internal;
+using namespace reshuffle::distribution;
+using namespace reshuffle::distribution::internal;
 
 using testing::Eq;
 using testing::UnorderedElementsAreArray;

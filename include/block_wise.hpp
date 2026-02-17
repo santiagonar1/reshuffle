@@ -5,7 +5,7 @@
 #include "dimensions.hpp"
 #include "processor_grid.hpp"
 
-namespace reshuffle {
+namespace reshuffle::distribution {
 
     namespace internal {
         [[nodiscard]] auto create_evenly_blocks(int num_values, int num_processors)
@@ -79,6 +79,6 @@ namespace reshuffle {
             return blocks;
         }
     }// namespace internal
-}// namespace reshuffle
+}// namespace reshuffle::distribution
 
 #endif//RESHUFFLE_BLOCK_WISE_HPP

@@ -6,7 +6,7 @@
 
 #include <memory>
 
-namespace reshuffle {
+namespace reshuffle::distribution {
 
     template<std::size_t N>
     class DataDistribution {
@@ -27,6 +27,6 @@ namespace reshuffle {
                get_processor_grid() == other.get_processor_grid();
     }
 
-}// namespace reshuffle
+}// namespace reshuffle::distribution
 
 #endif//RESHUFFLE_DATA_DISTRIBUTION_HPP

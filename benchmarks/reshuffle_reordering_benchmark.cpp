@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 using namespace reshuffle;
+using namespace reshuffle::distribution;
 
 using SendType = double;
 

@@ -13,6 +13,7 @@
 
 using namespace reshuffle;
 using namespace reshuffle::mpi;
+using namespace reshuffle::distribution;
 
 using testing::Eq;
 

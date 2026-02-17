@@ -230,9 +230,10 @@ auto scatter_from_root(const heat::Grid &global_grid,
     const auto processor_grid = get_processor_grid(num_ranks);
 
     const auto all_in_root = reshuffle::Context{
-            reshuffle::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1, 1}}, comm};
-    const auto final_context =
-            reshuffle::Context{reshuffle::BlockWise{global_dimensions, processor_grid}, comm};
+            reshuffle::distribution::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1, 1}},
+            comm};
+    const auto final_context = reshuffle::Context{
+            reshuffle::distribution::BlockWise{global_dimensions, processor_grid}, comm};
 
     auto local_grid = heat::to_grid(reshuffle::shuffle(global_grid, all_in_root, final_context))
                               .value_or(heat::Grid{});
@@ -247,10 +248,11 @@ auto gather_in_root(const heat::Grid &local_grid, const reshuffle::Dimensions<2>
     const auto current_num_ranks = reshuffle::mpi::get_num_ranks(comm);
     const auto current_processor_grid = get_processor_grid(current_num_ranks);
     const auto current_context = reshuffle::Context{
-            reshuffle::BlockWise{global_dimensions, current_processor_grid}, comm};
+            reshuffle::distribution::BlockWise{global_dimensions, current_processor_grid}, comm};
 
     const auto all_in_rank_0 = reshuffle::Context{
-            reshuffle::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1, 1}}, comm};
+            reshuffle::distribution::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1, 1}},
+            comm};
 
     const auto global_grid =
             heat::to_grid(reshuffle::shuffle(heat::remove_ghost_layers(local_grid, processor),
@@ -268,10 +270,11 @@ auto gather_in_root(const heat::RankGrid &local_grid,
     const auto current_num_ranks = reshuffle::mpi::get_num_ranks(comm);
     const auto current_processor_grid = get_processor_grid(current_num_ranks);
     const auto current_context = reshuffle::Context{
-            reshuffle::BlockWise{global_dimensions, current_processor_grid}, comm};
+            reshuffle::distribution::BlockWise{global_dimensions, current_processor_grid}, comm};
 
     const auto all_in_rank_0 = reshuffle::Context{
-            reshuffle::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1, 1}}, comm};
+            reshuffle::distribution::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1, 1}},
+            comm};
 
     const auto global_grid =
             heat::to_grid(reshuffle::shuffle(local_grid, current_context, all_in_rank_0)).value();
@@ -297,10 +300,11 @@ auto do_adaptation(heat::Grid &local_grid, heat::RankGrid &rank_grid,
                     .value();
 
     const auto current_context = reshuffle::Context{
-            reshuffle::BlockWise{global_dimensions, current_processor_grid}, current_comm};
+            reshuffle::distribution::BlockWise{global_dimensions, current_processor_grid},
+            current_comm};
 
     const auto new_context = reshuffle::Context{
-            reshuffle::BlockWise{global_dimensions, new_processor_grid}, new_comm};
+            reshuffle::distribution::BlockWise{global_dimensions, new_processor_grid}, new_comm};
 
     const auto current_processor_info = heat::ProcessorInfo{current_comm};
     const auto new_processor_info = heat::ProcessorInfo{new_comm};
