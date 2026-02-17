@@ -2,7 +2,7 @@
 
 #include "mpi_utils.hpp"
 
-#include <cassert>
+#include <exception>
 
 namespace reshuffle::mpi {
     namespace internal {
@@ -29,7 +29,7 @@ namespace reshuffle::mpi {
                 return RankStatus::INACTIVE;
             }
 
-            assert(false && "[get_rank_status] Should not reach here");
+            throw std::runtime_error("get_rank_status: Unexpected case");
         }
     }// namespace internal
 
