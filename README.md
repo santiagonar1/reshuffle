@@ -15,7 +15,10 @@ machine, please take a look at [compiling rehsuffle](./docs/compiling_reshuffle.
 
 ### Requirements
 
-- Clang-19/gcc-14 or newer.
+We like to use bleeding edge compilers, as they are more likely to catch bugs and allows us to experiment with new
+features of the language:
+
+- Clang-21/gcc-15 or newer.
 - [Conan 2](https://docs.conan.io/2/installation.html).
 - ScaLAPACK (if you want to compile the benchmark).
 - [Costa](https://github.com/eth-cscs/COSTA/tree/master) (if you want to compile the benchmark).
