@@ -1,3 +1,4 @@
+#include <array>
 #include <iostream>
 #include <mpi.h>
 #include <vector>
@@ -8,11 +9,14 @@
 
 [[nodiscard]] auto simulate_adaptation(int num_active_ranks) -> MPI_Comm;
 
+[[nodiscard]] auto decomposition_header(MPI_Comm comm, const std::array<char, 5> &rank_to_char)
+        -> std::string;
 auto print_domain_decomposition(const reshuffle::Context<1> &current_context,
                                 const reshuffle::Dimensions<1> &local_dimensions,
                                 const reshuffle::Dimensions<1> &global_dimensions) -> void;
 
-auto operator<<(std::ostream &os, const std::vector<int> &values) -> std::ostream &;
+template<typename T>
+auto operator<<(std::ostream &os, const std::vector<T> &values) -> std::ostream &;
 
 int main() {
     constexpr auto num_values_per_rank = 10;
@@ -90,14 +94,29 @@ auto simulate_adaptation(const int num_active_ranks) -> MPI_Comm {
     return reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, active_ranks);
 }
 
+auto decomposition_header(const MPI_Comm comm, const std::array<char, 5> &rank_to_char)
+        -> std::string {
+    const auto num_ranks = reshuffle::mpi::get_num_ranks(comm);
+    auto header = std::string{};
+
+    auto delimiter = std::string{};
+    for (int rank = 0; rank < num_ranks; rank++) {
+        header += std::exchange(delimiter, ", ") + std::string{"Rank "} + std::to_string(rank) +
+                  ": " + rank_to_char[rank];
+    }
+    return header;
+}
+
 auto print_domain_decomposition(const reshuffle::Context<1> &current_context,
                                 const reshuffle::Dimensions<1> &local_dimensions,
                                 const reshuffle::Dimensions<1> &global_dimensions) -> void {
+    constexpr auto rank_to_char = std::array{'#', '@', '*', '$', '+'};
+
     const auto comm = current_context.get_comm();
     const auto rank = reshuffle::mpi::get_rank_id(comm).value_or(MPI_PROC_NULL);
 
 
-    const auto local_decomposition = std::vector(local_dimensions[0], rank);
+    const auto local_decomposition = std::vector(local_dimensions[0], rank_to_char[rank]);
 
     const auto all_in_root = reshuffle::Context{
             reshuffle::distribution::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1}},
@@ -108,12 +127,13 @@ auto print_domain_decomposition(const reshuffle::Context<1> &current_context,
                                current_context, all_in_root);
 
     if (reshuffle::mpi::is_root(comm)) {
-        std::println("Domain Decomposition");
+        std::println("Domain Decomposition: {}", decomposition_header(comm, rank_to_char));
         std::cout << global_decomposition_values << std::endl;
     }
 }
 
-auto operator<<(std::ostream &os, const std::vector<int> &values) -> std::ostream & {
+template<typename T>
+auto operator<<(std::ostream &os, const std::vector<T> &values) -> std::ostream & {
     os << "[";
     auto delimiter = std::string{};
     for (const auto value: values) { os << std::exchange(delimiter, ", ") << value; }
