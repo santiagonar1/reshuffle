@@ -1,8 +1,8 @@
 # Elastic Demo
 
-This directory contains a basic demonstration of reshuffle's functionality. In contrast to our basic demo, here we
-showcase how to use reshuffle to exchange information between ranks that belong to different communicators. This is
-quite useful, as it allows us to simulate a malleable/elastic application.
+This directory contains a basic demonstration of reshuffle's functionality. In contrast to
+our [basic demo](../elastic_demo), here we showcase how to use reshuffle to exchange information between ranks that
+belong to different communicators. This is quite useful, as it allows us to simulate a malleable/elastic application.
 
 To run with N ranks, execute the following command:
 
