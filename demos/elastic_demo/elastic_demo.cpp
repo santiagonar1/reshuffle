@@ -9,6 +9,10 @@
 [[nodiscard]] auto is_rank_active(int num_active_ranks) -> bool;
 [[nodiscard]] auto simulate_adaptation(int num_active_ranks) -> MPI_Comm;
 
+auto print_domain_decomposition(const reshuffle::Context<1> &current_context,
+                                const reshuffle::Dimensions<1> &local_dimensions,
+                                const reshuffle::Dimensions<1> &global_dimensions) -> void;
+
 auto operator<<(std::ostream &os, const std::vector<int> &values) -> std::ostream &;
 
 int main() {
@@ -28,11 +32,20 @@ int main() {
                                                reshuffle::ProcessorGrid{available_ranks}},
             MPI_COMM_WORLD};
 
+    const auto all_in_root = reshuffle::Context{
+            reshuffle::distribution::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1}},
+            MPI_COMM_WORLD};
+
+    const auto global_buffer =
+            reshuffle::shuffle(std::mdspan{original_buffer.data(), original_buffer.size()},
+                               origin_context, all_in_root)
+                    .first;
+
     if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
         std::cout << "\n\n*******************************************************\n\n";
 
         std::cout << "Initial values" << std::endl;
-        std::cout << original_buffer << std::endl;
+        std::cout << global_buffer << std::endl;
     }
 
     for (int active_ranks = 1; active_ranks <= available_ranks; active_ranks++) {
@@ -41,17 +54,17 @@ int main() {
                 reshuffle::distribution::BlockWise{global_dimensions,
                                                    reshuffle::ProcessorGrid{active_ranks}},
                 comm};
-        const auto buffer =
+        const auto [buffer, local_dimensions] =
                 reshuffle::shuffle(std::mdspan{original_buffer.data(), original_buffer.size()},
-                                   origin_context, destiny_context)
-                        .first;
+                                   origin_context, destiny_context);
 
         if (is_rank_active(active_ranks)) {
             if (reshuffle::mpi::is_root(comm)) {
                 std::cout << "\n\n******** Active Ranks " << active_ranks << " *************\n\n";
                 std::cout << "Values in Rank 0 " << std::endl;
-                std::cout << buffer << std::endl;
+                std::cout << buffer << std::endl << std::endl;
             }
+            print_domain_decomposition(destiny_context, local_dimensions, global_dimensions);
             MPI_Comm_free(&comm);
         }
     }
@@ -73,6 +86,29 @@ auto simulate_adaptation(const int num_active_ranks) -> MPI_Comm {
 auto is_rank_active(const int num_active_ranks) -> bool {
     const auto rank = reshuffle::mpi::get_rank_id(MPI_COMM_WORLD).value();
     return rank < num_active_ranks;
+}
+
+auto print_domain_decomposition(const reshuffle::Context<1> &current_context,
+                                const reshuffle::Dimensions<1> &local_dimensions,
+                                const reshuffle::Dimensions<1> &global_dimensions) -> void {
+    const auto comm = current_context.get_comm();
+    const auto rank = reshuffle::mpi::get_rank_id(comm).value_or(MPI_PROC_NULL);
+
+
+    const auto local_decomposition = std::vector(local_dimensions[0], rank);
+
+    const auto all_in_root = reshuffle::Context{
+            reshuffle::distribution::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1}},
+            comm};
+
+    const auto [global_decomposition_values, dimensions] =
+            reshuffle::shuffle(std::mdspan{local_decomposition.data(), local_dimensions[0]},
+                               current_context, all_in_root);
+
+    if (reshuffle::mpi::is_root(comm)) {
+        std::println("Domain Decomposition");
+        std::cout << global_decomposition_values << std::endl;
+    }
 }
 
 auto operator<<(std::ostream &os, const std::vector<int> &values) -> std::ostream & {
