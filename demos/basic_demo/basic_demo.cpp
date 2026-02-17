@@ -104,7 +104,7 @@ auto to_matrix(const std::vector<int> &values, const reshuffle::Dimensions<2> &d
 
 auto operator<<(std::ostream &os, const Matrix &matrix) -> std::ostream & {
     for (const auto &row: matrix) {
-        for (const auto &value: row) { os << value << " "; }
+        for (const auto &value: row) { os << std::setfill('0') << std::setw(3) << value << " "; }
         os << std::endl;
     }
 
