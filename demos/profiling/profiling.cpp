@@ -27,12 +27,12 @@ int main() {
 
     const auto initial_processor_grid = reshuffle::ProcessorGrid{1};
     const auto initial_distribution =
-            reshuffle::BlockWise{{num_global_values}, initial_processor_grid};
+            reshuffle::distribution::BlockWise{{num_global_values}, initial_processor_grid};
     const auto initial_context = reshuffle::Context{initial_distribution, MPI_COMM_WORLD};
 
     const auto final_processor_grid = reshuffle::ProcessorGrid{num_ranks};
     const auto final_distribution =
-            reshuffle::BlockCyclic{{num_global_values}, {1000}, final_processor_grid};
+            reshuffle::distribution::BlockCyclic{{num_global_values}, {1000}, final_processor_grid};
     const auto final_context = reshuffle::Context{final_distribution, MPI_COMM_WORLD};
 
     const auto _ = shuffle(std::mdspan{local_values.data(), local_values.size()}, initial_context,
