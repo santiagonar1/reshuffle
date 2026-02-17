@@ -5,8 +5,6 @@ function(compile_demo demo_name)
             PRIVATE MPI::MPI_CXX)
 endfunction()
 
-compile_demo(elastic_demo)
-
 if (PROFILING)
     compile_demo(profiling)
 endif ()
@@ -31,3 +29,4 @@ endif ()
 
 add_subdirectory(basic_demo)
 add_subdirectory(heat_transfer)
+add_subdirectory(elastic_demo)
