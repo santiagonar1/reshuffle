@@ -30,7 +30,7 @@ int main() {
         const auto destiny_context = reshuffle::Context{
                 reshuffle::distribution::BlockWise{reshuffle::Dimensions{total_num_values},
                                                    reshuffle::ProcessorGrid{active_ranks}},
-                MPI_COMM_WORLD};
+                comm};
         const auto buffer =
                 reshuffle::shuffle(std::mdspan{original_buffer.data(), original_buffer.size()},
                                    origin_context, destiny_context)
