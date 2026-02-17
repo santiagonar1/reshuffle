@@ -7,8 +7,9 @@
 
 
 auto is_rank_active(int num_active_ranks) -> bool;
-
 auto simulate_adaptation(int num_active_ranks) -> MPI_Comm;
+
+auto operator<<(std::ostream &os, const std::vector<int> &values) -> std::ostream &;
 
 int main() {
     constexpr auto num_elements = 10;
@@ -37,10 +38,7 @@ int main() {
                         .first;
 
         if (is_rank_active(active_ranks)) {
-            if (reshuffle::mpi::is_root(comm)) {
-                std::ranges::for_each(buffer, [](auto v) { std::cout << v << ", "; });
-                std::cout << std::endl;
-            }
+            if (reshuffle::mpi::is_root(comm)) { std::cout << buffer << std::endl; }
             MPI_Comm_free(&comm);
         }
     }
@@ -62,4 +60,11 @@ auto simulate_adaptation(const int num_active_ranks) -> MPI_Comm {
 auto is_rank_active(const int num_active_ranks) -> bool {
     const auto rank = reshuffle::mpi::get_rank_id(MPI_COMM_WORLD).value();
     return rank < num_active_ranks;
+}
+
+auto operator<<(std::ostream &os, const std::vector<int> &values) -> std::ostream & {
+    os << "[";
+    auto delimiter = std::string{};
+    for (const auto value: values) { os << std::exchange(delimiter, ", ") << value; }
+    return os << "]";
 }
