@@ -32,24 +32,20 @@ int main() {
 
     auto matrix =
             reshuffle::mpi::is_root(MPI_COMM_WORLD) ? init_matrix(num_rows, num_columns) : Matrix{};
-    auto dimensions = reshuffle::Dimensions<2>{num_rows, num_columns};
+    constexpr auto global_dimensions = reshuffle::Dimensions<2>{num_rows, num_columns};
 
     const auto contexts = std::vector{
-            reshuffle::Context{reshuffle::distribution::BlockWise{
-                                       reshuffle::Dimensions<2>{num_rows, num_columns},
-                                       reshuffle::ProcessorGrid{1, 1}},
+            reshuffle::Context{reshuffle::distribution::BlockWise{global_dimensions,
+                                                                  reshuffle::ProcessorGrid{1, 1}},
                                MPI_COMM_WORLD},
-            reshuffle::Context{reshuffle::distribution::BlockWise{
-                                       reshuffle::Dimensions<2>{num_rows, num_columns},
-                                       reshuffle::ProcessorGrid{4, 1}},
+            reshuffle::Context{reshuffle::distribution::BlockWise{global_dimensions,
+                                                                  reshuffle::ProcessorGrid{4, 1}},
                                MPI_COMM_WORLD},
-            reshuffle::Context{reshuffle::distribution::BlockWise{
-                                       reshuffle::Dimensions<2>{num_rows, num_columns},
-                                       reshuffle::ProcessorGrid{1, 4}},
+            reshuffle::Context{reshuffle::distribution::BlockWise{global_dimensions,
+                                                                  reshuffle::ProcessorGrid{1, 4}},
                                MPI_COMM_WORLD},
-            reshuffle::Context{reshuffle::distribution::BlockWise{
-                                       reshuffle::Dimensions<2>{num_rows, num_columns},
-                                       reshuffle::ProcessorGrid{2, 2}},
+            reshuffle::Context{reshuffle::distribution::BlockWise{global_dimensions,
+                                                                  reshuffle::ProcessorGrid{2, 2}},
                                MPI_COMM_WORLD},
     };
 
@@ -63,7 +59,7 @@ int main() {
         const auto [new_values, new_dimensions] =
                 reshuffle::shuffle(matrix, contexts[i - 1], contexts[i]);
         matrix = to_matrix(new_values, new_dimensions).value();
-        dimensions = new_dimensions;
+        global_dimensions = new_dimensions;
         if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
             std::cout << "******************************" << std::endl;
             std::cout << "[Rank 0] After shuffle " << i << ":" << std::endl;
