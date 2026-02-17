@@ -8,15 +8,12 @@
 
 
 using Matrix = std::vector<std::vector<int>>;
-using OneDimensionRepresentation = std::pair<std::vector<int>, reshuffle::Dimensions<2>>;
 
 enum class ToGridError { MISMATCH_DIMENSIONS_AND_NUM_VALUES };
-
 
 auto init_matrix(int num_rows, int num_columns) -> Matrix;
 auto to_matrix(const std::vector<int> &values, const reshuffle::Dimensions<2> &dimensions)
         -> std::expected<Matrix, ToGridError>;
-auto init_vector(int num_values) -> std::vector<int>;
 
 auto operator<<(std::ostream &os, const Matrix &matrix) -> std::ostream &;
 
@@ -107,12 +104,6 @@ auto to_matrix(const std::vector<int> &values, const reshuffle::Dimensions<2> &d
     }
 
     return grid;
-}
-
-auto init_vector(const int num_values) -> std::vector<int> {
-    auto values = std::vector<int>(num_values);
-    std::iota(values.begin(), values.end(), 0);
-    return values;
 }
 
 auto operator<<(std::ostream &os, const Matrix &matrix) -> std::ostream & {
