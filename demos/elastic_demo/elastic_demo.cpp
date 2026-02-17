@@ -6,12 +6,12 @@
 #include <reshuffle.hpp>
 
 
-bool is_rank_active(int num_active_ranks);
+auto is_rank_active(int num_active_ranks) -> bool;
 
-MPI_Comm simulate_adaptation(int num_active_ranks);
+auto simulate_adaptation(int num_active_ranks) -> MPI_Comm;
 
 int main() {
-    constexpr int num_elements = 10;
+    constexpr auto num_elements = 10;
 
     MPI_Init(nullptr, nullptr);
 
@@ -50,7 +50,7 @@ int main() {
     return 0;
 }
 
-MPI_Comm simulate_adaptation(const int num_active_ranks) {
+auto simulate_adaptation(const int num_active_ranks) -> MPI_Comm {
     MPI_Barrier(MPI_COMM_WORLD);
 
     const auto color = is_rank_active(num_active_ranks) ? 1 : MPI_UNDEFINED;
@@ -62,7 +62,7 @@ MPI_Comm simulate_adaptation(const int num_active_ranks) {
     return comm_after_adaptation;
 }
 
-bool is_rank_active(const int num_active_ranks) {
+auto is_rank_active(const int num_active_ranks) -> bool {
     const auto rank = reshuffle::mpi::get_rank_id(MPI_COMM_WORLD).value();
     return rank < num_active_ranks;
 }
