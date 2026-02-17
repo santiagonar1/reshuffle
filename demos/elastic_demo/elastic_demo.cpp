@@ -12,24 +12,24 @@ auto simulate_adaptation(int num_active_ranks) -> MPI_Comm;
 auto operator<<(std::ostream &os, const std::vector<int> &values) -> std::ostream &;
 
 int main() {
-    constexpr auto num_elements = 10;
+    constexpr auto num_values_per_rank = 10;
 
     MPI_Init(nullptr, nullptr);
 
     const auto available_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
     const auto rank = reshuffle::mpi::get_rank_id(MPI_COMM_WORLD).value();
 
-    const auto original_buffer = std::vector(num_elements, rank);
-    const auto total_num_values = num_elements * available_ranks;
+    const auto original_buffer = std::vector(num_values_per_rank, rank);
+    const auto global_num_values = num_values_per_rank * available_ranks;
 
     const auto origin_context = reshuffle::Context{
-            reshuffle::distribution::BlockWise{reshuffle::Dimensions{total_num_values},
+            reshuffle::distribution::BlockWise{reshuffle::Dimensions{global_num_values},
                                                reshuffle::ProcessorGrid{available_ranks}},
             MPI_COMM_WORLD};
     for (int active_ranks = 1; active_ranks <= available_ranks; active_ranks++) {
         auto comm = simulate_adaptation(active_ranks);
         const auto destiny_context = reshuffle::Context{
-                reshuffle::distribution::BlockWise{reshuffle::Dimensions{total_num_values},
+                reshuffle::distribution::BlockWise{reshuffle::Dimensions{global_num_values},
                                                    reshuffle::ProcessorGrid{active_ranks}},
                 comm};
         const auto buffer =
