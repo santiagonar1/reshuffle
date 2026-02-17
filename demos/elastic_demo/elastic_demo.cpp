@@ -6,10 +6,7 @@
 #include <reshuffle.hpp>
 
 
-bool is_root(const MPI_Comm &comm = MPI_COMM_WORLD);
 bool is_rank_active(int num_active_ranks);
-reshuffle::RankId get_rank(const MPI_Comm &comm = MPI_COMM_WORLD);
-int get_num_ranks(const MPI_Comm &comm = MPI_COMM_WORLD);
 
 MPI_Comm simulate_adaptation(int num_active_ranks);
 
@@ -18,8 +15,10 @@ int main() {
 
     MPI_Init(nullptr, nullptr);
 
-    const auto available_ranks = get_num_ranks();
-    const auto original_buffer = std::vector(num_elements, get_rank());
+    const auto available_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
+    const auto rank = reshuffle::mpi::get_rank_id(MPI_COMM_WORLD).value();
+
+    const auto original_buffer = std::vector(num_elements, rank);
     const auto total_num_values = num_elements * available_ranks;
 
     const auto origin_context = reshuffle::Context{
@@ -38,7 +37,7 @@ int main() {
                         .first;
 
         if (is_rank_active(active_ranks)) {
-            if (is_root(comm)) {
+            if (reshuffle::mpi::is_root(comm)) {
                 std::ranges::for_each(buffer, [](auto v) { std::cout << v << ", "; });
                 std::cout << std::endl;
             }
@@ -55,7 +54,7 @@ MPI_Comm simulate_adaptation(const int num_active_ranks) {
     MPI_Barrier(MPI_COMM_WORLD);
 
     const auto color = is_rank_active(num_active_ranks) ? 1 : MPI_UNDEFINED;
-    const auto rank = get_rank();
+    const auto rank = reshuffle::mpi::get_rank_id(MPI_COMM_WORLD).value();
 
     MPI_Comm comm_after_adaptation{};
     MPI_Comm_split(MPI_COMM_WORLD, color, rank, &comm_after_adaptation);
@@ -63,26 +62,7 @@ MPI_Comm simulate_adaptation(const int num_active_ranks) {
     return comm_after_adaptation;
 }
 
-bool is_root(const MPI_Comm &comm) {
-    const auto rank = get_rank(comm);
-    return rank == 0;
-}
-
 bool is_rank_active(const int num_active_ranks) {
-    const auto rank = get_rank();
+    const auto rank = reshuffle::mpi::get_rank_id(MPI_COMM_WORLD).value();
     return rank < num_active_ranks;
-}
-
-reshuffle::RankId get_rank(const MPI_Comm &comm) {
-    reshuffle::RankId id{};
-    MPI_Comm_rank(comm, &id);
-
-    return id;
-}
-
-int get_num_ranks(const MPI_Comm &comm) {
-    int num_ranks{};
-    MPI_Comm_size(comm, &num_ranks);
-
-    return num_ranks;
 }
