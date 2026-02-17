@@ -2,6 +2,7 @@
 
 #include "mpi_utils.hpp"
 
+#include <cassert>
 #include <exception>
 
 namespace reshuffle::mpi {
