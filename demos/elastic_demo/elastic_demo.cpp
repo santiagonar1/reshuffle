@@ -1,6 +1,7 @@
 #include <array>
 #include <iostream>
 #include <mpi.h>
+#include <print>
 #include <vector>
 
 #include <block_wise.hpp>

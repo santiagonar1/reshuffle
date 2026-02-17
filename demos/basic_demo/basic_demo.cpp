@@ -1,5 +1,6 @@
 #include <iostream>
 #include <mpi.h>
+#include <print>
 #include <ranges>
 #include <vector>
 
