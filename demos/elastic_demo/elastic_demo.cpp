@@ -20,6 +20,14 @@ int main() {
     MPI_Init(nullptr, nullptr);
 
     const auto available_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
+
+    if (available_ranks > 5) {
+        const std::string error_msg = "Please run with at most 5 ranks. Currently running with " +
+                                      std::to_string(available_ranks);
+        std::cerr << error_msg << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+
     const auto rank = reshuffle::mpi::get_rank_id(MPI_COMM_WORLD).value();
 
     const auto original_buffer = std::vector(num_values_per_rank, rank);
