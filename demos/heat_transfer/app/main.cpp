@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-auto get_num_digits(unsigned int num) -> unsigned int {
+auto get_num_digits(const unsigned int num) -> unsigned int {
     return num == 0 ? 1 : static_cast<unsigned int>(std::log10(num)) + 1;
 }
 

@@ -1,33 +1,16 @@
-function(compile_demo demo_name)
-    add_executable(${demo_name}.out ${demo_name}.cpp)
-    target_link_libraries(${demo_name}.out
-            PRIVATE reshuffle
-            PRIVATE MPI::MPI_CXX)
-endfunction()
-
-compile_demo(demo)
-compile_demo(elastic_demo)
-
-if (PROFILING)
-    compile_demo(profiling)
-endif ()
+add_subdirectory(basic_demo)
+add_subdirectory(heat_transfer)
+add_subdirectory(elastic_demo)
 
 if (BUILD_DYN_PROC_DEMOS)
-    find_package(absl REQUIRED)
+    add_subdirectory(dyn_proc_demo)
+endif ()
 
-    add_executable(dyn_proc_demo.out dyn_proc_demo.cpp)
-    target_link_libraries(dyn_proc_demo.out
-            PRIVATE abseil::abseil
-            PRIVATE reshuffle
-            PRIVATE MPI::MPI_CXX)
+if (PROFILING)
+    add_subdirectory(profiling)
 endif ()
 
 if (TEST_SCALAPACK)
-    add_executable(scalapack_demo.out scalapack_demo.cpp)
-    target_link_libraries(scalapack_demo.out
-            PRIVATE MPI::MPI_CXX
-            PRIVATE ScalapackLibrary
-    )
+    add_subdirectory(scalapack_demo)
 endif ()
 
-add_subdirectory(heat_transfer)

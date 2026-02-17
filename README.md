@@ -15,7 +15,10 @@ machine, please take a look at [compiling rehsuffle](./docs/compiling_reshuffle.
 
 ### Requirements
 
-- Clang-19/gcc-14 or newer.
+We like to use bleeding edge compilers, as they are more likely to catch bugs and allows us to experiment with new
+features of the language:
+
+- Clang-21/gcc-15 or newer.
 - [Conan 2](https://docs.conan.io/2/installation.html).
 - ScaLAPACK (if you want to compile the benchmark).
 - [Costa](https://github.com/eth-cscs/COSTA/tree/master) (if you want to compile the benchmark).
@@ -133,15 +136,5 @@ cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DMPIEXEC_EXECUTAB
 
 ## Usage
 
-Check our [demo](./demos/demo.cpp) and [elastic_demo](./demos/elastic_demo.cpp) for examples of how to use the library.
-
-At its core, our `shuffle` function help you to change from one `Context` to another. We define a `Context` as a
-combination of a certain data distribution (e.g., a block cyclic partition of the domain) and an MPI communicator.
-For example, the following context defines a 2D Block Wise distribution. The `ProcessorGrid` object indicates that
-you want to have 4 columns of processors and 1 row (i.e., vertical split).
-
-```c++
-reshuffle::Context{reshuffle::BlockWise(reshuffle::Dimensions<2>{num_rows, num_columns},
-                                       reshuffle::ProcessorGrid<2>{1, 4}),
-                               MPI_COMM_WORLD};
-```
+The easiest way to start using the library, is to take a look at our [demos](./demos) folder. You can also take a look
+at our large collection of [tests](./tests) in case you want a more in-depth look at the library and its internals.

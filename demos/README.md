@@ -1,38 +1,19 @@
 # Reshuffle Demos
 
-In this folder you find a collection of demos that showcase the use of the library.
+In this folder you find a collection of demos that showcase the use of the library:
 
-## `demo`
+- [Basic demo](./basic_demo): Probably the best point to start. It showcases the basic functionality of the library.
+- [Elastic demo](./elastic_demo): Showcases how reshuffle can helps us to redistribute values when the number of ranks
+  changes.
+- [Heat transfer](./heat_transfer): A full-fledge malleable heat transfer simulation, using reshuffle for data
+  distribution.
 
-A simple code that splits a 2D matrix among 4 ranks using different strategies (e.g., 4X1, 2x2, 1x4). You need to
-run the code with 4 ranks, as follows:
+A more niche collection of demos:
 
-```sh
-mpirun -np 4 demo.out
-```
+- [Profiling](./profiling): Come here if you are interested in profiling reshuffle.
+- [ScaLAPACK demo](./scalapack_demo): Come here if you want to see how to use ScaLAPACK to achieve the same as
+  reshuffle (without malleability).
 
-## `elastic_demo`
+And finally:
 
-This code simulates a scenario of adding one rank to the simulation until `n`, where `n` is the number of ranks you
-run the code with. The library takes care of scattering a buffer among the active ranks, and prints the contents
-of rank 0. As more ranks join, you should see how the size of this buffer decreases. To run it, simply do:
-
-```sh
-mpirun -np n elastic_demo.out
-```
-
-## `dyn_proc_demo`
-
-Check our [README](../README.md) to see how to enable the compilation of this example. Once you have done that, and
-you have configured the docker instances, you simply need to do:
-
-```sh
-prterun -np 8 --display map --mca btl_tcp_if_include eth0 --host n1:8,n2:8,n3:8,n4:8  -x LD_LIBRARY_PATH ./dyn_proc_demo.out
-```
-
-The above code will execute an expansion. If you want to try a reduction, simply indicate the `--reduction` flag, as
-follows:
-
-```sh
-prterun -np 8 --display map --mca btl_tcp_if_include eth0 --host n1:8,n2:8,n3:8,n4:8  -x LD_LIBRARY_PATH ./dyn_proc_demo.out --reduction
-```
+- [Dynamic process demo](./dyn_proc_demo): An actual malleable simulation. Sadly, it is not maintain anymore.
