@@ -21,13 +21,9 @@ int main() {
 
     MPI_Init(nullptr, nullptr);
 
-    int rank{};
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    const auto rank = reshuffle::mpi::get_rank_id(MPI_COMM_WORLD).value();
 
-    int num_ranks{};
-    MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
-
-    if (num_ranks != 4) {
+    if (const auto num_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD); num_ranks != 4) {
         const std::string error_msg =
                 "Please run with 4 ranks. Currently running with " + std::to_string(num_ranks);
         std::cerr << error_msg << std::endl;
