@@ -9,8 +9,6 @@
 
 using Matrix = std::vector<std::vector<int>>;
 
-bool is_root();
-
 Matrix init_matrix(int num_rows, int num_columns);
 auto init_vector(int num_values) -> std::vector<int>;
 
@@ -36,7 +34,8 @@ int main() {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    auto matrix = is_root() ? init_vector(num_values) : std::vector<int>{};
+    auto matrix =
+            reshuffle::mpi::is_root(MPI_COMM_WORLD) ? init_vector(num_values) : std::vector<int>{};
     auto dimensions = reshuffle::Dimensions<2>{num_rows, num_columns};
 
     const std::vector contexts = {
@@ -58,7 +57,7 @@ int main() {
                                MPI_COMM_WORLD},
     };
 
-    if (is_root()) {
+    if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
         int counter = 0;
         for (int rowIndex = 0; rowIndex < dimensions[0]; ++rowIndex) {
             for (int columnIndex = 0; columnIndex < dimensions[1]; ++columnIndex) {
@@ -76,7 +75,7 @@ int main() {
                                    contexts[i - 1], contexts[i]);
         matrix = new_matrix;
         dimensions = new_dimensions;
-        if (is_root()) {
+        if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
             int counter = 0;
             for (int rowIndex = 0; rowIndex < dimensions[0]; ++rowIndex) {
                 for (int columnIndex = 0; columnIndex < dimensions[1]; ++columnIndex) {
@@ -91,12 +90,6 @@ int main() {
 
     MPI_Finalize();
     return 0;
-}
-
-bool is_root() {
-    int rank{};
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    return rank == 0;
 }
 
 Matrix init_matrix(const int num_rows, const int num_columns) {
