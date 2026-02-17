@@ -9,15 +9,15 @@
 
 using Matrix = std::vector<std::vector<int>>;
 
-Matrix init_matrix(int num_rows, int num_columns);
+auto init_matrix(int num_rows, int num_columns) -> Matrix;
 auto init_vector(int num_values) -> std::vector<int>;
 
-std::ostream &operator<<(std::ostream &os, const Matrix &matrix);
+auto operator<<(std::ostream &os, const Matrix &matrix) -> std::ostream &;
 
 int main() {
-    constexpr int num_rows = 20;
-    constexpr int num_columns = 20;
-    constexpr int num_values = num_rows * num_columns;
+    constexpr auto num_rows = 20;
+    constexpr auto num_columns = 20;
+    constexpr auto num_values = num_rows * num_columns;
 
     MPI_Init(nullptr, nullptr);
 
@@ -38,7 +38,7 @@ int main() {
             reshuffle::mpi::is_root(MPI_COMM_WORLD) ? init_vector(num_values) : std::vector<int>{};
     auto dimensions = reshuffle::Dimensions<2>{num_rows, num_columns};
 
-    const std::vector contexts = {
+    const auto contexts = std::vector{
             reshuffle::Context{reshuffle::distribution::BlockWise{
                                        reshuffle::Dimensions<2>{num_rows, num_columns},
                                        reshuffle::ProcessorGrid{1, 1}},
@@ -58,9 +58,9 @@ int main() {
     };
 
     if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
-        int counter = 0;
-        for (int rowIndex = 0; rowIndex < dimensions[0]; ++rowIndex) {
-            for (int columnIndex = 0; columnIndex < dimensions[1]; ++columnIndex) {
+        auto counter = 0;
+        for (auto rowIndex = 0; rowIndex < dimensions[0]; ++rowIndex) {
+            for (auto columnIndex = 0; columnIndex < dimensions[1]; ++columnIndex) {
                 std::cout << matrix[counter] << " ";
                 counter++;
             }
@@ -69,16 +69,16 @@ int main() {
         std::cout << std::endl;
     }
 
-    for (int i = 1; i < contexts.size(); ++i) {
+    for (auto i = 1; i < contexts.size(); ++i) {
         const auto [new_matrix, new_dimensions] =
                 reshuffle::shuffle(std::mdspan{std::as_const(matrix).data(), dimensions},
                                    contexts[i - 1], contexts[i]);
         matrix = new_matrix;
         dimensions = new_dimensions;
         if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
-            int counter = 0;
-            for (int rowIndex = 0; rowIndex < dimensions[0]; ++rowIndex) {
-                for (int columnIndex = 0; columnIndex < dimensions[1]; ++columnIndex) {
+            auto counter = 0;
+            for (auto rowIndex = 0; rowIndex < dimensions[0]; ++rowIndex) {
+                for (auto columnIndex = 0; columnIndex < dimensions[1]; ++columnIndex) {
                     std::cout << matrix[counter] << " ";
                     counter++;
                 }
@@ -92,7 +92,7 @@ int main() {
     return 0;
 }
 
-Matrix init_matrix(const int num_rows, const int num_columns) {
+auto init_matrix(const int num_rows, const int num_columns) -> Matrix {
     auto matrix = Matrix(num_rows, std::vector<int>(num_columns));
 
     int counter{};
@@ -106,13 +106,13 @@ Matrix init_matrix(const int num_rows, const int num_columns) {
     return matrix;
 }
 
-auto init_vector(int num_values) -> std::vector<int> {
+auto init_vector(const int num_values) -> std::vector<int> {
     auto values = std::vector<int>(num_values);
     std::iota(values.begin(), values.end(), 0);
     return values;
 }
 
-std::ostream &operator<<(std::ostream &os, const Matrix &matrix) {
+auto operator<<(std::ostream &os, const Matrix &matrix) -> std::ostream & {
     for (const auto &row: matrix) {
         for (const auto &value: row) { os << value << " "; }
         os << std::endl;
