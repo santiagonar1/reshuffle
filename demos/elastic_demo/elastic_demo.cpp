@@ -6,8 +6,8 @@
 #include <reshuffle.hpp>
 
 
-auto is_rank_active(int num_active_ranks) -> bool;
-auto simulate_adaptation(int num_active_ranks) -> MPI_Comm;
+[[nodiscard]] auto is_rank_active(int num_active_ranks) -> bool;
+[[nodiscard]] auto simulate_adaptation(int num_active_ranks) -> MPI_Comm;
 
 auto operator<<(std::ostream &os, const std::vector<int> &values) -> std::ostream &;
 
