@@ -45,8 +45,7 @@ int main() {
             MPI_COMM_WORLD};
 
     const auto all_in_root = reshuffle::Context{
-            reshuffle::distribution::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1}},
-            MPI_COMM_WORLD};
+            reshuffle::distribution::get_all_values_in_root(global_dimensions), MPI_COMM_WORLD};
 
     const auto global_buffer =
             reshuffle::shuffle(std::mdspan{original_buffer.data(), original_buffer.size()},

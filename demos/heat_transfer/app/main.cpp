@@ -230,8 +230,7 @@ auto scatter_from_root(const heat::Grid &global_grid,
     const auto processor_grid = get_processor_grid(num_ranks);
 
     const auto all_in_root = reshuffle::Context{
-            reshuffle::distribution::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1, 1}},
-            comm};
+            reshuffle::distribution::get_all_values_in_root(global_dimensions), comm};
     const auto final_context = reshuffle::Context{
             reshuffle::distribution::BlockWise{global_dimensions, processor_grid}, comm};
 
@@ -250,13 +249,12 @@ auto gather_in_root(const heat::Grid &local_grid, const reshuffle::Dimensions<2>
     const auto current_context = reshuffle::Context{
             reshuffle::distribution::BlockWise{global_dimensions, current_processor_grid}, comm};
 
-    const auto all_in_rank_0 = reshuffle::Context{
-            reshuffle::distribution::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1, 1}},
-            comm};
+    const auto all_in_root = reshuffle::Context{
+            reshuffle::distribution::get_all_values_in_root(global_dimensions), comm};
 
     const auto global_grid =
             heat::to_grid(reshuffle::shuffle(heat::remove_ghost_layers(local_grid, processor),
-                                             current_context, all_in_rank_0))
+                                             current_context, all_in_root))
                     .value();
 
     return global_grid;
@@ -272,12 +270,11 @@ auto gather_in_root(const heat::RankGrid &local_grid,
     const auto current_context = reshuffle::Context{
             reshuffle::distribution::BlockWise{global_dimensions, current_processor_grid}, comm};
 
-    const auto all_in_rank_0 = reshuffle::Context{
-            reshuffle::distribution::BlockWise{global_dimensions, reshuffle::ProcessorGrid{1, 1}},
-            comm};
+    const auto all_in_root = reshuffle::Context{
+            reshuffle::distribution::get_all_values_in_root(global_dimensions), comm};
 
     const auto global_grid =
-            heat::to_grid(reshuffle::shuffle(local_grid, current_context, all_in_rank_0)).value();
+            heat::to_grid(reshuffle::shuffle(local_grid, current_context, all_in_root)).value();
 
     return global_grid;
 }
