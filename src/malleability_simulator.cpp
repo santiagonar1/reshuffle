@@ -49,8 +49,8 @@ namespace reshuffle::mpi {
             return std::unexpected{RequestAdaptationError::NOT_ENOUGH_AVAILABLE_RANKS};
         }
 
-        const auto new_comm =
-                get_sub_comm(_base_comm, internal::generate_rank_id_vector(num_ranks));
+        const auto new_comm = get_sub_comm(_base_comm, internal::generate_rank_id_vector(num_ranks))
+                                      .value_or(MPI_COMM_NULL);
         const auto rank_status = internal::get_rank_status(_current_comm, new_comm);
 
         _current_comm = new_comm;

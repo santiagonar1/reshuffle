@@ -25,13 +25,12 @@ namespace reshuffle::mpi {
     }// namespace internal
 
     auto get_rank_id(const MPI_Comm &comm) -> std::expected<RankId, MPIError> {
-        int rank{MPI_ERR_RANK};
-
         if (is_comm_null(comm)) { return std::unexpected(MPIError::COMM_IS_NULL); }
-
         if (not belongs_to_comm(comm)) { return std::unexpected(MPIError::RANK_NOT_IN_COMM); }
 
+        int rank{MPI_ERR_RANK};
         MPI_Comm_rank(comm, &rank);
+
         return rank;
     }
 
@@ -40,19 +39,23 @@ namespace reshuffle::mpi {
     }
 
     auto get_num_ranks(const MPI_Comm &comm) -> std::expected<int, MPIError> {
-        int num_ranks{};
-
         if (is_comm_null(comm)) { return std::unexpected(MPIError::COMM_IS_NULL); }
         if (not belongs_to_comm(comm)) { return std::unexpected(MPIError::RANK_NOT_IN_COMM); }
 
+        int num_ranks{};
         MPI_Comm_size(comm, &num_ranks);
+
         return num_ranks;
     }
 
     auto is_comm_null(const MPI_Comm &comm) -> bool { return comm == MPI_COMM_NULL; }
 
 
-    auto get_sub_comm(const MPI_Comm &base_comm, const std::vector<RankId> &ranks) -> MPI_Comm {
+    auto get_sub_comm(const MPI_Comm &base_comm, const std::vector<RankId> &ranks)
+            -> std::expected<MPI_Comm, MPIError> {
+        if (is_comm_null(base_comm)) { return std::unexpected(MPIError::COMM_IS_NULL); }
+        if (not belongs_to_comm(base_comm)) { return std::unexpected(MPIError::RANK_NOT_IN_COMM); }
+
         const auto base_group = get_group(base_comm).value();
         const auto sub_group = get_sub_group(base_group, ranks);
         auto sub_comm{MPI_COMM_NULL};
@@ -63,7 +66,6 @@ namespace reshuffle::mpi {
 
     auto get_group(const MPI_Comm &comm) -> std::expected<MPI_Group, MPIError> {
         if (is_comm_null(comm)) { return std::unexpected(MPIError::COMM_IS_NULL); }
-
         if (not belongs_to_comm(comm)) { return std::unexpected(MPIError::RANK_NOT_IN_COMM); }
 
         MPI_Group group{};

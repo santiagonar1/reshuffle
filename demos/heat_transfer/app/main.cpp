@@ -191,7 +191,7 @@ auto get_comm(const unsigned int num_ranks, const MPI_Comm base_comm)
     auto ranks = std::vector<int>(num_ranks);
     std::ranges::iota(ranks.begin(), ranks.end(), 0);
 
-    return reshuffle::mpi::get_sub_comm(base_comm, ranks);
+    return reshuffle::mpi::get_sub_comm(base_comm, ranks).value();
 }
 
 auto get_next_num_ranks(const int num_adaptations,

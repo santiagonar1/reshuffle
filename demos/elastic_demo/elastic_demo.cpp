@@ -91,7 +91,7 @@ auto simulate_adaptation(const int num_active_ranks) -> MPI_Comm {
     const auto active_ranks = std::views::iota(0, num_active_ranks) |
                               std::ranges::to<std::vector<reshuffle::RankId>>();
 
-    return reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, active_ranks);
+    return reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, active_ranks).value();
 }
 
 auto decomposition_header(const MPI_Comm comm, const std::array<char, 5> &rank_to_char)

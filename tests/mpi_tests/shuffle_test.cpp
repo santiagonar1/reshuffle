@@ -152,8 +152,8 @@ TEST(Shuffle, CanBeCalledByARankNotInCommunicators) {
             is_root(MPI_COMM_WORLD) ? std::vector(num_global_values, 1) : std::vector<int>{};
 
     // Trick: same communicator created twice to have different contexts
-    const auto comm_v1 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
-    const auto comm_v2 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+    const auto comm_v1 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
+    const auto comm_v2 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
 
     const auto only_rank_0 =
             Context{BlockWise{Dimensions{num_global_values}, ProcessorGrid{1}}, comm_v1};

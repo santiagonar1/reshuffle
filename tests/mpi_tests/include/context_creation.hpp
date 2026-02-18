@@ -63,9 +63,11 @@ inline auto generate_values(int from, int to) -> std::vector<int> {
 inline auto create_communicator(const CommSelector &comm_selector) -> MPI_Comm {
     switch (comm_selector) {
         case CommSelector::ONLY_RANK_0:
-            return reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
+            return reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0))
+                    .value_or(MPI_COMM_NULL);
         case CommSelector::ONLY_RANK_1:
-            return reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1));
+            return reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1))
+                    .value_or(MPI_COMM_NULL);
         case CommSelector::ALL_RANKS:
             return MPI_COMM_WORLD;
         default:
