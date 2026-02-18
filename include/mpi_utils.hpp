@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <mpi.h>
 #include <optional>
-#include <stdexcept>
 #include <vector>
 
 #include "concepts.hpp"
@@ -32,8 +31,10 @@ namespace reshuffle::mpi {
                 -> ReceivedMessageInformation;
     }// namespace internal
 
+    enum class ToMPIDatatypeError { INVALID_DATATYPE };
+
     template<concepts::MPIType DATATYPE>
-    [[nodiscard]] MPI_Datatype to_mpi_datatype() {
+    [[nodiscard]] auto to_mpi_datatype() -> std::expected<MPI_Datatype, ToMPIDatatypeError> {
         if (std::is_same_v<DATATYPE, int>) { return MPI_INT; }
         if (std::is_same_v<DATATYPE, float>) { return MPI_FLOAT; }
         if (std::is_same_v<DATATYPE, double>) { return MPI_DOUBLE; }
@@ -51,7 +52,7 @@ namespace reshuffle::mpi {
         if (std::is_same_v<DATATYPE, long double>) { return MPI_LONG_DOUBLE; }
 
 
-        throw std::invalid_argument("No MPI Datatype");
+        return std::unexpected(ToMPIDatatypeError::INVALID_DATATYPE);
     }
 
     enum class MPIError { COMM_IS_NULL, RANK_NOT_IN_COMM };
@@ -80,7 +81,7 @@ namespace reshuffle::mpi {
     [[nodiscard]] auto async_send(std::span<T> values, const RankId destiny, const MPI_Comm &comm)
             -> MPI_Request {
         auto request = MPI_Request{};
-        MPI_Isend(values.data(), values.size(), mpi::to_mpi_datatype<std::remove_cv_t<T>>(),
+        MPI_Isend(values.data(), values.size(), mpi::to_mpi_datatype<std::remove_cv_t<T>>().value(),
                   destiny, 0, comm, &request);
         return request;
     }
@@ -107,11 +108,11 @@ namespace reshuffle::mpi {
     [[nodiscard]] auto block_receive(const MPI_Comm &comm) -> std::pair<RankId, std::vector<T>> {
 
         const auto [source, tag, count] = internal::block_until_message_is_received(
-                mpi::to_mpi_datatype<std::remove_cv_t<T>>(), comm);
+                mpi::to_mpi_datatype<std::remove_cv_t<T>>().value(), comm);
 
         auto values = std::vector<T>(count);
-        MPI_Recv(values.data(), count, mpi::to_mpi_datatype<std::remove_cv_t<T>>(), source, tag,
-                 comm, MPI_STATUS_IGNORE);
+        MPI_Recv(values.data(), count, mpi::to_mpi_datatype<std::remove_cv_t<T>>().value(), source,
+                 tag, comm, MPI_STATUS_IGNORE);
 
         return {source, values};
     }
@@ -149,8 +150,8 @@ namespace reshuffle::mpi {
 
         auto received_values = std::vector<T>(num_values_to_receive);
         MPI_Scatterv(values.data(), num_values_per_rank.data(), displacements.data(),
-                     to_mpi_datatype<T>(), received_values.data(), num_values_to_receive,
-                     to_mpi_datatype<T>(), root, comm);
+                     to_mpi_datatype<T>().value(), received_values.data(), num_values_to_receive,
+                     to_mpi_datatype<T>().value(), root, comm);
 
         return received_values;
     }
