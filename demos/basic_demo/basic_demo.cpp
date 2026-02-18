@@ -51,6 +51,10 @@ int main() {
             reshuffle::Context{reshuffle::distribution::BlockWise{global_dimensions,
                                                                   reshuffle::ProcessorGrid{2, 2}},
                                MPI_COMM_WORLD},
+            reshuffle::Context{reshuffle::distribution::BlockCyclic{global_dimensions,
+                                                                    reshuffle::Dimensions<2>{5, 5},
+                                                                    reshuffle::ProcessorGrid{2, 2}},
+                               MPI_COMM_WORLD},
     };
 
     if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
@@ -134,7 +138,11 @@ auto print_domain_decomposition(const reshuffle::Context<2> &current_context,
         const auto matrix_view =
                 std::mdspan{global_decomposition_values.data(), dimensions[0], dimensions[1]};
         for (int i = 0; i < dimensions[0]; i++) {
-            for (int j = 0; j < dimensions[1]; j++) { std::cout << matrix_view[i, j]; }
+            auto delimiter = std::string{};
+            for (int j = 0; j < dimensions[1]; j++) {
+                std::cout << std::exchange(delimiter, " ") << std::setfill(matrix_view[i, j])
+                          << std::setw(3) << matrix_view[i, j];
+            }
             std::cout << std::endl;
         }
     }
