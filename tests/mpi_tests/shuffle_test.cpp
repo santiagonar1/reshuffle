@@ -19,7 +19,7 @@ using testing::Eq;
 
 TEST(Shuffle, CanShuffleFromOneToMany) {
     constexpr auto num_values_per_rank = 6;
-    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
+    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD).value();
     const auto rank = get_rank_id(MPI_COMM_WORLD).value();
 
     const auto generator = ValuesGenerator(num_values_per_rank, num_ranks);
@@ -152,8 +152,8 @@ TEST(Shuffle, CanBeCalledByARankNotInCommunicators) {
             is_root(MPI_COMM_WORLD) ? std::vector(num_global_values, 1) : std::vector<int>{};
 
     // Trick: same communicator created twice to have different contexts
-    const auto comm_v1 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
-    const auto comm_v2 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+    const auto comm_v1 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
+    const auto comm_v2 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
 
     const auto only_rank_0 =
             Context{BlockWise{Dimensions{num_global_values}, ProcessorGrid{1}}, comm_v1};
@@ -250,7 +250,7 @@ TEST(Shuffle, CanShuffleFromOneToManyIn2DHorizontalSplit) {
 
 TEST(Shuffle, CanShuffleFromManyToOne) {
     constexpr auto num_values_per_rank = 6;
-    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
+    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD).value();
     const auto rank = get_rank_id(MPI_COMM_WORLD).value();
 
     const auto generator = ValuesGenerator(num_values_per_rank, num_ranks);
@@ -328,7 +328,7 @@ TEST(Shuffle, CanShuffleFromManyToOneIn2DHorizontalSplit) {
 
 TEST(Shuffle, CanShuffleFromBlockWiseToBlockCyclic) {
     constexpr auto num_values_per_rank = 6;
-    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
+    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD).value();
     const auto rank = get_rank_id(MPI_COMM_WORLD).value();
 
     const auto generator = ValuesGenerator(num_values_per_rank, num_ranks);
@@ -391,7 +391,7 @@ TEST(Shuffle, CanShuffleFromBlockCyclicToBlockWise) {
     constexpr auto num_global_values = 12;
     const auto values = is_root(MPI_COMM_WORLD) ? std::vector{1, 2, 3, 4, 9, 10, 11, 12}
                                                 : std::vector{5, 6, 7, 8};
-    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
+    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD).value();
 
     const auto initial_processor_grid = ProcessorGrid{num_ranks};
     const auto initial_distribution = BlockCyclic{{num_global_values}, {4}, initial_processor_grid};
@@ -444,7 +444,7 @@ TEST(Shuffle, CanShuffleFromBlockCyclicToBlockWiseIn2D) {
 
 TEST(Shuffle, CanShuffleFromDifferentCommunicators) {
     constexpr auto num_values_per_rank = 6;
-    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
+    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD).value();
     const auto rank = get_rank_id(MPI_COMM_WORLD).value();
 
     const auto generator = ValuesGenerator(num_values_per_rank, num_ranks);
@@ -494,7 +494,7 @@ TEST(Shuffle, CanShuffleFromDifferentCommunicatorsIn2D) {
 
 TEST(Shuffle, IfUsingTwoDifferentCommunicatorsOneMustBeSubCommunicatorOfTheOther) {
     constexpr auto num_values_per_rank = 6;
-    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
+    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD).value();
 
     const auto generator = ValuesGenerator(num_values_per_rank, num_ranks);
     const auto num_global_values = generator.get_total_num_values();
@@ -513,7 +513,7 @@ TEST(Shuffle, IfUsingTwoDifferentCommunicatorsOneMustBeSubCommunicatorOfTheOther
 
 TEST(Shuffle, IfUsingTwoDifferentCommunicatorsTheyCanStartAtDifferentRanks) {
     constexpr auto num_values_per_rank = 6;
-    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
+    const auto num_ranks = get_num_ranks(MPI_COMM_WORLD).value();
     const auto rank = get_rank_id(MPI_COMM_WORLD).value();
 
     const auto generator = ValuesGenerator(num_values_per_rank, num_ranks);
@@ -543,7 +543,7 @@ TEST(Shuffle, WorksWithCartesianCommunicator) {
                     reorder, &cartesian_comm);
 
     constexpr auto num_values_per_rank = 6;
-    const auto num_ranks = get_num_ranks(cartesian_comm);
+    const auto num_ranks = get_num_ranks(cartesian_comm).value();
     const auto rank = get_rank_id(cartesian_comm).value();
 
     const auto generator = ValuesGenerator(num_values_per_rank, num_ranks);

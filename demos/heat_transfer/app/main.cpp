@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
 
     const auto global_dimensions = reshuffle::Dimensions<2>{num_rows, num_columns};
 
-    const auto num_available_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
+    const auto num_available_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD).value();
     constexpr auto initial_num_ranks = 1;
 
     const auto processor_grid = get_processor_grid(initial_num_ranks);
@@ -183,7 +183,7 @@ auto get_comm(const unsigned int num_ranks, const MPI_Comm base_comm)
 
     if (base_comm == MPI_COMM_NULL) { return std::unexpected(GetCommError::INVALID_COMM); }
 
-    if (const auto available_ranks = reshuffle::mpi::get_num_ranks(base_comm);
+    if (const auto available_ranks = reshuffle::mpi::get_num_ranks(base_comm).value();
         num_ranks > available_ranks) {
         return std::unexpected(GetCommError::INVALID_NUM_RANKS);
     }
@@ -191,7 +191,7 @@ auto get_comm(const unsigned int num_ranks, const MPI_Comm base_comm)
     auto ranks = std::vector<int>(num_ranks);
     std::ranges::iota(ranks.begin(), ranks.end(), 0);
 
-    return reshuffle::mpi::get_sub_comm(base_comm, ranks);
+    return reshuffle::mpi::get_sub_comm(base_comm, ranks).value();
 }
 
 auto get_next_num_ranks(const int num_adaptations,
@@ -244,7 +244,7 @@ auto gather_in_root(const heat::Grid &local_grid, const reshuffle::Dimensions<2>
                     const MPI_Comm comm) -> heat::Grid {
     const auto processor = heat::ProcessorInfo{comm};
 
-    const auto current_num_ranks = reshuffle::mpi::get_num_ranks(comm);
+    const auto current_num_ranks = reshuffle::mpi::get_num_ranks(comm).value();
     const auto current_processor_grid = get_processor_grid(current_num_ranks);
     const auto current_context = reshuffle::Context{
             reshuffle::distribution::BlockWise{global_dimensions, current_processor_grid}, comm};
@@ -265,7 +265,7 @@ auto gather_in_root(const heat::RankGrid &local_grid,
         -> heat::RankGrid {
     if (not reshuffle::mpi::belongs_to_comm(comm)) { return {}; }
 
-    const auto current_num_ranks = reshuffle::mpi::get_num_ranks(comm);
+    const auto current_num_ranks = reshuffle::mpi::get_num_ranks(comm).value();
     const auto current_processor_grid = get_processor_grid(current_num_ranks);
     const auto current_context = reshuffle::Context{
             reshuffle::distribution::BlockWise{global_dimensions, current_processor_grid}, comm};
@@ -283,9 +283,7 @@ auto do_adaptation(heat::Grid &local_grid, heat::RankGrid &rank_grid,
                    const reshuffle::Dimensions<2> &global_dimensions,
                    const unsigned int new_num_ranks, MPI_Comm current_comm) -> MPI_Comm {
 
-    auto current_num_ranks = reshuffle::mpi::belongs_to_comm(current_comm)
-                                     ? reshuffle::mpi::get_num_ranks(current_comm)
-                                     : 1;
+    auto current_num_ranks = reshuffle::mpi::get_num_ranks(current_comm).value_or(-11);
 
     MPI_Bcast(&current_num_ranks, 1, MPI_INT, 0, MPI_COMM_WORLD);
 

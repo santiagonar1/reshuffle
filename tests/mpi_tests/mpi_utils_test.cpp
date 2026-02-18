@@ -41,16 +41,17 @@ TEST(GetRankId, ReturnsRankId) {
     EXPECT_THAT(get_rank_id(MPI_COMM_WORLD).value(), Eq(rank));
 }
 
-TEST(GetRankId, ReturnsNullOptionIfCommIsNull) {
-    EXPECT_FALSE(get_rank_id(MPI_COMM_NULL).has_value());
+TEST(GetRankId, ReturnErrorIfCommIsNull) {
+    EXPECT_THAT(get_rank_id(MPI_COMM_NULL).error(), Eq(MPIError::COMM_IS_NULL));
 }
 
-TEST(GetRankId, ReturnsNullOptionIfRankNotInComm) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+TEST(GetRankId, ReturnsErrorIfRankNotInComm) {
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
 
-    if (const auto rank = get_rank_id(MPI_COMM_WORLD).value(); rank == 0) {
+    if (is_root(MPI_COMM_WORLD)) {
         EXPECT_TRUE(get_rank_id(comm_rank_0).has_value());
     } else {
+        // TODO: Find a way to actually check this, as comm_rank_0 is, for rank 1, MPI_COMM_NULL
         EXPECT_FALSE(get_rank_id(comm_rank_0).has_value());
     }
 }
@@ -78,8 +79,8 @@ TEST(GetNumRanks, ReturnsTheNumberOfRanks) {
     EXPECT_THAT(get_num_ranks(MPI_COMM_WORLD), Eq(num_ranks));
 }
 
-TEST(GetNumRanks, ThrowsIfCommIsNull) {
-    EXPECT_THROW(auto _ = get_num_ranks(MPI_COMM_NULL), std::invalid_argument);
+TEST(GetNumRanks, ReturnsErrorIfCommIsNull) {
+    EXPECT_THAT(get_num_ranks(MPI_COMM_NULL).error(), Eq(MPIError::COMM_IS_NULL));
 }
 
 TEST(IsCommNull, ReturnsTrueIfCommIsNull) { EXPECT_TRUE(is_comm_null(MPI_COMM_NULL)); }
@@ -87,7 +88,7 @@ TEST(IsCommNull, ReturnsTrueIfCommIsNull) { EXPECT_TRUE(is_comm_null(MPI_COMM_NU
 TEST(IsCommNull, ReturnsFalseIfCommNotNull) { EXPECT_FALSE(is_comm_null(MPI_COMM_WORLD)); }
 
 TEST(GetSubComm, CreatesAnMPISubcommunicator) {
-    auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
+    auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0)).value_or(MPI_COMM_NULL);
 
     if (is_root(MPI_COMM_WORLD)) {
         EXPECT_THAT(get_num_ranks(comm_rank_0), Eq(1));
@@ -95,14 +96,27 @@ TEST(GetSubComm, CreatesAnMPISubcommunicator) {
     }
 }
 
+TEST(GetSubComm, ReturnsErrorIfBaseCommIsNull) {
+    EXPECT_THAT(get_sub_comm(MPI_COMM_NULL, std::vector(1, 0)).error(), Eq(MPIError::COMM_IS_NULL));
+}
+
+TEST(GetSubComm, ReturnsErrorIfRequestedRankNotInComm) {
+    const auto available_ranks = get_num_ranks(MPI_COMM_WORLD).value();
+    const auto rank_not_in_comm = available_ranks;
+    EXPECT_THAT(get_sub_comm(MPI_COMM_WORLD, std::vector{rank_not_in_comm}).error(),
+                Eq(MPIError::RANK_NOT_IN_COMM));
+}
+
 TEST(BelongsToComm, ReturnsTrueIfRankInCommunicator) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
+    const auto comm_rank_0 =
+            get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0)).value_or(MPI_COMM_NULL);
 
     if (is_root(MPI_COMM_WORLD)) { EXPECT_TRUE(reshuffle::mpi::belongs_to_comm(comm_rank_0)); }
 }
 
 TEST(BelongsToComm, ReturnsFalseIfRankNotInCommunicator) {
-    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1));
+    const auto comm_rank_1 =
+            get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1)).value_or(MPI_COMM_NULL);
 
     if (is_root(MPI_COMM_WORLD)) { EXPECT_FALSE(reshuffle::mpi::belongs_to_comm(comm_rank_1)); }
 }
@@ -112,18 +126,21 @@ TEST(BelongsToComm, ReturnsFalseIfMPICommNullPassed) {
 }
 
 TEST(IsSubComm, ReturnsTrueIfSubComm) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
+    const auto comm_rank_0 =
+            get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0)).value_or(MPI_COMM_NULL);
     EXPECT_TRUE(reshuffle::mpi::is_sub_comm(MPI_COMM_WORLD, comm_rank_0));
 }
 
 TEST(IsSubComm, ReturnsFalseIfNotSubComm) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0));
-    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1));
+    const auto comm_rank_0 =
+            get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0)).value_or(MPI_COMM_NULL);
+    const auto comm_rank_1 =
+            get_sub_comm(MPI_COMM_WORLD, std::vector(1, 1)).value_or(MPI_COMM_NULL);
     EXPECT_FALSE(reshuffle::mpi::is_sub_comm(comm_rank_0, comm_rank_1));
 }
 
 TEST(IsSubComm, OnlyNeedsToBeCalledByRanksInComm) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
 
     if (is_root(MPI_COMM_WORLD)) { EXPECT_TRUE(is_sub_comm(comm_rank_0, comm_rank_0)); }
 }

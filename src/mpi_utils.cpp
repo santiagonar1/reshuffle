@@ -24,12 +24,13 @@ namespace reshuffle::mpi {
         }
     }// namespace internal
 
-    auto get_rank_id(const MPI_Comm &comm) -> std::optional<RankId> {
+    auto get_rank_id(const MPI_Comm &comm) -> std::expected<RankId, MPIError> {
+        if (is_comm_null(comm)) { return std::unexpected(MPIError::COMM_IS_NULL); }
+        if (not belongs_to_comm(comm)) { return std::unexpected(MPIError::RANK_NOT_IN_COMM); }
+
         int rank{MPI_ERR_RANK};
-
-        if (is_comm_null(comm) or not belongs_to_comm(comm)) { return std::nullopt; }
-
         MPI_Comm_rank(comm, &rank);
+
         return rank;
     }
 
@@ -37,21 +38,31 @@ namespace reshuffle::mpi {
         return belongs_to_comm(comm) and get_rank_id(comm) == 0;
     }
 
-    auto get_num_ranks(const MPI_Comm &comm) -> int {
+    auto get_num_ranks(const MPI_Comm &comm) -> std::expected<int, MPIError> {
+        if (is_comm_null(comm)) { return std::unexpected(MPIError::COMM_IS_NULL); }
+        if (not belongs_to_comm(comm)) { return std::unexpected(MPIError::RANK_NOT_IN_COMM); }
+
         int num_ranks{};
-
-        if (is_comm_null(comm)) {
-            throw std::invalid_argument("Invalid MPI_COMM_NULL communicator");
-        }
-
         MPI_Comm_size(comm, &num_ranks);
+
         return num_ranks;
     }
 
     auto is_comm_null(const MPI_Comm &comm) -> bool { return comm == MPI_COMM_NULL; }
 
 
-    auto get_sub_comm(const MPI_Comm &base_comm, const std::vector<RankId> &ranks) -> MPI_Comm {
+    auto get_sub_comm(const MPI_Comm &base_comm, const std::vector<RankId> &ranks)
+            -> std::expected<MPI_Comm, MPIError> {
+        if (is_comm_null(base_comm)) { return std::unexpected(MPIError::COMM_IS_NULL); }
+        if (not belongs_to_comm(base_comm)) { return std::unexpected(MPIError::RANK_NOT_IN_COMM); }
+
+        const auto num_available_ranks = get_num_ranks(base_comm).value();
+
+        if (const auto max_rank_id = *std::ranges::max_element(ranks);
+            max_rank_id >= num_available_ranks) {
+            return std::unexpected(MPIError::RANK_NOT_IN_COMM);
+        }
+
         const auto base_group = get_group(base_comm).value();
         const auto sub_group = get_sub_group(base_group, ranks);
         auto sub_comm{MPI_COMM_NULL};
@@ -60,17 +71,14 @@ namespace reshuffle::mpi {
         return sub_comm;
     }
 
-    auto get_group(const MPI_Comm &comm) -> std::optional<MPI_Group> {
-        if (is_comm_null(comm)) { return std::nullopt; }
+    auto get_group(const MPI_Comm &comm) -> std::expected<MPI_Group, MPIError> {
+        if (is_comm_null(comm)) { return std::unexpected(MPIError::COMM_IS_NULL); }
+        if (not belongs_to_comm(comm)) { return std::unexpected(MPIError::RANK_NOT_IN_COMM); }
 
-        MPI_Group group;
+        MPI_Group group{};
+        MPI_Comm_group(comm, &group);
 
-        const auto current_errhandler = internal::enable_mpi_errors_return(MPI_COMM_WORLD);
-        const int err = MPI_Comm_group(comm, &group);
-        MPI_Comm_set_errhandler(MPI_COMM_WORLD, current_errhandler);
-
-
-        return err == MPI_SUCCESS ? std::optional{group} : std::nullopt;
+        return group;
     }
 
     auto belongs_to_comm(const MPI_Comm &comm) -> bool {

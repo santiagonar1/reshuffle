@@ -11,7 +11,7 @@ using namespace reshuffle::mpi;
 using testing::Eq;
 
 TEST(InterCommunicator, CreatesAnIntercommunicatorBetweenTwoCommunicators) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
     const auto inter_comm = InterCommunicator(comm_rank_0, MPI_COMM_WORLD);
 
     const auto num_ranks = get_num_ranks(MPI_COMM_WORLD);
@@ -19,21 +19,21 @@ TEST(InterCommunicator, CreatesAnIntercommunicatorBetweenTwoCommunicators) {
 }
 
 TEST(InterCommunicator, OnlyWorksIfOneCommunicatorIsSubcommunicatorOfTheOther) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
-    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector{1});
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
+    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector{1}).value_or(MPI_COMM_NULL);
 
     EXPECT_THROW(InterCommunicator(comm_rank_0, comm_rank_1), std::runtime_error);
 }
 
 TEST(InterCommunicator, WorksIfCalledFromRankInNeitherOfTwoCommunicators) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
 
     const auto inter_comm = InterCommunicator(comm_rank_0, comm_rank_0);
 }
 
 TEST(InterCommunicator, CanGetRankInIntercommunicatorFromInitialCommunicator) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
-    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector{1});
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
+    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector{1}).value_or(MPI_COMM_NULL);
 
     const auto inter_comm_from_comm_rank_0 = InterCommunicator(comm_rank_0, MPI_COMM_WORLD);
     const auto inter_comm_from_comm_rank_1 = InterCommunicator(comm_rank_1, MPI_COMM_WORLD);
@@ -47,8 +47,8 @@ TEST(InterCommunicator, CanGetRankInIntercommunicatorFromInitialCommunicator) {
 }
 
 TEST(InterCommunicator, CanGetRankInIntercommunicatorFromFinalCommunicator) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
-    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector{1});
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
+    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector{1}).value_or(MPI_COMM_NULL);
 
     const auto inter_comm_from_comm_rank_0 = InterCommunicator(comm_rank_0, MPI_COMM_WORLD);
     const auto inter_comm_from_comm_rank_1 = InterCommunicator(comm_rank_1, MPI_COMM_WORLD);
@@ -62,7 +62,7 @@ TEST(InterCommunicator, CanGetRankInIntercommunicatorFromFinalCommunicator) {
 }
 
 TEST(InterCommunicator, ThrowsIfYouTryToGetRankIntercommunicatorFromARankNotInInitialCommunicator) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
     constexpr auto rank_not_in_first = 1;
 
     const auto inter_comm = InterCommunicator(comm_rank_0, MPI_COMM_WORLD);
@@ -73,8 +73,8 @@ TEST(InterCommunicator, ThrowsIfYouTryToGetRankIntercommunicatorFromARankNotInIn
 }
 
 TEST(InterCommunicator, ThrowsIfYouTryToGetRankIntercommunicatorFromARankNotInFinalCommunicator) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
-    const auto rank_not_in_second = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD) + 1;
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
+    const auto rank_not_in_second = get_num_ranks(MPI_COMM_WORLD).value() + 1;
 
     const auto inter_comm = InterCommunicator(comm_rank_0, MPI_COMM_WORLD);
 
@@ -84,7 +84,7 @@ TEST(InterCommunicator, ThrowsIfYouTryToGetRankIntercommunicatorFromARankNotInFi
 }
 
 TEST(InterCommunicator, CanGetRankInFinalCommunicatorFromRankIntercommunicator) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
 
     const auto inter_comm = InterCommunicator(comm_rank_0, MPI_COMM_WORLD);
 
@@ -93,7 +93,7 @@ TEST(InterCommunicator, CanGetRankInFinalCommunicatorFromRankIntercommunicator) 
 }
 
 TEST(InterCommunicator, GetFinalCommRankUsesCallingRankIdByDefault) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
 
     const auto inter_comm = InterCommunicator(comm_rank_0, MPI_COMM_WORLD);
 
@@ -105,7 +105,7 @@ TEST(InterCommunicator, GetFinalCommRankUsesCallingRankIdByDefault) {
 }
 
 TEST(InterCommunicator, ReturnsNulloptWhileGettingRankIfIntercommRankNotInFinal) {
-    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
+    const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0}).value_or(MPI_COMM_NULL);
 
     const auto inter_comm = InterCommunicator(MPI_COMM_WORLD, comm_rank_0);
 
@@ -114,7 +114,7 @@ TEST(InterCommunicator, ReturnsNulloptWhileGettingRankIfIntercommRankNotInFinal)
 }
 
 TEST(InterCommunicator, CanGetRankInInitialCommunicatorFromRankIntercommunicator) {
-    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector{1});
+    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector{1}).value_or(MPI_COMM_NULL);
 
     const auto inter_comm = InterCommunicator(comm_rank_1, MPI_COMM_WORLD);
 
@@ -122,7 +122,7 @@ TEST(InterCommunicator, CanGetRankInInitialCommunicatorFromRankIntercommunicator
 }
 
 TEST(InterCommunicator, GetInitialCommRankUsesCallingRankIdByDefault) {
-    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector{1});
+    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector{1}).value_or(MPI_COMM_NULL);
 
     const auto inter_comm = InterCommunicator(comm_rank_1, MPI_COMM_WORLD);
 
@@ -134,7 +134,7 @@ TEST(InterCommunicator, GetInitialCommRankUsesCallingRankIdByDefault) {
 }
 
 TEST(InterCommunicator, ReturnsNulloptWhileGettingRankIfIntercommRankNotInInitial) {
-    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector{1});
+    const auto comm_rank_1 = get_sub_comm(MPI_COMM_WORLD, std::vector{1}).value_or(MPI_COMM_NULL);
 
     const auto inter_comm = InterCommunicator(comm_rank_1, MPI_COMM_WORLD);
 

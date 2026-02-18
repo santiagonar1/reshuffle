@@ -24,7 +24,7 @@ int main() {
 
     MPI_Init(nullptr, nullptr);
 
-    const auto available_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
+    const auto available_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD).value();
 
     if (available_ranks > 5) {
         const std::string error_msg = "Please run with at most 5 ranks. Currently running with " +
@@ -91,12 +91,12 @@ auto simulate_adaptation(const int num_active_ranks) -> MPI_Comm {
     const auto active_ranks = std::views::iota(0, num_active_ranks) |
                               std::ranges::to<std::vector<reshuffle::RankId>>();
 
-    return reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, active_ranks);
+    return reshuffle::mpi::get_sub_comm(MPI_COMM_WORLD, active_ranks).value();
 }
 
 auto decomposition_header(const MPI_Comm comm, const std::array<char, 5> &rank_to_char)
         -> std::string {
-    const auto num_ranks = reshuffle::mpi::get_num_ranks(comm);
+    const auto num_ranks = reshuffle::mpi::get_num_ranks(comm).value();
     auto header = std::string{};
 
     auto delimiter = std::string{};
