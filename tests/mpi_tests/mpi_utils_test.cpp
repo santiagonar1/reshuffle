@@ -41,16 +41,17 @@ TEST(GetRankId, ReturnsRankId) {
     EXPECT_THAT(get_rank_id(MPI_COMM_WORLD).value(), Eq(rank));
 }
 
-TEST(GetRankId, ReturnsNullOptionIfCommIsNull) {
-    EXPECT_FALSE(get_rank_id(MPI_COMM_NULL).has_value());
+TEST(GetRankId, ReturnErrorIfCommIsNull) {
+    EXPECT_THAT(get_rank_id(MPI_COMM_NULL).error(), Eq(MPIError::COMM_IS_NULL));
 }
 
-TEST(GetRankId, ReturnsNullOptionIfRankNotInComm) {
+TEST(GetRankId, ReturnsErrorIfRankNotInComm) {
     const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
 
-    if (const auto rank = get_rank_id(MPI_COMM_WORLD).value(); rank == 0) {
+    if (is_root(MPI_COMM_WORLD)) {
         EXPECT_TRUE(get_rank_id(comm_rank_0).has_value());
     } else {
+        // TODO: Find a way to actually check this, as comm_rank_0 is, for rank 1, MPI_COMM_NULL
         EXPECT_FALSE(get_rank_id(comm_rank_0).has_value());
     }
 }

@@ -24,10 +24,12 @@ namespace reshuffle::mpi {
         }
     }// namespace internal
 
-    auto get_rank_id(const MPI_Comm &comm) -> std::optional<RankId> {
+    auto get_rank_id(const MPI_Comm &comm) -> std::expected<RankId, MPIError> {
         int rank{MPI_ERR_RANK};
 
-        if (is_comm_null(comm) or not belongs_to_comm(comm)) { return std::nullopt; }
+        if (is_comm_null(comm)) { return std::unexpected(MPIError::COMM_IS_NULL); }
+
+        if (not belongs_to_comm(comm)) { return std::unexpected(MPIError::RANK_NOT_IN_COMM); }
 
         MPI_Comm_rank(comm, &rank);
         return rank;

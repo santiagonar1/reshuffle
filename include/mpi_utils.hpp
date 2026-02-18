@@ -12,6 +12,7 @@
 #include "serialize.hpp"
 #include "utils.hpp"
 
+#include <expected>
 #include <map>
 
 namespace reshuffle::mpi {
@@ -53,7 +54,9 @@ namespace reshuffle::mpi {
         throw std::invalid_argument("No MPI Datatype");
     }
 
-    [[nodiscard]] auto get_rank_id(const MPI_Comm &comm) -> std::optional<RankId>;
+    enum class MPIError { COMM_IS_NULL, RANK_NOT_IN_COMM };
+
+    [[nodiscard]] auto get_rank_id(const MPI_Comm &comm) -> std::expected<RankId, MPIError>;
 
     [[nodiscard]] auto is_root(const MPI_Comm &comm) -> bool;
 
