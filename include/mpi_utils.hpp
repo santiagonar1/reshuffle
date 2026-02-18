@@ -67,7 +67,7 @@ namespace reshuffle::mpi {
     [[nodiscard]] auto get_sub_comm(const MPI_Comm &base_comm, const std::vector<RankId> &ranks)
             -> MPI_Comm;
 
-    [[nodiscard]] auto get_group(const MPI_Comm &comm) -> std::optional<MPI_Group>;
+    [[nodiscard]] auto get_group(const MPI_Comm &comm) -> std::expected<MPI_Group, MPIError>;
 
     [[nodiscard]] auto belongs_to_comm(const MPI_Comm &comm) -> bool;
 

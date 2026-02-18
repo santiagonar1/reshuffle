@@ -61,17 +61,15 @@ namespace reshuffle::mpi {
         return sub_comm;
     }
 
-    auto get_group(const MPI_Comm &comm) -> std::optional<MPI_Group> {
-        if (is_comm_null(comm)) { return std::nullopt; }
+    auto get_group(const MPI_Comm &comm) -> std::expected<MPI_Group, MPIError> {
+        if (is_comm_null(comm)) { return std::unexpected(MPIError::COMM_IS_NULL); }
 
-        MPI_Group group;
+        if (not belongs_to_comm(comm)) { return std::unexpected(MPIError::RANK_NOT_IN_COMM); }
 
-        const auto current_errhandler = internal::enable_mpi_errors_return(MPI_COMM_WORLD);
-        const int err = MPI_Comm_group(comm, &group);
-        MPI_Comm_set_errhandler(MPI_COMM_WORLD, current_errhandler);
+        MPI_Group group{};
+        MPI_Comm_group(comm, &group);
 
-
-        return err == MPI_SUCCESS ? std::optional{group} : std::nullopt;
+        return group;
     }
 
     auto belongs_to_comm(const MPI_Comm &comm) -> bool {
