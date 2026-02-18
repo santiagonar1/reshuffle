@@ -40,8 +40,7 @@ int main() {
     constexpr auto global_dimensions = reshuffle::Dimensions<2>{num_rows, num_columns};
 
     const auto contexts = std::vector{
-            reshuffle::Context{reshuffle::distribution::BlockWise{global_dimensions,
-                                                                  reshuffle::ProcessorGrid{1, 1}},
+            reshuffle::Context{reshuffle::distribution::get_all_values_in_root(global_dimensions),
                                MPI_COMM_WORLD},
             reshuffle::Context{reshuffle::distribution::BlockWise{global_dimensions,
                                                                   reshuffle::ProcessorGrid{4, 1}},

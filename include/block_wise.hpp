@@ -35,6 +35,10 @@ namespace reshuffle::distribution {
     };
 
     template<std::size_t N>
+    [[nodiscard]] auto get_all_values_in_root(const Dimensions<N> &num_global_values)
+            -> BlockWise<N>;
+
+    template<std::size_t N>
     BlockWise<N>::BlockWise(const Dimensions<N> &num_global_values,
                             const ProcessorGrid<N> &processor_grid)
         : _num_global_values(num_global_values), _processor_grid(processor_grid),
@@ -64,6 +68,14 @@ namespace reshuffle::distribution {
     template<std::size_t N>
     auto BlockWise<N>::clone() const -> std::unique_ptr<DataDistribution<N>> {
         return std::make_unique<BlockWise>(*this);
+    }
+
+    template<std::size_t N>
+    auto get_all_values_in_root(const Dimensions<N> &num_global_values) -> BlockWise<N> {
+        auto processor_grid_dimensions = reshuffle::Dimensions<N>{};
+        std::ranges::fill(processor_grid_dimensions, 1);
+
+        return BlockWise{num_global_values, ProcessorGrid{processor_grid_dimensions}};
     }
 
     namespace internal {

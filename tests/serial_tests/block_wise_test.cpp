@@ -87,3 +87,11 @@ TEST(CreateEvenlyBlocks, CanBeUsedInMultipleDimensions) {
     EXPECT_THAT(create_evenly_blocks(num_values, processor_grid),
                 Eq(std::array{expected_y, expected_x}));
 }
+
+TEST(GetAllValuesInRoot, ReturnsBlockWiseDistributionWithOnlyOneRank) {
+    constexpr auto global_dimensions = Dimensions{20};
+    const auto all_values_in_root = get_all_values_in_root(global_dimensions);
+
+    const auto expected = BlockWise{global_dimensions, ProcessorGrid{1}};
+    EXPECT_THAT(all_values_in_root, Eq(expected));
+}
