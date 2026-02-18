@@ -51,6 +51,10 @@ int main() {
             reshuffle::Context{reshuffle::distribution::BlockWise{global_dimensions,
                                                                   reshuffle::ProcessorGrid{2, 2}},
                                MPI_COMM_WORLD},
+            reshuffle::Context{reshuffle::distribution::BlockCyclic{global_dimensions,
+                                                                    reshuffle::Dimensions<2>{5, 5},
+                                                                    reshuffle::ProcessorGrid{2, 2}},
+                               MPI_COMM_WORLD},
     };
 
     if (reshuffle::mpi::is_root(MPI_COMM_WORLD)) {
