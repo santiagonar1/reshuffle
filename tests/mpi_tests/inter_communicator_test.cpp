@@ -74,7 +74,7 @@ TEST(InterCommunicator, ThrowsIfYouTryToGetRankIntercommunicatorFromARankNotInIn
 
 TEST(InterCommunicator, ThrowsIfYouTryToGetRankIntercommunicatorFromARankNotInFinalCommunicator) {
     const auto comm_rank_0 = get_sub_comm(MPI_COMM_WORLD, std::vector{0});
-    const auto rank_not_in_second = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD) + 1;
+    const auto rank_not_in_second = get_num_ranks(MPI_COMM_WORLD).value() + 1;
 
     const auto inter_comm = InterCommunicator(comm_rank_0, MPI_COMM_WORLD);
 

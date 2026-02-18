@@ -39,12 +39,11 @@ namespace reshuffle::mpi {
         return belongs_to_comm(comm) and get_rank_id(comm) == 0;
     }
 
-    auto get_num_ranks(const MPI_Comm &comm) -> int {
+    auto get_num_ranks(const MPI_Comm &comm) -> std::expected<int, MPIError> {
         int num_ranks{};
 
-        if (is_comm_null(comm)) {
-            throw std::invalid_argument("Invalid MPI_COMM_NULL communicator");
-        }
+        if (is_comm_null(comm)) { return std::unexpected(MPIError::COMM_IS_NULL); }
+        if (not belongs_to_comm(comm)) { return std::unexpected(MPIError::RANK_NOT_IN_COMM); }
 
         MPI_Comm_size(comm, &num_ranks);
         return num_ranks;

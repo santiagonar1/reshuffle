@@ -60,7 +60,7 @@ namespace reshuffle::mpi {
 
     [[nodiscard]] auto is_root(const MPI_Comm &comm) -> bool;
 
-    [[nodiscard]] auto get_num_ranks(const MPI_Comm &comm) -> int;
+    [[nodiscard]] auto get_num_ranks(const MPI_Comm &comm) -> std::expected<int, MPIError>;
 
     [[nodiscard]] auto is_comm_null(const MPI_Comm &comm) -> bool;
 
@@ -132,7 +132,7 @@ namespace reshuffle::mpi {
     [[nodiscard]] auto block_scatter(std::span<T> values,
                                      const std::map<RankId, int> &values_per_rank,
                                      const RankId root, const MPI_Comm &comm) -> std::vector<T> {
-        const auto num_ranks = get_num_ranks(comm);
+        const auto num_ranks = get_num_ranks(comm).value();
 
         auto num_values_per_rank = std::vector<int>(num_ranks);
         for (int i = 0; i < num_ranks; ++i) {
@@ -256,7 +256,7 @@ namespace reshuffle::mpi {
 
 
         if (rank == root) {
-            const auto num_ranks = get_num_ranks(comm);
+            const auto num_ranks = get_num_ranks(comm).value();
             auto [my_values, bytes_to_send, bytes_per_rank] =
                     internal::get_send_buffer_and_mapping(values, values_per_rank, num_ranks, root);
 

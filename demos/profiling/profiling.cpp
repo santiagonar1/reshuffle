@@ -12,7 +12,7 @@ int main() {
 
     MPI_Init(nullptr, nullptr);
 
-    const auto num_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD);
+    const auto num_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD).value();
     if (num_global_values % num_ranks != 0) {
         const auto error_msg =
                 std::format("Number of values {} not divisible by number of ranks {}",

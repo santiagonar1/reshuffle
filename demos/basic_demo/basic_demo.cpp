@@ -28,7 +28,8 @@ int main() {
 
     MPI_Init(nullptr, nullptr);
 
-    if (const auto num_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD); num_ranks != 4) {
+    if (const auto num_ranks = reshuffle::mpi::get_num_ranks(MPI_COMM_WORLD).value();
+        num_ranks != 4) {
         const std::string error_msg =
                 "Please run with 4 ranks. Currently running with " + std::to_string(num_ranks);
         std::cerr << error_msg << std::endl;

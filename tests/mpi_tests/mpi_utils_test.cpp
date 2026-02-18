@@ -79,8 +79,8 @@ TEST(GetNumRanks, ReturnsTheNumberOfRanks) {
     EXPECT_THAT(get_num_ranks(MPI_COMM_WORLD), Eq(num_ranks));
 }
 
-TEST(GetNumRanks, ThrowsIfCommIsNull) {
-    EXPECT_THROW(auto _ = get_num_ranks(MPI_COMM_NULL), std::invalid_argument);
+TEST(GetNumRanks, ReturnsErrorIfCommIsNull) {
+    EXPECT_THAT(get_num_ranks(MPI_COMM_NULL).error(), Eq(MPIError::COMM_IS_NULL));
 }
 
 TEST(IsCommNull, ReturnsTrueIfCommIsNull) { EXPECT_TRUE(is_comm_null(MPI_COMM_NULL)); }

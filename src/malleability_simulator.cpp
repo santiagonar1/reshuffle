@@ -44,7 +44,8 @@ namespace reshuffle::mpi {
 
         MPI_Barrier(_base_comm);
 
-        if (const auto available_ranks = get_num_ranks(_base_comm); num_ranks > available_ranks) {
+        if (const auto available_ranks = get_num_ranks(_base_comm).value();
+            num_ranks > available_ranks) {
             return std::unexpected{RequestAdaptationError::NOT_ENOUGH_AVAILABLE_RANKS};
         }
 
