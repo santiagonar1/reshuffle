@@ -56,6 +56,13 @@ namespace reshuffle::mpi {
         if (is_comm_null(base_comm)) { return std::unexpected(MPIError::COMM_IS_NULL); }
         if (not belongs_to_comm(base_comm)) { return std::unexpected(MPIError::RANK_NOT_IN_COMM); }
 
+        const auto num_available_ranks = get_num_ranks(base_comm).value();
+
+        if (const auto max_rank_id = *std::ranges::max_element(ranks);
+            max_rank_id >= num_available_ranks) {
+            return std::unexpected(MPIError::RANK_NOT_IN_COMM);
+        }
+
         const auto base_group = get_group(base_comm).value();
         const auto sub_group = get_sub_group(base_group, ranks);
         auto sub_comm{MPI_COMM_NULL};

@@ -100,6 +100,13 @@ TEST(GetSubComm, ReturnsErrorIfBaseCommIsNull) {
     EXPECT_THAT(get_sub_comm(MPI_COMM_NULL, std::vector(1, 0)).error(), Eq(MPIError::COMM_IS_NULL));
 }
 
+TEST(GetSubComm, ReturnsErrorIfRequestedRankNotInComm) {
+    const auto available_ranks = get_num_ranks(MPI_COMM_WORLD).value();
+    const auto rank_not_in_comm = available_ranks;
+    EXPECT_THAT(get_sub_comm(MPI_COMM_WORLD, std::vector{rank_not_in_comm}).error(),
+                Eq(MPIError::RANK_NOT_IN_COMM));
+}
+
 TEST(BelongsToComm, ReturnsTrueIfRankInCommunicator) {
     const auto comm_rank_0 =
             get_sub_comm(MPI_COMM_WORLD, std::vector(1, 0)).value_or(MPI_COMM_NULL);
