@@ -24,6 +24,7 @@ message(STATUS "Found MPI_CXX_COMPILER: ${MPI_CXX_COMPILER}")
 
 option(BUILD_DYN_PROC_DEMOS "Turn on compilation Dyn Proc Demos. Requires special OpenMPI" OFF)
 option(BUILD_TESTING "Build tests" ON)
+option(BUILD_DEMOS "Build demos" ON)
 option(TEST_SCALAPACK "Build examples and benchmarks of ScaLAPACK" OFF)
 option(TEST_COSTA "Build examples and benchmarks of the COSTA library" OFF)
 option(PROFILING "Turns profiling on" OFF)
