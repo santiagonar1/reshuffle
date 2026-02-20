@@ -22,9 +22,10 @@ find_package(zpp_bits REQUIRED)
 
 message(STATUS "Found MPI_CXX_COMPILER: ${MPI_CXX_COMPILER}")
 
-option(RESHUFFLE_BUILD_DYN_PROC_DEMO "Turn on compilation Dyn Proc Demo. Requires special OpenMPI" OFF)
 option(RESHUFFLE_BUILD_TESTS "Build tests" ON)
 option(RESHUFFLE_BUILD_DEMOS "Build demos" ON)
+option(RESHUFFLE_BUILD_BENCHMARKS "Build benchmarks" ON)
+option(RESHUFFLE_BUILD_DYN_PROC_DEMO "Turn on compilation Dyn Proc Demo. Requires special OpenMPI" OFF)
 option(RESHUFFLE_TEST_SCALAPACK "Build examples and benchmarks of ScaLAPACK" OFF)
 option(RESHUFFLE_TEST_COSTA "Build examples and benchmarks of the COSTA library" OFF)
 option(RESHUFFLE_PROFILING "Turns profiling on" OFF)
@@ -87,9 +88,15 @@ add_subdirectory(demos)
 
 if (RESHUFFLE_BUILD_TESTS)
     add_subdirectory(tests)
+else ()
+    message(STATUS "Tests will not be compiled")
+endif ()
+
+if (RESHUFFLE_BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
 else ()
-    message(STATUS "Tests and benchmarks will not be compiled")
+    message(STATUS "Benchmakrs will not be compiled")
 endif ()
+
 
 include(Install)
