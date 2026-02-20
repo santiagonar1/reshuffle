@@ -4,7 +4,7 @@ if (BUILD_DEMOS)
     add_subdirectory(heat_transfer)
     add_subdirectory(elastic_demo)
 
-    if (BUILD_DYN_PROC_DEMOS)
+    if (BUILD_DYN_PROC_DEMO)
         add_subdirectory(dyn_proc_demo)
     endif ()
 
