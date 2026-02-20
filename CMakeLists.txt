@@ -84,7 +84,11 @@ target_include_directories(${PROJECT_NAME}
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-add_subdirectory(demos)
+if (RESHUFFLE_BUILD_DEMOS)
+    add_subdirectory(demos)
+else ()
+    message(STATUS "Demos will not be compiled")
+endif ()
 
 if (RESHUFFLE_BUILD_TESTS)
     add_subdirectory(tests)
