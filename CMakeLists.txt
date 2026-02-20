@@ -85,21 +85,24 @@ target_include_directories(${PROJECT_NAME}
 )
 
 if (RESHUFFLE_BUILD_DEMOS)
+    message(STATUS "Demos will be compiled")
     add_subdirectory(demos)
 else ()
-    message(STATUS "Demos will not be compiled")
+    message(STATUS "Demos will NOT be compiled")
 endif ()
 
 if (RESHUFFLE_BUILD_TESTS)
+    message(STATUS "Tests will be compiled")
     add_subdirectory(tests)
 else ()
-    message(STATUS "Tests will not be compiled")
+    message(STATUS "Tests will NOT be compiled")
 endif ()
 
 if (RESHUFFLE_BUILD_BENCHMARKS)
+    message(STATUS "Benchmarks will be compiled")
     add_subdirectory(benchmarks)
 else ()
-    message(STATUS "Benchmakrs will not be compiled")
+    message(STATUS "Benchmarks will NOT be compiled")
 endif ()
 
 
