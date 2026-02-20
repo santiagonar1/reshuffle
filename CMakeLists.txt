@@ -23,7 +23,7 @@ find_package(zpp_bits REQUIRED)
 message(STATUS "Found MPI_CXX_COMPILER: ${MPI_CXX_COMPILER}")
 
 option(BUILD_DYN_PROC_DEMO "Turn on compilation Dyn Proc Demo. Requires special OpenMPI" OFF)
-option(BUILD_TESTING "Build tests" ON)
+option(BUILD_TESTS "Build tests" ON)
 option(BUILD_DEMOS "Build demos" ON)
 option(TEST_SCALAPACK "Build examples and benchmarks of ScaLAPACK" OFF)
 option(TEST_COSTA "Build examples and benchmarks of the COSTA library" OFF)
@@ -85,7 +85,7 @@ target_include_directories(${PROJECT_NAME}
 
 add_subdirectory(demos)
 
-if (BUILD_TESTING)
+if (BUILD_TESTS)
     add_subdirectory(tests)
     add_subdirectory(benchmarks)
 else ()
