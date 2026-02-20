@@ -44,6 +44,15 @@ cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DCMAKE_CXX_COMPIL
 There are additional options to, for example, disable the compilation of the test files. Check those directly in the
 cmake configuration.
 
+If you happen to use MacOS, we highly recommend using [Homebrew](https://brew.sh/) to install Clang. If you do so,
+use the [MacBrewLLVMToolchain](cmake/MacBrewLLVMToolchain.cmake) to configure your environment:
+
+```shell
+mkdir build && cd build
+cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DCMAKE_TOOLCHAIN_FILE=cmake/MacBrewLLVMToolchain.cmake ..
+make
+```
+
 ### Install
 
 The previous steps are enough to play with the demos and check that dependencies of the library are satisfied. But If
