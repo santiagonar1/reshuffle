@@ -120,7 +120,7 @@ the `MPIEXEC_PREFLAGS` variable.
 ```shell
 docker run --rm -it -v .:/reshuffle reshuffle bash
 mkdir /reshuffle/build && cd /reshuffle/build
-cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DMPIEXEC_PREFLAGS=--allow-run-as-root -DTEST_COSTA=off ..
+cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DMPIEXEC_PREFLAGS=--allow-run-as-root ..
 make
 ```
 

@@ -1,18 +1,18 @@
-if (BUILD_DEMOS)
+if (RESHUFFLE_BUILD_DEMOS)
 
     add_subdirectory(basic_demo)
     add_subdirectory(heat_transfer)
     add_subdirectory(elastic_demo)
 
-    if (BUILD_DYN_PROC_DEMO)
+    if (RESHUFFLE_BUILD_DYN_PROC_DEMO)
         add_subdirectory(dyn_proc_demo)
     endif ()
 
-    if (PROFILING)
+    if (RESHUFFLE_PROFILING)
         add_subdirectory(profiling)
     endif ()
 
-    if (TEST_SCALAPACK)
+    if (RESHUFFLE_TEST_SCALAPACK)
         add_subdirectory(scalapack_demo)
     endif ()
 

@@ -22,22 +22,22 @@ find_package(zpp_bits REQUIRED)
 
 message(STATUS "Found MPI_CXX_COMPILER: ${MPI_CXX_COMPILER}")
 
-option(BUILD_DYN_PROC_DEMO "Turn on compilation Dyn Proc Demo. Requires special OpenMPI" OFF)
-option(BUILD_TESTS "Build tests" ON)
-option(BUILD_DEMOS "Build demos" ON)
-option(TEST_SCALAPACK "Build examples and benchmarks of ScaLAPACK" OFF)
-option(TEST_COSTA "Build examples and benchmarks of the COSTA library" OFF)
-option(PROFILING "Turns profiling on" OFF)
+option(RESHUFFLE_BUILD_DYN_PROC_DEMO "Turn on compilation Dyn Proc Demo. Requires special OpenMPI" OFF)
+option(RESHUFFLE_BUILD_TESTS "Build tests" ON)
+option(RESHUFFLE_BUILD_DEMOS "Build demos" ON)
+option(RESHUFFLE_TEST_SCALAPACK "Build examples and benchmarks of ScaLAPACK" OFF)
+option(RESHUFFLE_TEST_COSTA "Build examples and benchmarks of the COSTA library" OFF)
+option(RESHUFFLE_PROFILING "Turns profiling on" OFF)
 
-if (TEST_SCALAPACK)
+if (RESHUFFLE_TEST_SCALAPACK)
     include(FindScalapackPackages)
 endif ()
 
-if (TEST_COSTA)
+if (RESHUFFLE_TEST_COSTA)
     include(FindCostaPackages)
 endif ()
 
-if (PROFILING)
+if (RESHUFFLE_PROFILING)
     message(STATUS "Profiling is enabled - Tracy profiler will be used")
     find_package(Tracy REQUIRED)
 endif ()
@@ -65,7 +65,7 @@ target_link_libraries(${PROJECT_NAME}
         PUBLIC zpp_bits::zpp_bits
 )
 
-if (PROFILING)
+if (RESHUFFLE_PROFILING)
     target_compile_definitions(${PROJECT_NAME} PUBLIC ENABLE_PROFILING_RESHUFFLE)
     target_link_libraries(${PROJECT_NAME}
             PUBLIC Tracy::TracyClient)
@@ -85,7 +85,7 @@ target_include_directories(${PROJECT_NAME}
 
 add_subdirectory(demos)
 
-if (BUILD_TESTS)
+if (RESHUFFLE_BUILD_TESTS)
     add_subdirectory(tests)
     add_subdirectory(benchmarks)
 else ()

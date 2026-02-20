@@ -14,7 +14,7 @@ The [scalapack_benchmark](./scalapack_benchmark.cpp) requires the [ScaLAPACK](ht
 to be installed in the system. Refer to the [ScaLAPACK](../docs/scalapack.md) documentation provided in our repository
 to see how to install it in your system.
 
-Once that is done, make sure that the option `TEST_SCALAPACK` is turned on.
+Once that is done, make sure that the option `RESHUFFLE_TEST_SCALAPACK` is turned on.
 
 ## COSTA
 
@@ -22,4 +22,4 @@ The [costa benchmark](./costa_benchmark.cpp) requires the [COSTA](https://github
 library. Refer to the [COSTA](../docs/costa.md) documentation provided in our repository to see how to install it in
 your system.
 
-Once that is done, make sure that the option `TEST_COSTA` is turned on.
+Once that is done, make sure that the option `RESHUFFLE_TEST_COSTA` is turned on.

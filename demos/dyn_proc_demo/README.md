@@ -19,5 +19,5 @@ see an example of the correct configuration for a cluster with 4 nodes (named `n
 cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake \
       -DMPIEXEC_EXECUTABLE=prterun \
       -DMPIEXEC_PREFLAGS='--display;map;--mca;btl_tcp_if_include;eth0;--host;n1:8,n2:8,n3:8,n4:8;-x;LD_LIBRARY_PATH' \
-      -DBUILD_DYN_PROC_DEMOS=ON ..
+      -DRESHUFFLE_BUILD_DYN_PROC_DEMO=ON ..
 ```

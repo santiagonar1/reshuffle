@@ -16,7 +16,7 @@ compile_benchmark(reshuffle_benchmark)
 compile_benchmark(strategy_benchmark)
 compile_benchmark(reshuffle_reordering_benchmark)
 
-if (TEST_SCALAPACK)
+if (RESHUFFLE_TEST_SCALAPACK)
     add_executable(scalapack_benchmark.out scalapack_benchmark.cpp)
     target_link_libraries(scalapack_benchmark.out
             PRIVATE MPI::MPI_CXX
@@ -28,7 +28,7 @@ if (TEST_SCALAPACK)
     )
 endif ()
 
-if (TEST_COSTA)
+if (RESHUFFLE_TEST_COSTA)
     add_executable(costa_benchmark.out costa_benchmark.cpp)
     target_link_libraries(costa_benchmark.out
             PRIVATE MPI::MPI_CXX
