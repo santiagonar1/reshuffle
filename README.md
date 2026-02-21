@@ -53,56 +53,18 @@ cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DCMAKE_TOOLCHAIN_
 make
 ```
 
-### Install
+### Install / Use in external projects
 
 The previous steps are enough to play with the demos and check that dependencies of the library are satisfied. But If
-you want to use `reshuffle` with an external project, you will need to install it. We provide
-an [installation script](install.sh), which should be run directly from the root directory of the library:
+you want to use `reshuffle` with an external project, you will need to install it. If your project is a CMake project,
+we suggest you take a look at our [Simple reshuffle app](https://github.com/santiagonar1/simple-reshuffle-app) project,
+where we showcase how to easily install `reshuffle` in an external project.
 
-```shell
-bash install.sh
-```
+You can also manually install `reshuffle` in your system. For this, use the `-DCMAKE_INSTALL_PREFIX` at configuration
+time to indicate where to install the library. After this, simply run `make install` (or `ninja install` if you are
+using [Ninja](https://ninja-build.org/)).
 
-This should create an `install` directory inside the main directory (i.e., `/path/to/reshuffle/install`). You can use
-the variable [CMAKE_INSTALL_PREFIX](https://cmake.org/cmake/help/latest/variable/CMAKE_INSTALL_PREFIX.html) to change
-this behaviour.
-
-You can check available options via:
-
-```shell
-bash install.sh --help
-```
-
-Keep in mind that certain things, such as the path to MPI, might need to be modified. So take a look at the script
-before
-running it. You are encouraged to take a look at the scripts to check the steps required to install the library, which
-then you could adapt to your needs.
-
-#### Using reshuffle in external project
-
-In the client code (i.e., the external project where you want to use `reshuffle`) you will need to first find
-and link `reshuffle`. For this, in your `CMakeList.txt` add:
-
-```cmake
-find_package(reshuffle CONFIG REQUIRED)
-target_link_libraries(exec.out PRIVATE reshuffle::reshuffle)
-```
-
-When you configure your external application remember to include the path to `reshuffle`:
-
-```shell
-cmake -DCMAKE_PREFIX_PATH=/path/to/reshuffle/install
-```
-
-You should be able to include and use `reshuffle` in your project as:
-
-```c++
-#include <reshuffle/reshuffle.hpp>
-```
-
-You can find an example of how this is done in [our demo](https://gitlab.lrz.de/reshuffle/demo).
-
-You should have access to both MPI and zpp_bits in the project you are linking reshuffle with.
+There is an [installation script](install.sh), but this is  **experimental** and might not work for all cases.
 
 ### Docker
 
