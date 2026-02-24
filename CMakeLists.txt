@@ -35,7 +35,7 @@ if (RESHUFFLE_TEST_SCALAPACK)
 endif ()
 
 if (RESHUFFLE_TEST_COSTA)
-    include(FindCostaPackages)
+    find_package(costa REQUIRED)
 endif ()
 
 if (RESHUFFLE_PROFILING)

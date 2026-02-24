@@ -32,7 +32,8 @@ if (RESHUFFLE_TEST_COSTA)
     add_executable(costa_benchmark.out costa_benchmark.cpp)
     target_link_libraries(costa_benchmark.out
             PRIVATE MPI::MPI_CXX
-            PRIVATE CostaLibrary
+            PRIVATE costa::costa_scalapack
+            PRIVATE costa::costa
             PRIVATE benchmark::benchmark
     )
     target_include_directories(costa_benchmark.out

@@ -5,14 +5,15 @@ As explained in [their repository](https://github.com/eth-cscs/COSTA/tree/master
 > COSTA is a communication-optimal, highly-optimised algorithm for data redistribution across multiple processors,
 > using MPI and OpenMP and offering the possibility to transpose and scale some or all data.
 
-You can check our [costa_benchmark.cpp](../benchmarks/costa_benchmark.cpp) for an example of how to use it.
+You can check our [costa_benchmark.cpp](../benchmarks/costa_benchmark.cpp) for an example of how to use it. The build
+system automatically downloads and builds the library. If you want to do a manual installation, then see below.
 
-## Installation
+## Manual Installation
 
 First take a look at [their installation instructions](https://github.com/eth-cscs/COSTA/blob/master/INSTALL.md).
 
-If you install the library to `/path/to/this/repository/external/costa` it will be automatically detected by our
-build system. Otherwise, make sure to indicate the path via:
+Once you have followed their instructions, simply indicate the installation path to `cmake` via the
+`-DCMAKE_PREFIX_PATH` flag.
 
 ```shell
 cmake -DCMAKE_PREFIX_PATH=/path/to/costa/installation
