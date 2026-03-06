@@ -18,7 +18,7 @@ namespace heat::vtk {
                              reshuffle::RankId rank,
                              const std::optional<RankGrid> &rank_grid = std::nullopt) const -> void;
 
-        auto get_filename(unsigned int iteration) const -> std::string;
+        [[nodiscard]] auto get_filename(unsigned int iteration) const -> std::string;
 
         static auto write_file(std::ostream &output, const Grid &grid,
                                const std::optional<RankGrid> &rank_grid = std::nullopt) -> void;
