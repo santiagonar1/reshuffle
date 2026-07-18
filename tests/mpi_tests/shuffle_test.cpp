@@ -145,6 +145,42 @@ TEST(Shuffle, CanShuffleUsingGeneralDataDistribution) {
     }
 }
 
+TEST(Shuffle, CanShuffleUsingGeneralDataDistributionIn2D) {
+    constexpr auto num_global_rows = 4;
+    constexpr auto num_global_columns = 4;
+    const auto values = is_root(MPI_COMM_WORLD)
+                                ? std::vector{std::vector{0, 1, 4, 5}, std::vector{10, 11, 14, 15}}
+                                : std::vector{std::vector{2, 3, 6, 7}, std::vector{8, 9, 12, 13}};
+    const auto intervals_0 = std::vector{MultidimensionalInterval{Interval{0, 2}, Interval{0, 2}},
+                                         MultidimensionalInterval{Interval{2, 4}, Interval{2, 4}}};
+    const auto intervals_1 = std::vector{MultidimensionalInterval{Interval{0, 2}, Interval{2, 4}},
+                                         MultidimensionalInterval{Interval{2, 4}, Interval{0, 2}}};
+
+    const auto global_mapping = GlobalMapping<2>{{0, intervals_0}, {1, intervals_1}};
+
+    const auto mapping_0 = std::map<IntervalId, Coordinates<2>>{{0, {0, 0}}, {1, {0, 1}}};
+    const auto mapping_1 = std::map<IntervalId, Coordinates<2>>{{0, {0, 0}}, {1, {0, 1}}};
+    const auto mapping = is_root(MPI_COMM_WORLD) ? mapping_0 : mapping_1;
+    const auto rank = get_rank_id(MPI_COMM_WORLD).value();
+
+    const auto initial_distribution =
+            GeneralDataDistribution<2>::make(global_mapping, mapping, rank).value();
+    const auto initial_context = Context{initial_distribution, MPI_COMM_WORLD};
+
+
+    const auto final_context = Context{
+            BlockWise{{num_global_rows, num_global_columns}, ProcessorGrid{1, 2}}, MPI_COMM_WORLD};
+
+    if (is_root(MPI_COMM_WORLD)) {
+        const auto new_values = shuffle(values, initial_context, final_context).first;
+        EXPECT_THAT(new_values, Eq(std::vector{0, 1, 4, 5, 8, 9, 12, 13}));
+
+    } else {
+        const auto new_values = shuffle(values, initial_context, final_context).first;
+        EXPECT_THAT(new_values, Eq(std::vector{2, 3, 6, 7, 10, 11, 14, 15}));
+    }
+}
+
 TEST(Shuffle, CanBeCalledByARankNotInCommunicators) {
     constexpr auto num_global_values = 4;
 
